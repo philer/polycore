@@ -82,5 +82,8 @@ hddtemp = memoize(5, function()
     for _, device_name, temp in result:gmatch("|([^|]+)|([^|]+)|(%d+)|C|") do
         temperatures[device_name] = tonumber(temp)
     end
+    -- experimental: nvme drives
+    result = read_cmd("sudo nvme smart-log /dev/nvme0")
+    temperatures["/dev/nvme0"] = tonumber(result:match("temperature%s+: (%d+) C"))
     return temperatures
 end)

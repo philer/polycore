@@ -27,7 +27,7 @@ conky.config = {
     minimum_width = 140,
     maximum_width = 140,
     -- minimum_height = 732, -- 700 minus bar height
-    minimum_height = 1080 - 24,
+    minimum_height = 1080 - 28,
     -- maximum_height = 690, -- 700 minus bar height (Unknown setting)
 
     uppercase = false,
@@ -137,7 +137,6 @@ ${alignc}${time %d.%m.%Y}
 ${alignc}${time %H:%M}
 $color#
 #
-#
 ### cpu ###
 ${voffset 174}
 #
@@ -151,16 +150,15 @@ ${template2 3}
 ${template2 4}
 ${template2 5}
 #
-#
 ### mem ###
 ${voffset 30}#
 ${template6 mem} # ${template8}$mem / $memmax#
 ${voffset 20}
+#
 ### memtop ###
 ${template4 1}
 ${template4 2}
 ${template4 3}
-#
 #
 ### GPU ###
 ${voffset 30}#
@@ -171,8 +169,6 @@ ${nvidia temp}°C$color
 ${voffset 20}
 $color1${execpi 5 ~/bin/nvidia-top.sh}
 #
-#
-#
 ### net ###
 ${voffset 30}#
 ${template6 net}${template8}
@@ -180,23 +176,19 @@ ${voffset 3}#
 ${template9}${color1}Down$color${template8}${downspeed enp0s31f6}
 ${template9}${color1}Total$color${template8}${totaldown enp0s31f6}
 ${voffset 1}#
-#$template9$color5${execigraph ~/bin/echo100.sh 16,120}$template9$color3${downspeedgraph enp0s31f6 16,120 -l}$color
 ${voffset 28}#
 ${template9}${color1}Up$color${template8}${upspeed enp0s31f6}${color}
 ${template9}${color1}Total$color${template8}${totalup enp0s31f6}
 ${voffset 22}#
-#$template9$color5${execigraph ~/bin/echo100.sh 16,120}$template9$color3${upspeedgraph enp0s31f6 16,120 -l}$color
-#
-#
 #
 ### drives ###
 ${voffset 30}#
-#
 ${template5 root /}#
 ${template5 home /home}#
 ${template5 blackstor /mnt/blackstor}#
 ${template5 bluestor /mnt/bluestor}#
 ${template5 cryptstor /mnt/cryptstor}#
+${template5 nvmetest /mnt/nvmetest}#
 #
 ${image ~/.config/conky/9blocks.png -p 60,990 -s 16x16}#
 ]];

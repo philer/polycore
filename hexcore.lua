@@ -16,6 +16,7 @@ local drives = {
     {"/mnt/blackstor", "WDC WD2002FAEX-007BA0"},
     {"/mnt/bluestor", "WDC WD20EZRZ-00Z5HB0"},
     {"/mnt/cryptstor", "/dev/disk/by-uuid/9e340509-be93-42b5-9dcc-99bdbd428e22"},
+    {"/mnt/nvmetest", "/dev/nvme0"}
 }
 
 local font_family = "Ubuntu"
@@ -92,7 +93,6 @@ function conky_main()
     win_height = conky_window.text_height
     x_left = 10
     x_right = win_width - x_left
-
     local y_offset = 110
 
     local cpu_temps = cpu_temperatures()
@@ -118,12 +118,9 @@ function conky_main()
     draw_cpu_frequencies(cpu_frequencies(),
                          x_left + 2, x_right - 20,
                          y_offset, y_offset + 16)
-    -- y_offset = y_offset + 40
 
     draw_memory(420)
-
     draw_gpu(514)
-
     draw_network("enp0s31f6", 664)
 
     y_offset = 800 - 15
@@ -136,9 +133,7 @@ function conky_main()
     end
 
     draw_right_border()
-
     reset_data(tonumber(conky_parse('${updates}')))
-
     destruct_cairo()
 end
 
@@ -174,6 +169,7 @@ function draw_hex_cpu(mx, my, percentages, temperatures)
         cairo_set_line_width(cr, .75)
         cairo_stroke_preserve(cr)
 
+        -- local h_rel = percentages[id]/100 -- height relative bar
         -- area relative bar height --
         local h = math.sqrt(percentages[id] / 100 * (max * max - min * min)
                             + min * min)
@@ -196,7 +192,6 @@ end
 function draw_cpu_frequencies(frequencies, x_min, x_max, y_min, y_max)
     cairo_set_line_width(cr, 1)
     font_normal(10)
-    -- local r, g, b = unpack(graph_color)  -- temperature independent color
     cairo_set_source_rgba(cr, r, g, b, .66)
 
     local df = max_freq - min_freq
@@ -213,8 +208,6 @@ function draw_cpu_frequencies(frequencies, x_min, x_max, y_min, y_max)
     end
     cairo_stroke(cr)
 
-    -- background --
-
     --- shadow outline
     polygon({
         x_min - 1, y_max - (y_max - y_min) * min_freq / max_freq - 1,
@@ -226,6 +219,7 @@ function draw_cpu_frequencies(frequencies, x_min, x_max, y_min, y_max)
     cairo_set_line_width(cr, 1)
     cairo_stroke(cr)
 
+    -- background --
     polygon({
         x_min, y_max - (y_max - y_min) * min_freq / max_freq,
         x_max, y_min,
@@ -256,7 +250,7 @@ end
 
 function draw_gpu(y_offset)
     local r, g, b = temp_color(gpu_temperature(), 30, 80)
-    bar("%", gpu_percentage() / 100, range(.2, .8, .2), y_offset, r, g, b)
+    bar("%", gpu_percentage() / 100, {.25, .5, .75}, y_offset, r, g, b)
     local mem_used, mem_total = gpu_memory()
     memory_bar("GiB", mem_used / 1024, mem_total / 1024, y_offset + 12, r, g, b)
 end
@@ -300,6 +294,7 @@ end
 
 function memory_bar(unit, used, total, y_offset, r, g, b)
     local ticks = range(1 / total, math.floor(total) / total, 1 / total)
+    -- ticks = range(1/16, 15/16, 1/16)
     bar(unit, used / total, ticks, y_offset, r, g, b)
 end
 

@@ -130,7 +130,7 @@ ${template9}${offset 1}${font Ubuntu:pixelsize=11:bold}${color0}[ \1 ]$color$fon
 
 conky.text = [[
 ${voffset 30}#
-${font TeXGyreChorus:pixelsize=20:bold}${alignc}Linux ${color 4dd}Mint${font}
+${font TeXGyreChorus:pixelsize=20:bold}${alignc}Linux ${color 4dd}Mint$color$font
 
 $color1#
 ${alignc}${time %d.%m.%Y}

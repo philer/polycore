@@ -250,7 +250,7 @@ end
 
 function draw_gpu(y_offset)
     local r, g, b = temp_color(gpu_temperature(), 30, 80)
-    bar("%", gpu_percentage() / 100, {.25, .5, .75}, y_offset, r, g, b)
+    bar("%", gpu_percentage() / 100, {.25, .5, .75}, nil, y_offset, r, g, b)
     local mem_used, mem_total = gpu_memory()
     memory_bar("GiB", mem_used / 1024, mem_total / 1024, y_offset + 12, r, g, b)
 end
@@ -287,7 +287,7 @@ function draw_drive(path, device_name, y_offset)
         r, g, b = temp_color(temp, 35, 65)
     end
     y_offset = y_offset + 4
-    bar(nil, perc / 100, {}, y_offset, r, g, b)
+    bar(nil, perc / 100, {}, nil, y_offset, r, g, b)
 end
 
 
@@ -295,10 +295,18 @@ end
 function memory_bar(unit, used, total, y_offset, r, g, b)
     local ticks = range(1 / total, math.floor(total) / total, 1 / total)
     -- ticks = range(1/16, 15/16, 1/16)
-    bar(unit, used / total, ticks, y_offset, r, g, b)
+    local big_ticks = nil
+    total = math.ceil(total)
+    if total > 8 then
+        big_ticks = {}
+        for offset = 4, total, 4 do
+            big_ticks[offset] = offset
+        end
+    end
+    bar(unit, used / total, ticks, big_ticks, y_offset, r, g, b)
 end
 
-function bar(unit, fraction, ticks, y_offset, r, g, b)
+function bar(unit, fraction, ticks, big_ticks, y_offset, r, g, b)
     if r == nil then
         r, g, b = unpack(graph_color)
     end
@@ -339,10 +347,19 @@ function bar(unit, fraction, ticks, y_offset, r, g, b)
     cairo_stroke(cr)
 
     --- ticks ---
-    for _, frac in ipairs(ticks) do
+    for offset, frac in ipairs(ticks) do
         local x = math.floor(x_left + frac * (x_max - x_left)) + .5
         cairo_move_to(cr, x, y_offset + height + .5)
-        cairo_rel_line_to(cr, 0, 3)
+        if big_ticks then
+            if big_ticks[offset] then
+                cairo_rel_line_to(cr, 0, 4)
+                -- write_centered(x, y_offset + height + 8.5, big_ticks[offset])
+            else
+                cairo_rel_line_to(cr, 0, 2)
+            end
+        else
+            cairo_rel_line_to(cr, 0, 3)
+        end
     end
     cairo_set_source_rgba(cr, r, g, b, .5)
     cairo_stroke(cr)

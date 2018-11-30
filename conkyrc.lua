@@ -110,7 +110,7 @@ ${template9}${color1}${top_mem name \1}${template8}${top_mem mem_res \1}$color]]
 -- $endif]],
     template5 = [[
 ${if_mounted \2}
-${template9}${offset 1}${font Ubuntu:pixelsize=11:bold}${color0}· \1 ·\n${voffset 10}${color1}${font Ubuntu:pixelsize=10}${template9}${fs_used \2}  /   ${fs_size \2}${template8}${if_match ${fs_used_perc \2}>=85}${color b54}$else$color$endif${fs_used_perc \2}%$font$color
+${template9}${offset 1}${font Ubuntu:pixelsize=11:bold}${color0}· \1 ·\n${voffset 8}${color1}${font Ubuntu:pixelsize=10}${template9}${fs_used \2}  /   ${fs_size \2}${template8}${if_match ${fs_used_perc \2}>=85}${color b54}$else$color$endif${fs_used_perc \2}%$font$color
 $endif]],
 
     -- title: title
@@ -138,10 +138,9 @@ ${alignc}${time %H:%M}
 $color#
 #
 ### cpu ###
-${voffset 174}
+${voffset 200}
 #
 ### top ###
-${voffset 30}#
 ${template6 top}${template8}cpu mem
 ${voffset 3}#
 ${template2 1}
@@ -149,46 +148,43 @@ ${template2 2}
 ${template2 3}
 ${template2 4}
 ${template2 5}
-#
+
+
 ### mem ###
-${voffset 30}#
-${template6 mem} # ${template8}$mem / $memmax#
+${template6 mem} # ${template8}$mem / $memmax
 ${voffset 20}
-#
 ### memtop ###
 ${template4 1}
 ${template4 2}
 ${template4 3}
-#
+
+
 ### GPU ###
-${voffset 30}#
 ${template6 gpu}  ${nvidia gpufreq} MHz#
 ${template8}#
 ${if_match 75 <= ${nvidia temp}}${color b54}${font Ubuntu:pixelsize=10:bold}$endif#
 ${nvidia temp}°C$color
 ${voffset 20}
 $color1${execpi 5 ~/bin/nvidia-top.sh}
-#
+
+
 ### net ###
-${voffset 30}#
 ${template6 net}${template8}
 ${voffset 3}#
 ${template9}${color1}Down$color${template8}${downspeed enp0s31f6}
 ${template9}${color1}Total$color${template8}${totaldown enp0s31f6}
-${voffset 1}#
-${voffset 28}#
+${voffset 29}#
 ${template9}${color1}Up$color${template8}${upspeed enp0s31f6}${color}
 ${template9}${color1}Total$color${template8}${totalup enp0s31f6}
 ${voffset 22}#
-#
+
+
 ### drives ###
-${voffset 30}#
 ${template5 root /}#
 ${template5 home /home}#
 ${template5 blackstor /mnt/blackstor}#
 ${template5 bluestor /mnt/bluestor}#
 ${template5 cryptstor /mnt/cryptstor}#
-${template5 nvmetest /mnt/nvmetest}#
 #
 ${image ~/.config/conky/9blocks.png -p 60,990 -s 16x16}#
 ]];

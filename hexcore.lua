@@ -11,19 +11,18 @@ local CycleQueue = require 'util.CycleQueue'
 
 
 local drives = {
-    {"/", "SanDisk SDSSDA120G"},
-    {"/home", "SanDisk SDSSDA120G"},
+    {"/", "/dev/nvme0"},
+    {"/home", "/dev/nvme0"},
     {"/mnt/blackstor", "WDC WD2002FAEX-007BA0"},
     {"/mnt/bluestor", "WDC WD20EZRZ-00Z5HB0"},
     {"/mnt/cryptstor", "/dev/disk/by-uuid/9e340509-be93-42b5-9dcc-99bdbd428e22"},
-    {"/mnt/nvmetest", "/dev/nvme0"}
 }
 
 local font_family = "Ubuntu"
 local font_size = 10
 
 local min_freq = 0.75
-local max_freq = 4.2
+local max_freq = 4.3
 
 local max_download = 10*1024
 local max_upload = 1024
@@ -121,10 +120,10 @@ function conky_main()
 
     draw_memory(420)
     draw_gpu(514)
-    draw_network("enp0s31f6", 664)
+    draw_network("enp0s31f6", 665)
 
     y_offset = 800 - 15
-    local drive_height = 45
+    local drive_height = 47
     for _, drive in ipairs(drives) do
         if is_mounted(drive[1]) then
             draw_drive(drive[1], drive[2], y_offset)
@@ -197,7 +196,7 @@ function draw_cpu_frequencies(frequencies, x_min, x_max, y_min, y_max)
     local df = max_freq - min_freq
 
     -- ticks --
-    for freq = 1, 4, .25 do
+    for freq = 1, max_freq, .25 do
         local x = x_min + (x_max - x_min) * (freq - min_freq) / df
         local big = math.floor(freq) == freq
         if big then
@@ -267,7 +266,7 @@ function draw_network(interface, y_offset)
     downspeed_graph_data:add(down)
     graph(downspeed_graph_data, max_download, y_offset, 20)
     upspeed_graph_data:add(up)
-    graph(upspeed_graph_data, max_upload, y_offset + 51, 20)
+    graph(upspeed_graph_data, max_upload, y_offset + 53, 20)
     -- downspeed_graph_data:add(math.log10(math.max(1, down)))
     -- graph(downspeed_graph_data, math.log10(max_download), y_offset, 20)
     -- upspeed_graph_data:add(math.log10(math.max(1, up)))
@@ -281,7 +280,7 @@ function draw_drive(path, device_name, y_offset)
     local r, g, b
     if temp == nil then
         write_left(x_right - 21, y_offset, "––––")
-        r, g, b = unpack(graph_color)
+        r, g, b = .8, .8, .8
     else
         write_left(x_right - 24, y_offset, temp .. " °C")
         r, g, b = temp_color(temp, 35, 65)

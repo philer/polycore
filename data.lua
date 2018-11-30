@@ -77,7 +77,7 @@ is_mounted = memoize(5, function(path)
 end)
 
 hddtemp = memoize(5, function()
-    local result = read_cmd("nc localhost 7634")
+    local result = read_cmd("nc localhost 7634 -d")
     local temperatures = {}
     for _, device_name, temp in result:gmatch("|([^|]+)|([^|]+)|(%d+)|C|") do
         temperatures[device_name] = tonumber(temp)

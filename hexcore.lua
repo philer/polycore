@@ -33,7 +33,7 @@ local temperature_colors = {
     {.7, .9, .6},
     {1,  .9, .4},
     {1,  .6, .2},
-    {1,  .3, .1},
+    {1,  .2, .2},
 }
 function temp_color(temp, low, high)
     local idx = (temp - low) / (high - low) * (#temperature_colors - 1) + 1

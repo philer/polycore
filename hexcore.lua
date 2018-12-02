@@ -45,24 +45,6 @@ function temp_color(temp, low, high)
            cool[3] + weight * (hot[3] - cool[3])
 end
 
-local s3 = math.sqrt(3)
-local vert_hex_offsets = {
-    {-1, -s3}, -- top left
-    { 1, -s3}, -- top right
-    { 2,   0}, -- right
-    { 1,  s3}, -- bottom right
-    {-1,  s3}, -- bottom left
-    {-2,   0}, -- left
-}
-local hor_hex_offsets = {
-    {  0, -2},
-    { s3, -1},
-    { s3,  1},
-    {  0,  2},
-    {-s3,  1},
-    {-s3, -1},
-}
-
 ---
 
 local cr, cs
@@ -422,23 +404,29 @@ end
 --+–––––––––––––––+--
 ---------------------
 
--- function hexagon_segment(id, mx, my, min, max, gap)
---     local offset1x, offset1y = unpack(vert_hex_offsets[id])
---     local offset2x, offset2y = unpack(vert_hex_offsets[id % 6 + 1])
---     local gapx, gapy = unpack(hor_hex_offsets[id])
---     gapx, gapy = gapx * gap, gapy * gap
---     polygon({
---         mx + min * offset1x + gapx, my + min * offset1y + gapy,
---         mx + max * offset1x + gapx, my + max * offset1y + gapy,
---         mx + max * offset2x + gapx, my + max * offset2y + gapy,
---         mx + min * offset2x + gapx, my + min * offset2y + gapy,
---     })
+-- local core_count = 6
+-- local segment_offsets = {}
+-- for id = 1, core_count do
+--     local rad = math.pi * (2 * (id+.5) / core_count)
+--     -- id = (id + 2) % 6 + 1
+--     id = (id -1) % core_count + 1
+--     segment_offsets[id] = {2*math.cos(rad), 2*math.sin(rad)}
 -- end
 
+local s3 = math.sqrt(3)
+local hex_segment_offsets = {
+    {-1, -s3}, -- top left
+    { 1, -s3}, -- top right
+    { 2,   0}, -- right
+    { 1,  s3}, -- bottom right
+    {-1,  s3}, -- bottom left
+    {-2,   0}, -- left
+}
+
 function hexagon_segment_gradient(id, mx, my, min, max, gap)
-    local offset1x, offset1y = unpack(vert_hex_offsets[id])
-    local offset2x, offset2y = unpack(vert_hex_offsets[id % 6 + 1])
-    local gapx, gapy = unpack(hor_hex_offsets[id])
+    local offset1x, offset1y = unpack(hex_segment_offsets[id])
+    local offset2x, offset2y = unpack(hex_segment_offsets[id % 6 + 1])
+    local gapy, gapx = unpack(hex_segment_offsets[7 - id])
     gapx, gapy = gapx * gap, gapy * gap
     local coords = {
         mx + min * offset1x + gapx, my + min * offset1y + gapy,
@@ -468,8 +456,8 @@ end
 function hexagon(mx, my, scale)
     local coords = {}
     for i = 1, 6 do
-        table.insert(coords, mx + scale * vert_hex_offsets[i][1])
-        table.insert(coords, my + scale * vert_hex_offsets[i][2])
+        table.insert(coords, mx + scale * hex_segment_offsets[i][1])
+        table.insert(coords, my + scale * hex_segment_offsets[i][2])
     end
     polygon(coords)
 end

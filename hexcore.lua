@@ -5,8 +5,7 @@ require 'cairo'
 -- lua's import system is retarded.
 package.path = os.getenv("HOME") .. "/.config/conky/?.lua;" .. package.path
 require 'data'
-require 'util.functions'
-local CycleQueue = require 'util.CycleQueue'
+require 'util'
 
 
 

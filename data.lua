@@ -1,6 +1,6 @@
 -- lua's import system is retarded.
 package.path = os.getenv("HOME") .. "/.config/conky/?.lua;" .. package.path
-require 'util.functions'
+require 'util'
 
 local read_cmd = memoize(function(cmd)
     local pipe = io.popen(cmd)

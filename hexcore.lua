@@ -404,12 +404,13 @@ end
 ---------------------
 
 -- local core_count = 6
--- local segment_offsets = {}
+-- local segment_corner_directions = {}
+-- local segment_center_directions = {}
 -- for id = 1, core_count do
 --     local rad = math.pi * (2 * (id+.5) / core_count)
 --     -- id = (id + 2) % 6 + 1
 --     id = (id -1) % core_count + 1
---     segment_offsets[id] = {2*math.cos(rad), 2*math.sin(rad)}
+--     segment_corner_directions[id] = {2*math.cos(rad), 2*math.sin(rad)}
 -- end
 
 local s3 = math.sqrt(3)
@@ -425,6 +426,7 @@ local hex_segment_offsets = {
 function hexagon_segment_gradient(id, mx, my, min, max, gap)
     local offset1x, offset1y = unpack(hex_segment_offsets[id])
     local offset2x, offset2y = unpack(hex_segment_offsets[id % 6 + 1])
+    -- happens to work for 6:
     local gapy, gapx = unpack(hex_segment_offsets[7 - id])
     gapx, gapy = gapx * gap, gapy * gap
     local coords = {

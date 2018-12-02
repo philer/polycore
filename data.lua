@@ -11,12 +11,12 @@ end)
 
 
 function cpu_percentages()
-    local result = conky_parse("${cpu cpu0}|${cpu cpu1}|${cpu cpu2}|${cpu cpu3}|${cpu cpu4}|${cpu cpu5}")
+    local result = conky_parse("${cpu cpu1}|${cpu cpu2}|${cpu cpu3}|${cpu cpu4}|${cpu cpu5}|${cpu cpu6}")
     return map(tonumber, result:gmatch("%d+"))
 end
 
 function cpu_frequencies()
-    local result = conky_parse("${freq_g 0}|${freq_g 1}|${freq_g 2}|${freq_g 3}|${freq_g 4}|${freq_g 5}")
+    local result = conky_parse("${freq_g 1}|${freq_g 2}|${freq_g 3}|${freq_g 4}|${freq_g 5}|${freq_g 6}")
     return map(tonumber, result:gmatch("%d+[,.]?%d*"))
 end
 

@@ -32,8 +32,9 @@ end
 
 
 -- class creation helper - takes a constructor as the only argument
-function class()
+function class(parent)
     local cls = setmetatable({}, {
+        __index = parent,
         __call = function (cls, ...)
             local instance = setmetatable({}, cls)
             if cls.init then

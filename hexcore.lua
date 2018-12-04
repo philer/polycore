@@ -59,6 +59,58 @@ local upspeed_graph_data = CycleQueue(90)
 
 os.setlocale("C")  -- decimal dot
 
+
+
+local Cpu = class(function(cores, mx, my, scale, gap, segment_size)
+    local self = {
+        cores = cores,
+        center_coordinates = {},
+        segment_coordinates = {},
+    }
+    local sector_rad = 2 * math.pi / cores
+    for core = 1, cores do
+        local rad_center = (core - 1) * sector_rad - math.pi/2
+        local rad_left = rad_center + sector_rad/2
+        local rad_right = rad_center - sector_rad/2
+        local dx_center, dy_center = math.cos(rad_center), math.sin(rad_center)
+        local dx_left, dy_left = math.cos(rad_left), math.sin(rad_left)
+        local dx_right, dy_right = math.cos(rad_right), math.sin(rad_right)
+
+        table.insert(self.center_coordinates, mx + scale * dx_left)
+        table.insert(self.center_coordinates, my + scale * dy_left)
+
+        local min, max = scale + gap, scale + gap + segment_size
+        local dx_gap, dy_gap = gap * dx_center, gap * dy_center
+        table.insert(self.segment_coordinates, {
+            mx + min * dx_left + dx_gap, my + min * dy_left + dy_gap,
+            mx + max * dx_left + dx_gap, my + max * dy_left + dy_gap,
+            mx + max * dx_right + dx_gap, my + max * dy_right + dy_gap,
+            mx + min * dx_right + dx_gap, my + min * dy_right + dy_gap,
+        })
+    end
+    return self
+end)
+
+function Cpu:render()
+    polygon(self.center_coordinates)
+
+    cairo_set_source_rgba(cr, 1, 0, 0, .5)
+    cairo_fill(cr)
+
+    for core = 1, self.cores do
+        polygon(self.segment_coordinates[core])
+        cairo_set_source_rgba(cr, 1, 0, 0, .5)
+        cairo_fill(cr)
+
+        local segmcoords = self.segment_coordinates[core]
+        local mx = avg({segmcoords[1], segmcoords[3], segmcoords[5], segmcoords[7]})
+        local my = avg({segmcoords[2], segmcoords[4], segmcoords[6], segmcoords[8]})
+        cairo_set_source_rgba(cr, 1, 1, 1, .8)
+        write_centered(mx, my, core)
+    end
+end
+
+
 -------------------
 --+–––––––––––––+--
 --| ENTRY POINT |--
@@ -90,6 +142,8 @@ function conky_main()
     y_offset = y_offset + 10
 
     draw_hex_cpu(win_width / 2, y_offset + 55, cpu_percentages(), cpu_temps)
+    local cpu = Cpu(6, win_width / 2, y_offset + 55, 23, 5, 24):render()
+
     y_offset = y_offset + 125
 
     cairo_set_source_rgba(cr, unpack(text_color))

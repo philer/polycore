@@ -32,13 +32,14 @@ end
 
 
 -- class creation helper - takes a constructor as the only argument
-function class(init)
-    if init == nil then
-        init = function () return {} end
-    end
+function class()
     local cls = setmetatable({}, {
         __call = function (cls, ...)
-            return setmetatable(init(...), cls)
+            local instance = setmetatable({}, cls)
+            if cls.init then
+                instance:init(...)
+            end
+            return instance
         end,
     })
     cls.__index = cls
@@ -47,25 +48,31 @@ end
 
 
 -- circular queue implementation
-CycleQueue = class(function (length)
-    return {length = length, latest = 1}
-end)
+CycleQueue = class()
 
-function CycleQueue:head()
-    return self[self.latest % self.length + 1] or 0
+function CycleQueue:init(length)
+    self.length = length
+    self.latest = 0
+    for i = 1, length do
+        self[i] = 0
+    end
 end
 
-function CycleQueue:add(item)
+function CycleQueue:head()
+    return self[self.latest]
+end
+
+function CycleQueue:put(item)
     self.latest = self.latest % self.length + 1
     self[self.latest] = item
 end
 
 function CycleQueue:map(fn)
-    for i = self.latest + 1, self.length do
-        fn(self[i] or 0, i - self.latest)
+    for i = self.latest, self.length do
+        fn(self[i], i - self.latest + 1)
     end
-    for i = 1, self.latest do
-        fn(self[i] or 0, self.length - self.latest + i)
+    for i = 1, self.latest - 1 do
+        fn(self[i], self.length - self.latest + i + 1)
     end
 end
 

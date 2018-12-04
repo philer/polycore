@@ -61,12 +61,12 @@ os.setlocale("C")  -- decimal dot
 
 
 
-local Cpu = class(function(cores, mx, my, scale, gap, segment_size)
-    local self = {
-        cores = cores,
-        center_coordinates = {},
-        segment_coordinates = {},
-    }
+local Cpu = class()
+
+function Cpu:init(cores, mx, my, scale, gap, segment_size)
+    self.cores = cores
+    self.center_coordinates = {}
+    self.segment_coordinates = {}
     local sector_rad = 2 * math.pi / cores
     for core = 1, cores do
         local rad_center = (core - 1) * sector_rad - math.pi/2
@@ -88,8 +88,7 @@ local Cpu = class(function(cores, mx, my, scale, gap, segment_size)
             mx + min * dx_right + dx_gap, my + min * dy_right + dy_gap,
         })
     end
-    return self
-end)
+end
 
 function Cpu:render()
     polygon(self.center_coordinates)
@@ -298,13 +297,13 @@ function draw_network(interface, y_offset)
     local down, up = network_speed(interface)
     max_download = math.max(max_download, down)
     max_upload = math.max(max_upload, up)
-    downspeed_graph_data:add(down)
+    downspeed_graph_data:put(down)
     graph(downspeed_graph_data, max_download, y_offset, 20)
-    upspeed_graph_data:add(up)
+    upspeed_graph_data:put(up)
     graph(upspeed_graph_data, max_upload, y_offset + 53, 20)
-    -- downspeed_graph_data:add(math.log10(math.max(1, down)))
+    -- downspeed_graph_data:put(math.log10(math.max(1, down)))
     -- graph(downspeed_graph_data, math.log10(max_download), y_offset, 20)
-    -- upspeed_graph_data:add(math.log10(math.max(1, up)))
+    -- upspeed_graph_data:put(math.log10(math.max(1, up)))
     -- graph(upspeed_graph_data, math.log10(max_upload), y_offset + 51, 20)
 end
 

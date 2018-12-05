@@ -10,24 +10,29 @@ local read_cmd = memoize(function(cmd)
 end)
 
 
-function cpu_percentages()
-    local result = conky_parse("${cpu cpu1}|${cpu cpu2}|${cpu cpu3}|${cpu cpu4}|${cpu cpu5}|${cpu cpu6}")
-    return map(tonumber, result:gmatch("%d+"))
+function cpu_percentages(cores)
+    -- local conky_string = string.format(string.rep("${cpu cpu%s}|"),)
+    local conky_string = "${cpu cpu1}"
+    for i = 2, cores do
+        conky_string = conky_string .. "|${cpu cpu" .. i .. "}"
+    end
+    return map(tonumber, conky_parse(conky_string):gmatch("%d+"))
 end
 
-function cpu_frequencies()
-    local result = conky_parse("${freq_g 1}|${freq_g 2}|${freq_g 3}|${freq_g 4}|${freq_g 5}|${freq_g 6}")
-    return map(tonumber, result:gmatch("%d+[,.]?%d*"))
+function cpu_frequencies(cores)
+    local conky_string = "${freq_g 1}"
+    for i = 2, cores do
+        conky_string = conky_string .. "|${freq_g " .. i .. "}"
+    end
+    return map(tonumber, conky_parse(conky_string):gmatch("%d+[,.]?%d*"))
 end
 
 function cpu_temperatures()
-    local result = read_cmd("sensors")
-    return map(tonumber, result:gmatch("Core %d: +%+(%d%d)"))
+    return map(tonumber, read_cmd("sensors"):gmatch("Core %d: +%+(%d%d)"))
 end
 
 function fan_rpm()
-    local result = read_cmd("sensors")
-    return map(tonumber, result:gmatch("fan%d: +(%d+) RPM"))
+    return map(tonumber, read_cmd("sensors"):gmatch("fan%d: +(%d+) RPM"))
 end
 
 

@@ -65,9 +65,14 @@ local Cpu = class()
 
 function Cpu:init(cores, mx, my, scale, gap, segment_size)
     self.cores = cores
+    self.mx, self.my = mx, my
+    self.segment_size = segment_size
     self.center_coordinates = {}
     self.segment_coordinates = {}
+    self.gradient_coordinates = {}
     local sector_rad = 2 * math.pi / cores
+    local min, max = scale + gap, scale + gap + segment_size
+
     for core = 1, cores do
         local rad_center = (core - 1) * sector_rad - math.pi/2
         local rad_left = rad_center + sector_rad/2
@@ -75,37 +80,71 @@ function Cpu:init(cores, mx, my, scale, gap, segment_size)
         local dx_center, dy_center = math.cos(rad_center), math.sin(rad_center)
         local dx_left, dy_left = math.cos(rad_left), math.sin(rad_left)
         local dx_right, dy_right = math.cos(rad_right), math.sin(rad_right)
-
         table.insert(self.center_coordinates, mx + scale * dx_left)
         table.insert(self.center_coordinates, my + scale * dy_left)
 
-        local min, max = scale + gap, scale + gap + segment_size
+        -- segment corners
         local dx_gap, dy_gap = gap * dx_center, gap * dy_center
-        table.insert(self.segment_coordinates, {
-            mx + min * dx_left + dx_gap, my + min * dy_left + dy_gap,
-            mx + max * dx_left + dx_gap, my + max * dy_left + dy_gap,
-            mx + max * dx_right + dx_gap, my + max * dy_right + dy_gap,
-            mx + min * dx_right + dx_gap, my + min * dy_right + dy_gap,
-        })
+        local x1, y1 = mx + min * dx_left + dx_gap, my + min * dy_left + dy_gap
+        local x2, y2 = mx + max * dx_left + dx_gap, my + max * dy_left + dy_gap
+        local x3, y3 = mx + max * dx_right + dx_gap, my + max * dy_right + dy_gap
+        local x4, y4 = mx + min * dx_right + dx_gap, my + min * dy_right + dy_gap
+        table.insert(self.segment_coordinates, {x1, y1, x2, y2, x3, y3, x4, y4})
+        table.insert(self.gradient_coordinates, {(x1 + x4) / 2,
+                                                 (y1 + y4) / 2,
+                                                 (x2 + x3) / 2,
+                                                 (y2 + y3) / 2})
     end
 end
 
-function Cpu:render()
-    polygon(self.center_coordinates)
+function Cpu:update()
+    self.temperatures = cpu_temperatures(self.cores)
+    self.avg_temperature = avg(self.temperatures)
+    self.percentages = cpu_percentages(self.cores)
+    self.color = pack(temp_color(self.avg_temperature, 30, 80))
+end
 
-    cairo_set_source_rgba(cr, 1, 0, 0, .5)
+function Cpu:render()
+    local r, g, b = unpack(self.color)
+    polygon(self.center_coordinates)
+    cairo_set_line_width(cr, 6)
+    cairo_set_source_rgba(cr, r, g, b, .33)
+    cairo_stroke_preserve(cr)
+    cairo_set_line_width(cr, 1)
+    cairo_set_source_rgba(cr, 0, 0, 0, .66)
+    cairo_stroke_preserve(cr)
+    cairo_set_source_rgba(cr, r, g, b, .18)
     cairo_fill(cr)
 
+    font_bold(16)
+    cairo_set_source_rgba(cr, r, g, b, .4)
+    write_centered(self.mx + 1, self.my, string.format("%d°", self.avg_temperature))
+
+    font_normal(10)
     for core = 1, self.cores do
         polygon(self.segment_coordinates[core])
-        cairo_set_source_rgba(cr, 1, 0, 0, .5)
-        cairo_fill(cr)
+        local gradient = cairo_pattern_create_linear(unpack(self.gradient_coordinates[core]))
+        local r, g, b = temp_color(self.temperatures[core], 30, 80)
+        cairo_set_source_rgba(cr, 0, 0, 0, .4)
+        cairo_set_line_width(cr, 1.5)
+        cairo_stroke_preserve(cr)
+        cairo_set_source_rgba(cr, r, g, b, .4)
+        cairo_set_line_width(cr, .75)
+        cairo_stroke_preserve(cr)
 
-        local segmcoords = self.segment_coordinates[core]
-        local mx = avg({segmcoords[1], segmcoords[3], segmcoords[5], segmcoords[7]})
-        local my = avg({segmcoords[2], segmcoords[4], segmcoords[6], segmcoords[8]})
-        cairo_set_source_rgba(cr, 1, 1, 1, .8)
-        write_centered(mx, my, core)
+        local h_rel = self.percentages[core]/100
+        cairo_pattern_add_color_stop_rgba(gradient, 0,            r, g, b, .33)
+        cairo_pattern_add_color_stop_rgba(gradient, h_rel - .045, r, g, b, .75)
+        cairo_pattern_add_color_stop_rgba(gradient, h_rel,
+                                          r * 1.2, g * 1.2, b * 1.2, 1)
+        if h_rel < .95 then  -- prevent pixelated edge
+            cairo_pattern_add_color_stop_rgba(gradient, h_rel + .045, r, g, b, .33)
+            cairo_pattern_add_color_stop_rgba(gradient, h_rel + .33,  r, g, b, .15)
+            cairo_pattern_add_color_stop_rgba(gradient, 1,            r, g, b, .15)
+        end
+        cairo_set_source(cr, gradient)
+        cairo_pattern_destroy(gradient)
+        cairo_fill(cr)
     end
 end
 
@@ -140,15 +179,16 @@ function conky_main()
                    table.concat(cpu_temps, " · ") .. " °C")
     y_offset = y_offset + 10
 
-    draw_hex_cpu(win_width / 2, y_offset + 55, cpu_percentages(), cpu_temps)
-    local cpu = Cpu(6, win_width / 2, y_offset + 55, 23, 5, 24):render()
+    local cpu = Cpu(6, win_width / 2, y_offset + 55, 23, 5, 24)
+    cpu:update()
+    cpu:render()
 
     y_offset = y_offset + 125
 
     cairo_set_source_rgba(cr, unpack(text_color))
     font_normal(10)
     write_left(x_right - 15, y_offset + 12, "GHz")
-    draw_cpu_frequencies(cpu_frequencies(),
+    draw_cpu_frequencies(cpu_frequencies(6),
                          x_left + 2, x_right - 20,
                          y_offset, y_offset + 16)
 
@@ -172,55 +212,6 @@ end
 
 
 --- DRAWING ---
-
-function draw_hex_cpu(mx, my, percentages, temperatures)
-    hexagon(mx, my, 11.5)
-    cairo_set_line_width(cr, 6)
-    cairo_set_source_rgba(cr, r, g, b, .33)
-    cairo_stroke_preserve(cr)
-    cairo_set_line_width(cr, 1)
-    cairo_set_source_rgba(cr, 0, 0, 0, .66)
-    cairo_stroke_preserve(cr)
-    cairo_set_source_rgba(cr, r, g, b, .18)
-    cairo_fill(cr)
-
-    font_bold(16)
-    cairo_set_source_rgba(cr, r, g, b, .4)
-    write_centered(mx + 1, my, string.format("%d°", avg(temperatures)))
-
-    --- cores
-    font_normal(10)
-    local min, max, gap = 14, 26, 2.5
-    for id = 1, 6 do
-        local gradient = hexagon_segment_gradient(id, mx, my, min, max, gap)
-
-        local r, g, b = temp_color(temperatures[id], 30, 80)
-        cairo_set_source_rgba(cr, 0, 0, 0, .4)
-        cairo_set_line_width(cr, 1.5)
-        cairo_stroke_preserve(cr)
-        cairo_set_source_rgba(cr, r, g, b, .4)
-        cairo_set_line_width(cr, .75)
-        cairo_stroke_preserve(cr)
-
-        -- local h_rel = percentages[id]/100 -- height relative bar
-        -- area relative bar height --
-        local h = math.sqrt(percentages[id] / 100 * (max * max - min * min)
-                            + min * min)
-        local h_rel = (h - min) / (max - min)
-        cairo_pattern_add_color_stop_rgba(gradient, 0,            r, g, b, .33)
-        cairo_pattern_add_color_stop_rgba(gradient, h_rel - .045, r, g, b, .75)
-        cairo_pattern_add_color_stop_rgba(gradient, h_rel,
-                                          r * 1.2, g * 1.2, b * 1.2, 1)
-        if h_rel < .95 then  -- prevent pixelated edge
-            cairo_pattern_add_color_stop_rgba(gradient, h_rel + .045, r, g, b, .33)
-            cairo_pattern_add_color_stop_rgba(gradient, h_rel + .33,  r, g, b, .15)
-            cairo_pattern_add_color_stop_rgba(gradient, 1,            r, g, b, .15)
-        end
-        cairo_set_source(cr, gradient)
-        cairo_pattern_destroy(gradient)
-        cairo_fill(cr)
-    end
-end
 
 function draw_cpu_frequencies(frequencies, x_min, x_max, y_min, y_max)
     cairo_set_line_width(cr, 1)
@@ -265,8 +256,8 @@ function draw_cpu_frequencies(frequencies, x_min, x_max, y_min, y_max)
     cairo_stroke_preserve(cr)
 
     -- frequencies --
-    for id = 1, 6 do
-        local stop = (frequencies[id] - min_freq) / df
+    for _, frequency in ipairs(frequencies) do
+        local stop = (frequency - min_freq) / df
         alpha_gradient(x_min, 0, x_max, 0, r, g, b, {
              {0,          .01},
              {stop - .4,  .015},
@@ -455,45 +446,6 @@ end
 --| CAIRO HELPERS |--
 --+–––––––––––––––+--
 ---------------------
-
--- local core_count = 6
--- local segment_corner_directions = {}
--- local segment_center_directions = {}
--- for id = 1, core_count do
---     local rad = math.pi * (2 * (id+.5) / core_count)
---     -- id = (id + 2) % 6 + 1
---     id = (id -1) % core_count + 1
---     segment_corner_directions[id] = {2*math.cos(rad), 2*math.sin(rad)}
--- end
-
-local s3 = math.sqrt(3)
-local hex_segment_offsets = {
-    {-1, -s3}, -- top left
-    { 1, -s3}, -- top right
-    { 2,   0}, -- right
-    { 1,  s3}, -- bottom right
-    {-1,  s3}, -- bottom left
-    {-2,   0}, -- left
-}
-
-function hexagon_segment_gradient(id, mx, my, min, max, gap)
-    local offset1x, offset1y = unpack(hex_segment_offsets[id])
-    local offset2x, offset2y = unpack(hex_segment_offsets[id % 6 + 1])
-    -- happens to work for 6:
-    local gapy, gapx = unpack(hex_segment_offsets[7 - id])
-    gapx, gapy = gapx * gap, gapy * gap
-    local coords = {
-        mx + min * offset1x + gapx, my + min * offset1y + gapy,
-        mx + max * offset1x + gapx, my + max * offset1y + gapy,
-        mx + max * offset2x + gapx, my + max * offset2y + gapy,
-        mx + min * offset2x + gapx, my + min * offset2y + gapy,
-    }
-    polygon(coords)
-    return cairo_pattern_create_linear((coords[1] + coords[7]) / 2,
-                                       (coords[2] + coords[8]) / 2,
-                                       (coords[3] + coords[5]) / 2,
-                                       (coords[4] + coords[6]) / 2)
-end
 
 function draw_right_border()
     cairo_move_to(cr, win_width - .5, 0)

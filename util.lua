@@ -80,6 +80,10 @@ end
 
 -- general utility functions --
 
+function pack(...)
+    return {...}
+end
+
 function clamp(min, max, val)
     return math.max(min, math.min(val, max))
 end

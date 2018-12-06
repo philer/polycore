@@ -2,12 +2,12 @@
 package.path = os.getenv("HOME") .. "/.config/conky/?.lua;" .. package.path
 require 'util'
 
-local read_cmd = memoize(function(cmd)
+local function read_cmd(cmd)
     local pipe = io.popen(cmd)
     local result = pipe:read("*a")
     pipe:close()
     return result
-end)
+end
 
 
 function cpu_percentages(cores)

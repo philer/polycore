@@ -7,12 +7,14 @@ local _memoization_clearers = {}
 function memoize(delay, fn)
     if fn == nil then
         fn = delay
-        delay = 1
+        delay = 0
     end
     local results = {}
-    table.insert(_memoization_clearers, {delay, function()
-        results = {}
-    end})
+    if delay > 1 then
+        table.insert(_memoization_clearers, {delay, function()
+            results = {}
+        end})
+    end
     return function(...)
         local key = table.concat(arg, ":")
         if results[key] == nil then

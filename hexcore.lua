@@ -371,6 +371,7 @@ function bar(unit, fraction, ticks, big_ticks, y_offset, r, g, b)
     cairo_stroke(cr)
 
     --- ticks ---
+    -- cairo_set_source_rgba(cr, r, g, b, .66)  -- ticks text color
     for offset, frac in ipairs(ticks) do
         local x = math.floor(x_left + frac * (x_max - x_left)) + .5
         cairo_move_to(cr, x, y_offset + height + .5)
@@ -419,6 +420,7 @@ function graph(data, max, y_offset, height, r, g, b)
     --- actual graph ---
     local x_scale = 1 / data.length * (x_right - x_left)
     local y_scale = 1 / max * height
+    cairo_set_antialias(cr, CAIRO_ANTIALIAS_DEFAULT)
     cairo_move_to(cr, x_left + .5,
                   math.floor(y_offset + height - data:head() * y_scale) + .5)
     data:map(function(val, idx)
@@ -456,7 +458,9 @@ function draw_right_border()
 end
 
 function rectangle(x1, y1, x2, y2)
-    return polygon({x1, y1, x2, y1, x2, y2, x1, y2})
+    -- polygon({x1, y1, x2, y1, x2, y2, x1, y2})
+    cairo_set_antialias(cr, CAIRO_ANTIALIAS_NONE)
+    cairo_rectangle(cr, x1, y1, x2 - x1, y2 - y1)
 end
 
 function hexagon(mx, my, scale)
@@ -470,6 +474,7 @@ end
 
 function polygon(coordinates)
     -- +.5 for sharp lines, see https://cairographics.org/FAQ/#sharp_lines
+    cairo_set_antialias(cr, CAIRO_ANTIALIAS_DEFAULT)
     cairo_move_to(cr, math.floor(coordinates[1]) + .5,
                       math.floor(coordinates[2]) + .5)
     for i = 3, #coordinates, 2 do
@@ -486,8 +491,6 @@ function alpha_gradient(x1, y1, x2, y2, r, g, b, stops)
         local rw, gw, bw = r, g, b
         -- additional brightness (white) for peaks
         if stop[2] > .5 then
-            -- local brightness = (stop[2] - .25) * .33
-            -- rw, gw, bw = r + brightness, g + brightness, b + brightness
             rw, gw, bw = r * 1.3, g * 1.3, b * 1.3
         end
         cairo_pattern_add_color_stop_rgba(gradient,
@@ -496,19 +499,6 @@ function alpha_gradient(x1, y1, x2, y2, r, g, b, stops)
     cairo_set_source(cr, gradient)
     cairo_pattern_destroy(gradient)
 end
-
-
--- function inverse_clip()
---     cairo_new_sub_path(cr);
---     polygon({
---         0, 0,
---         0, win_height,
---         win_width, win_height,
---         win_width, 0,
---     })
---     cairo_clip(cr)
--- end
-
 
 function font_normal(size)
     cairo_select_font_face(cr, font_family, CAIRO_FONT_SLANT_NORMAL,
@@ -528,8 +518,7 @@ function write_left(x, y, text)
 end
 
 function write_centered(mx, my, text)
-    local x, y = text_center_coordinates(mx, my, text)
-    cairo_move_to(cr, x, y)
+    cairo_move_to(cr, text_center_coordinates(mx, my, text))
     cairo_show_text(cr, text)
 end
 
@@ -537,9 +526,8 @@ function text_center_coordinates(mx, my, text)
     local extents = cairo_text_extents_t:create()
     tolua.takeownership(extents)
     cairo_text_extents(cr, text, extents)
-    local x = mx - (extents.width / 2 + extents.x_bearing)
-    local y = my - (extents.height / 2 + extents.y_bearing)
-    return x, y
+    return mx - (extents.width / 2 + extents.x_bearing),
+           my - (extents.height / 2 + extents.y_bearing)
 end
 
 function text_width(text)

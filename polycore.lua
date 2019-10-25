@@ -179,6 +179,9 @@ function MemoryGrid:render()
     local used = math.floor(total * self.used / self.total + 0.5)
     local cache = math.floor(total * (self.easyfree - self.free) / self.total + 0.5)
     local r, g, b = unpack(graph_color)
+    if used / total > 0.8 then
+        r, g, b = unpack(temperature_colors[#temperature_colors])
+    end
     for i = 1, used do
         rectangle(unpack(self.coordinates[i]))
         cairo_set_source_rgba(cr, r, g, b, .8)

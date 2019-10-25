@@ -151,7 +151,7 @@ ${template2 5}
 
 
 ### mem ###
-${template6 mem} # ${template8}$mem / $memmax
+${template6 mem} ${template8}$memperc% # $mem / $memmax
 ${voffset 20}
 ### memtop ###
 ${template4 1}

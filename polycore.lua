@@ -150,7 +150,7 @@ end
 
 local MemoryGrid = util.class()
 
-function MemoryGrid:init(y_offset, rows, columns, point_size, gap)
+function MemoryGrid:init(y_offset, rows, columns, point_size, gap, shuffle)
     self.coordinates = {}
     for col = 0, columns - 1, 1 do
         for row = 0, rows - 1, 1 do
@@ -160,8 +160,10 @@ function MemoryGrid:init(y_offset, rows, columns, point_size, gap)
                                             y_offset + row * (point_size + gap) + point_size})
         end
     end
-    -- math.randomseed(1069140724)
-    -- util.shuffle(self.coordinates)
+    if shuffle == nil or shuffle then
+        math.randomseed(1069140724)
+        util.shuffle(self.coordinates)
+    end
 end
 
 function MemoryGrid:update()
@@ -237,10 +239,10 @@ function conky_main()
                          x_left + 2, x_right - 20,
                          y_offset, y_offset + 16)
 
-    -- draw_memory(420)
-    local mem = MemoryGrid(418, 4, 31, 2, 2)
+    local mem = MemoryGrid(418, 5, 41, 2, 1, true)
     mem:update()
     mem:render()
+    -- draw_memory(437)
 
     draw_gpu(514)
     draw_network("enp0s31f6", 665)
@@ -329,7 +331,7 @@ function draw_gpu(y_offset)
 end
 
 function draw_memory(y_offset)
-    local used, total = data.memory()
+    local used, free, easyfree, total = data.memory()
     memory_bar("GiB", used, total, y_offset)
 end
 

@@ -33,13 +33,22 @@ function data.fan_rpm()
     return util.map(tonumber, read_cmd("sensors"):gmatch("fan%d: +(%d+) RPM"))
 end
 
-
+local unit_map = {
+    T = 1024,
+    G = 1,
+    M = 1 / 1024,
+    k = 1 / (1024 * 1024),
+    B = 1 / (1024 * 1024 * 1024),
+}
 function data.memory()
-    local result = conky_parse("$mem|$memeasyfree|$memfree|$memmax")
-    local used, easyfree, free, total = unpack(util.map(tonumber, result:gmatch("%d+[,.]?%d*")))
-    return used, easyfree, free, total
+    local conky_output = conky_parse("$mem|$memeasyfree|$memfree|$memmax")
+    local results = {}
+    for result in conky_output:gmatch("%d+[,.]?%d*%a") do
+        local value, unit = result:sub(1, -2), result:sub(-1)
+        table.insert(results, value * unit_map[unit])
+    end
+    return unpack(results)
 end
-
 
 function data.network_speed(interface)
     local result = conky_parse(string.format("${downspeedf %s}|${upspeedf %s}", interface, interface))

@@ -2,9 +2,11 @@
 --| UTILITY |--
 --+–––––––––+--
 
+local util = {}
+
 local _memoization_clearers = {}
 
-function memoize(delay, fn)
+function util.memoize(delay, fn)
     if fn == nil then
         fn = delay
         delay = 0
@@ -24,7 +26,7 @@ function memoize(delay, fn)
     end
 end
 
-function reset_data(update_count)
+function util.reset_data(update_count)
     for _, memclear in ipairs(_memoization_clearers) do
         if update_count % memclear[1] == 0 then
             memclear[2]()
@@ -33,8 +35,8 @@ function reset_data(update_count)
 end
 
 
--- class creation helper - takes a constructor as the only argument
-function class(parent)
+-- class creation helper - takes a parent class as the only argument
+function util.class(parent)
     local cls = setmetatable({}, {
         __index = parent,
         __call = function (cls, ...)
@@ -51,9 +53,9 @@ end
 
 
 -- circular queue implementation
-CycleQueue = class()
+util.CycleQueue = util.class()
 
-function CycleQueue:init(length)
+function util.CycleQueue:init(length)
     self.length = length
     self.latest = 0
     for i = 1, length do
@@ -61,16 +63,16 @@ function CycleQueue:init(length)
     end
 end
 
-function CycleQueue:head()
+function util.CycleQueue:head()
     return self[self.latest]
 end
 
-function CycleQueue:put(item)
+function util.CycleQueue:put(item)
     self.latest = self.latest % self.length + 1
     self[self.latest] = item
 end
 
-function CycleQueue:map(fn)
+function util.CycleQueue:map(fn)
     for i = self.latest, self.length do
         fn(self[i], i - self.latest + 1)
     end
@@ -82,15 +84,15 @@ end
 
 -- general utility functions --
 
-function pack(...)
+function util.pack(...)
     return {...}
 end
 
-function clamp(min, max, val)
+function util.clamp(min, max, val)
     return math.max(min, math.min(val, max))
 end
 
-function map(fn, iter)
+function util.map(fn, iter)
     local arr = {}
     for item in iter do
         table.insert(arr, fn(item))
@@ -98,14 +100,14 @@ function map(fn, iter)
     return arr
 end
 
-function reduce(fn, init, arr)
+function util.reduce(fn, init, arr)
     for _, item in ipairs(arr) do
         init = fn(init, item)
     end
     return init
 end
 
-function range(start, stop, step)
+function util.range(start, stop, step)
     local arr = {}
     for i = start, stop, step or 1 do
         table.insert(arr, i)
@@ -113,7 +115,7 @@ function range(start, stop, step)
     return arr
 end
 
-function avg(arr)
+function util.avg(arr)
     local acc = 0
     for _, nr in ipairs(arr) do
         acc = acc + nr
@@ -123,7 +125,7 @@ end
 
 -- Fisher-Yates shuffle
 -- https://stackoverflow.com/a/17120745
-function shuffle(array)
+function util.shuffle(array)
     local counter = #array
     while counter > 1 do
         local index = math.random(counter)
@@ -131,3 +133,5 @@ function shuffle(array)
         counter = counter - 1
     end
 end
+
+return util

@@ -4,8 +4,8 @@ require 'cairo'
 
 -- lua's import system is retarded.
 package.path = os.getenv("HOME") .. "/.config/conky/polycore/?.lua;" .. package.path
-require 'data'
-require 'util'
+local data = require 'data'
+local util = require 'util'
 
 
 
@@ -34,11 +34,11 @@ local temperature_colors = {
     {1,  .6, .2},
     {1,  .2, .2},
 }
-function temp_color(temp, low, high)
+local function temp_color(temp, low, high)
     local idx = (temp - low) / (high - low) * (#temperature_colors - 1) + 1
     local weight = idx - math.floor(idx)
-    local cool = temperature_colors[clamp(1, #temperature_colors, math.floor(idx))]
-    local hot = temperature_colors[clamp(1, #temperature_colors, math.ceil(idx))]
+    local cool = temperature_colors[util.clamp(1, #temperature_colors, math.floor(idx))]
+    local hot = temperature_colors[util.clamp(1, #temperature_colors, math.ceil(idx))]
     return cool[1] + weight * (hot[1] - cool[1]),
            cool[2] + weight * (hot[2] - cool[2]),
            cool[3] + weight * (hot[3] - cool[3])
@@ -53,15 +53,15 @@ local text_color = {1, 1, 1, .8}
 local graph_color = temperature_colors[1]
 local r, g, b
 
--- local gpu_graph_data = CycleQueue(90)
-local downspeed_graph_data = CycleQueue(90)
-local upspeed_graph_data = CycleQueue(90)
+-- local gpu_graph_data = util.CycleQueue(90)
+local downspeed_graph_data = util.CycleQueue(90)
+local upspeed_graph_data = util.CycleQueue(90)
 
 os.setlocale("C")  -- decimal dot
 
 
 
-local Cpu = class()
+local Cpu = util.class()
 
 function Cpu:init(cores, mx, my, scale, gap, segment_size)
     self.cores = cores
@@ -98,10 +98,10 @@ function Cpu:init(cores, mx, my, scale, gap, segment_size)
 end
 
 function Cpu:update()
-    self.temperatures = cpu_temperatures(self.cores)
-    self.avg_temperature = avg(self.temperatures)
-    self.percentages = cpu_percentages(self.cores)
-    self.color = pack(temp_color(self.avg_temperature, 30, 80))
+    self.temperatures = data.cpu_temperatures(self.cores)
+    self.avg_temperature = util.avg(self.temperatures)
+    self.percentages = data.cpu_percentages(self.cores)
+    self.color = util.pack(temp_color(self.avg_temperature, 30, 80))
 end
 
 function Cpu:render()
@@ -148,7 +148,7 @@ function Cpu:render()
     end
 end
 
-local MemoryGrid = class()
+local MemoryGrid = util.class()
 
 function MemoryGrid:init(y_offset, rows, columns, point_size, gap)
     self.coordinates = {}
@@ -160,12 +160,12 @@ function MemoryGrid:init(y_offset, rows, columns, point_size, gap)
                                             y_offset + row * (point_size + gap) + point_size})
         end
     end
-    math.randomseed(1069140724)
-    shuffle(self.coordinates)
+    -- math.randomseed(1069140724)
+    -- util.shuffle(self.coordinates)
 end
 
 function MemoryGrid:update()
-    local used, easyfree, free, total = memory()
+    local used, easyfree, free, total = data.memory()
     self.used = used
     self.easyfree = easyfree
     self.free = free
@@ -210,12 +210,12 @@ function conky_main()
     x_right = win_width - x_left
     local y_offset = 110
 
-    local cpu_temps = cpu_temperatures()
-    r, g, b = temp_color(avg(cpu_temps), 30, 80)
+    local cpu_temps = data.cpu_temperatures()
+    r, g, b = temp_color(util.avg(cpu_temps), 30, 80)
 
     cairo_set_source_rgba(cr, unpack(text_color))
 
-    fans = fan_rpm()
+    fans = data.fan_rpm()
     write_centered(win_width / 2, y_offset,
                    fans[1] .. " rpm   ·   " .. fans[2] .. " rpm")
     y_offset = y_offset + 11
@@ -233,7 +233,7 @@ function conky_main()
     cairo_set_source_rgba(cr, unpack(text_color))
     font_normal(10)
     write_left(x_right - 15, y_offset + 12, "GHz")
-    draw_cpu_frequencies(cpu_frequencies(6),
+    draw_cpu_frequencies(data.cpu_frequencies(6),
                          x_left + 2, x_right - 20,
                          y_offset, y_offset + 16)
 
@@ -248,14 +248,14 @@ function conky_main()
     y_offset = 800 - 15
     local drive_height = 47
     for _, drive in ipairs(drives) do
-        if is_mounted(drive[1]) then
+        if data.is_mounted(drive[1]) then
             draw_drive(drive[1], drive[2], y_offset)
             y_offset = y_offset + drive_height
         end
     end
 
     draw_right_border()
-    reset_data(tonumber(conky_parse('${updates}')))
+    util.reset_data(tonumber(conky_parse('${updates}')))
     destruct_cairo()
 end
 
@@ -322,19 +322,19 @@ function draw_cpu_frequencies(frequencies, x_min, x_max, y_min, y_max)
 end
 
 function draw_gpu(y_offset)
-    local r, g, b = temp_color(gpu_temperature(), 30, 80)
-    bar("%", gpu_percentage() / 100, {.25, .5, .75}, nil, y_offset, r, g, b)
-    local mem_used, mem_total = gpu_memory()
+    local r, g, b = temp_color(data.gpu_temperature(), 30, 80)
+    bar("%", data.gpu_percentage() / 100, {.25, .5, .75}, nil, y_offset, r, g, b)
+    local mem_used, mem_total = data.gpu_memory()
     memory_bar("GiB", mem_used / 1024, mem_total / 1024, y_offset + 12, r, g, b)
 end
 
 function draw_memory(y_offset)
-    local used, total = memory()
+    local used, total = data.memory()
     memory_bar("GiB", used, total, y_offset)
 end
 
 function draw_network(interface, y_offset)
-    local down, up = network_speed(interface)
+    local down, up = data.network_speed(interface)
     max_download = math.max(max_download, down)
     max_upload = math.max(max_upload, up)
     downspeed_graph_data:put(down)
@@ -348,8 +348,8 @@ function draw_network(interface, y_offset)
 end
 
 function draw_drive(path, device_name, y_offset)
-    local perc = drive_percentage(path)
-    local temp = hddtemp()[device_name]
+    local perc = data.drive_percentage(path)
+    local temp = data.hddtemp()[device_name]
     cairo_set_source_rgba(cr, unpack(text_color))
     local r, g, b
     if temp == nil then
@@ -366,8 +366,8 @@ end
 
 
 function memory_bar(unit, used, total, y_offset, r, g, b)
-    local ticks = range(1 / total, math.floor(total) / total, 1 / total)
-    -- ticks = range(1/16, 15/16, 1/16)
+    local ticks = util.range(1 / total, math.floor(total) / total, 1 / total)
+    -- ticks = util.range(1/16, 15/16, 1/16)
     local big_ticks = nil
     total = math.ceil(total)
     if total > 8 then

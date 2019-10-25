@@ -148,6 +148,51 @@ function Cpu:render()
     end
 end
 
+local MemoryGrid = class()
+
+function MemoryGrid:init(y_offset, rows, columns, point_size, gap)
+    self.coordinates = {}
+    for col = 0, columns - 1, 1 do
+        for row = 0, rows - 1, 1 do
+            table.insert(self.coordinates, {x_left + col * (point_size + gap),
+                                            y_offset + row * (point_size + gap),
+                                            x_left + col * (point_size + gap) + point_size,
+                                            y_offset + row * (point_size + gap) + point_size})
+        end
+    end
+    math.randomseed(1069140724)
+    shuffle(self.coordinates)
+end
+
+function MemoryGrid:update()
+    local used, easyfree, free, total = memory()
+    self.used = used
+    self.easyfree = easyfree
+    self.free = free
+    self.total = total
+end
+
+function MemoryGrid:render()
+    local total = #self.coordinates
+    local used = math.floor(total * self.used / self.total + 0.5)
+    local cache = math.floor(total * (self.easyfree - self.free) / self.total + 0.5)
+    local r, g, b = unpack(graph_color)
+    for i = 1, used do
+        rectangle(unpack(self.coordinates[i]))
+        cairo_set_source_rgba(cr, r, g, b, .8)
+        cairo_fill(cr)
+    end
+    for i = used, used + cache do
+        rectangle(unpack(self.coordinates[i]))
+        cairo_set_source_rgba(cr, r, g, b, .35)
+        cairo_fill(cr)
+    end
+    for i = used + cache, total do
+        rectangle(unpack(self.coordinates[i]))
+        cairo_set_source_rgba(cr, r, g, b, .1)
+        cairo_fill(cr)
+    end
+end
 
 -------------------
 --+–––––––––––––+--
@@ -192,7 +237,11 @@ function conky_main()
                          x_left + 2, x_right - 20,
                          y_offset, y_offset + 16)
 
-    draw_memory(420)
+    -- draw_memory(420)
+    local mem = MemoryGrid(418, 4, 31, 2, 2)
+    mem:update()
+    mem:render()
+
     draw_gpu(514)
     draw_network("enp0s31f6", 665)
 

@@ -120,3 +120,14 @@ function avg(arr)
     end
     return acc / #arr
 end
+
+-- Fisher-Yates shuffle
+-- https://stackoverflow.com/a/17120745
+function shuffle(array)
+    local counter = #array
+    while counter > 1 do
+        local index = math.random(counter)
+        array[index], array[counter] = array[counter], array[index]
+        counter = counter - 1
+    end
+end

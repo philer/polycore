@@ -35,12 +35,9 @@ end
 
 
 function memory()
-    local result = conky_parse("$mem|$memmax")
-    local used, total = unpack(map(tonumber, result:gmatch("%d+[,.]?%d*")))
-    while used > total do
-        used = used / 1024
-    end
-    return used, total
+    local result = conky_parse("$mem|$memeasyfree|$memfree|$memmax")
+    local used, easyfree, free, total = unpack(map(tonumber, result:gmatch("%d+[,.]?%d*")))
+    return used, easyfree, free, total
 end
 
 

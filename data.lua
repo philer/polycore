@@ -1,5 +1,3 @@
--- lua's import system is retarded.
-package.path = os.getenv("HOME") .. "/.config/conky/?.lua;" .. package.path
 require 'util'
 
 local function read_cmd(cmd)

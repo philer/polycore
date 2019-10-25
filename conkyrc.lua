@@ -22,7 +22,7 @@ conky.config = {
     override_utf8_locale = true,
 
     alignment = 'top_left',
-    gap_x = 0,
+    gap_x = -1920,
     gap_y = 28,
     minimum_width = 140,
     maximum_width = 140,
@@ -74,7 +74,7 @@ conky.config = {
     color5 = '1f2c2b', -- bar background
 
     --- lua ---
-    lua_load = "~/.config/conky/hexcore.lua",
+    lua_load = os.getenv("HOME") .. "/.config/conky/polycore/polycore.lua",
     -- lua_startup_hook = "init",
     lua_draw_hook_post = "main",
 
@@ -186,5 +186,5 @@ ${template5 blackstor /mnt/blackstor}#
 ${template5 bluestor /mnt/bluestor}#
 ${template5 cryptstor /mnt/cryptstor}#
 #
-${image ~/.config/conky/9blocks.png -p 60,990 -s 16x16}#
+${image ~/.config/conky/polycore/9blocks.png -p 60,990 -s 16x16}#
 ]];

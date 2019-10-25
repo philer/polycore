@@ -3,7 +3,7 @@
 require 'cairo'
 
 -- lua's import system is retarded.
-package.path = os.getenv("HOME") .. "/.config/conky/?.lua;" .. package.path
+package.path = os.getenv("HOME") .. "/.config/conky/polycore/?.lua;" .. package.path
 require 'data'
 require 'util'
 
@@ -461,15 +461,6 @@ function rectangle(x1, y1, x2, y2)
     -- polygon({x1, y1, x2, y1, x2, y2, x1, y2})
     cairo_set_antialias(cr, CAIRO_ANTIALIAS_NONE)
     cairo_rectangle(cr, x1, y1, x2 - x1, y2 - y1)
-end
-
-function hexagon(mx, my, scale)
-    local coords = {}
-    for i = 1, 6 do
-        table.insert(coords, mx + scale * hex_segment_offsets[i][1])
-        table.insert(coords, my + scale * hex_segment_offsets[i][2])
-    end
-    polygon(coords)
 end
 
 function polygon(coordinates)

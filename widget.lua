@@ -18,6 +18,7 @@ function WidgetList:add(w)
     if w.render then
         table.insert(self._render_widgets, w)
     end
+    return w
 end
 
 function WidgetList:layout()
@@ -96,6 +97,26 @@ local Gap = util.class(Widget)
 
 function Gap:init(height)
     self.height = height
+end
+
+
+local TextLine = util.class(Widget)
+TextLine.height = 11
+
+function TextLine:layout(container)
+    self.center = {container.x_offset + 0.5 * container.width,
+                   container.y_offset + 0.5 * self.height}
+end
+
+function TextLine:update(text)
+    self.text = text
+end
+
+function TextLine:render(cr)
+    local mx, my = unpack(self.center)
+    font_normal(cr)
+    cairo_set_source_rgba(cr, unpack(text_color))
+    write_centered(cr, mx, my, self.text)
 end
 
 
@@ -557,6 +578,7 @@ return {
     Widget = Widget,
     WidgetGroup = WidgetGroup,
     Gap = Gap,
+    TextLine = TextLine,
     Bar = Bar,
     MemoryBar = MemoryBar,
     Graph = Graph,

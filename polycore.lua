@@ -51,11 +51,15 @@ text_color = {1, 1, 1, .8}
 graph_color = temperature_colors[1]
 
 local wili
+local fan_rpm_text, cpu_temps_text
 local downspeed_graph, upspeed_graph
 
 function setup()
     wili = widget.WidgetList(140, 1080 - 28, 10)
-    wili:add(widget.Gap(130))
+    wili:add(widget.Gap(100))
+    fan_rpm_text = wili:add(widget.TextLine())
+    cpu_temps_text = wili:add(widget.TextLine())
+    wili:add(widget.Gap(8))
     wili:add(widget.Cpu(6, 23, 5, 24))
     wili:add(widget.Gap(12))
     wili:add(widget.CpuFrequencies(6, 0.75, 4.3, 16))
@@ -63,41 +67,29 @@ function setup()
     wili:add(widget.MemoryGrid(5, 40, 2, 1, true))
     wili:add(widget.Gap(82))
     wili:add(widget.Gpu())
-
-    downspeed_graph = widget.Graph(20, 10*1024)
-    upspeed_graph = widget.Graph(20, 1024)
-
     wili:add(widget.Gap(130))
-    wili:add(downspeed_graph)
+    downspeed_graph = wili:add(widget.Graph(20, 10*1024))
     wili:add(widget.Gap(33))
-    wili:add(upspeed_graph)
-
+    upspeed_graph = wili:add(widget.Graph(20, 1024))
     wili:layout()
 end
 
 function update(cr, update_count)
+    local fan1, fan2 = unpack(data.fan_rpm())
+    fan_rpm_text:update(fan1 .. " rpm   ·   " .. fan2 .. " rpm")
+
+    local cpu_temps = data.cpu_temperatures()
+    cpu_temps_text:update(table.concat(cpu_temps, " · ") .. " °C")
+
     local down, up = data.network_speed("enp0s31f6")
     downspeed_graph:update(down)
     upspeed_graph:update(up)
-    font_normal(cr)
+
     wili:render(cr)
 
-
-    local y_offset = 110
+    local y_offset = 800 - 15
     font_normal(cr)
     cairo_set_source_rgba(cr, unpack(text_color))
-
-    fans = data.fan_rpm()
-    write_centered(cr, win_width / 2, y_offset,
-                   fans[1] .. " rpm   ·   " .. fans[2] .. " rpm")
-    y_offset = y_offset + 11
-
-    local cpu_temps = data.cpu_temperatures()
-    write_centered(cr, win_width / 2, y_offset,
-                   table.concat(cpu_temps, " · ") .. " °C")
-    y_offset = y_offset + 135
-
-    y_offset = 800 - 15
     local drive_height = 47
     for _, drive in ipairs(drives) do
         if data.is_mounted(drive[1]) then

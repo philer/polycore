@@ -266,6 +266,7 @@ function Graph:render_background(cr)
     })
     cairo_fill_preserve(cr)
     cairo_set_source_rgba(cr, r, g, b, .2)
+    -- cairo_set_source_rgba(cr, 1, 0, 0, 1)
     cairo_stroke(cr)
 end
 
@@ -277,27 +278,26 @@ function Graph:update(value)
 end
 
 function Graph:render(cr)
+    local r, g, b = unpack(self.color)
     local x_scale = 1 / self.data.length * (self.x_max - self.x_offset)
     local y_scale = 1 / self.max * self.height
+    local y_bottom = self.y_offset + self.height - 0.5
     cairo_set_antialias(cr, CAIRO_ANTIALIAS_DEFAULT)
-    cairo_move_to(cr, self.x_offset + .5,
-                  math.floor(self.y_offset + self.height - self.data:head() * y_scale) + .5)
+    cairo_move_to(cr, self.x_offset, y_bottom - self.data:head() * y_scale)
     self.data:map(function(val, idx)
-        cairo_line_to(cr, self.x_offset + idx * x_scale,
-                          self.y_offset + self.height - val * y_scale)
+        cairo_line_to(cr, self.x_offset + (idx - 1) * x_scale, y_bottom - val * y_scale)
     end)
 
-    local r, g, b = unpack(self.color)
     cairo_set_source_rgba(cr, r, g, b, 1)
     cairo_set_line_width(cr, .5)
     cairo_stroke_preserve(cr)
 
     --- fill under graph ---
-    cairo_line_to(cr, self.x_max + .5, self.y_offset + self.height + .5)
-    cairo_line_to(cr, self.x_offset + .5, self.y_offset + self.height + .5)
+    cairo_line_to(cr, self.x_max, y_bottom)
+    cairo_line_to(cr, self.x_offset, y_bottom)
     cairo_close_path(cr)
-    alpha_gradient(cr, 0, self.y_offset + self.height - self.max * y_scale,
-                       0, self.y_offset + self.height,
+    alpha_gradient(cr, 0, y_bottom - self.max * y_scale,
+                       0, y_bottom,
                        r, g, b, {{0, .66}, {.5, .33}, {1, .25}})
     cairo_fill(cr)
 end

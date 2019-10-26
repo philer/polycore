@@ -57,14 +57,14 @@ util.CycleQueue = util.class()
 
 function util.CycleQueue:init(length)
     self.length = length
-    self.latest = 0
+    self.latest = length
     for i = 1, length do
         self[i] = 0
     end
 end
 
 function util.CycleQueue:head()
-    return self[self.latest]
+    return self[self.latest % self.length + 1]
 end
 
 function util.CycleQueue:put(item)
@@ -73,11 +73,11 @@ function util.CycleQueue:put(item)
 end
 
 function util.CycleQueue:map(fn)
-    for i = self.latest, self.length do
-        fn(self[i], i - self.latest + 1)
+    for i = self.latest % self.length + 1, self.length do
+        fn(self[i], i - self.latest % self.length)
     end
-    for i = 1, self.latest - 1 do
-        fn(self[i], self.length - self.latest + i + 1)
+    for i = 1, self.latest do
+        fn(self[i], i - self.latest + self.length)
     end
 end
 

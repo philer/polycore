@@ -72,6 +72,16 @@ function setup()
     wili:add(widget.Gap(33))
     upspeed_graph = wili:add(widget.Graph(20, 1024))
     wili:layout()
+
+    -- hacky right border
+    local bg_cr = cairo_create(wili._background_surface)
+    cairo_move_to(bg_cr, wili.width - .5, 0)
+    cairo_line_to(bg_cr, wili.width - .5, wili.height)
+    cairo_set_antialias(bg_cr, CAIRO_ANTIALIAS_NONE)
+    cairo_set_line_width(bg_cr, 1)
+    cairo_set_source_rgba(bg_cr, 1, 1, 1, .05)
+    cairo_stroke(bg_cr)
+    cairo_destroy(bg_cr)
 end
 
 function update(cr, update_count)
@@ -98,7 +108,6 @@ function update(cr, update_count)
         end
     end
 
-    draw_right_border(cr)
     util.reset_data(update_count)
 end
 
@@ -185,14 +194,6 @@ end
 --+–––––––––––––––+--
 --| CAIRO HELPERS |--
 --+–––––––––––––––+--
-
-function draw_right_border(cr)
-    cairo_move_to(cr, win_width - .5, 0)
-    cairo_line_to(cr, win_width - .5, conky_window.text_height)
-    cairo_set_line_width(cr, 1)
-    cairo_set_source_rgba(cr, 1, 1, 1, .05)
-    cairo_stroke(cr)
-end
 
 function rectangle(cr, x1, y1, x2, y2)
     -- polygon({x1, y1, x2, y1, x2, y2, x1, y2})

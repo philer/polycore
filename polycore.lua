@@ -21,12 +21,6 @@ local drives = {
 local font_family = "Ubuntu"
 local font_size = 10
 
-local min_freq = 0.75
-local max_freq = 4.3
-
-local max_download = 10*1024
-local max_upload = 1024
-
 local temperature_colors = {
     {.4,  1,  1},
     {.5,  1, .8},
@@ -63,13 +57,15 @@ function setup()
     wili = widget.WidgetList(140, 1080 - 28, 10)
     wili:add(widget.Gap(130))
     wili:add(widget.Cpu(6, 23, 5, 24))
-    wili:add(widget.Gap(174))
+    wili:add(widget.Gap(12))
+    wili:add(widget.CpuFrequencies(6, 0.75, 4.3, 16))
+    wili:add(widget.Gap(136))
     wili:add(widget.MemoryGrid(5, 40, 2, 1, true))
     wili:add(widget.Gap(82))
     wili:add(widget.Gpu())
 
-    downspeed_graph = widget.Graph(20, max_download)
-    upspeed_graph = widget.Graph(20, max_upload)
+    downspeed_graph = widget.Graph(20, 10*1024)
+    upspeed_graph = widget.Graph(20, 1024)
 
     wili:add(widget.Gap(130))
     wili:add(downspeed_graph)
@@ -101,12 +97,6 @@ function update(cr, update_count)
                    table.concat(cpu_temps, " · ") .. " °C")
     y_offset = y_offset + 135
 
-    write_left(cr, x_right - 15, y_offset + 12, "GHz")
-
-    draw_cpu_frequencies(data.cpu_frequencies(6),
-                         x_left + 2, x_right - 20,
-                         y_offset, y_offset + 16)
-
     y_offset = 800 - 15
     local drive_height = 47
     for _, drive in ipairs(drives) do
@@ -122,67 +112,6 @@ end
 
 
 --- DRAWING ---
-
-function draw_cpu_frequencies(frequencies, x_min, x_max, y_min, y_max)
-    local cpu_temps = data.cpu_temperatures()
-    local r, g, b = temp_color(util.avg(cpu_temps), 30, 80)
-    cairo_set_line_width(cr, 1)
-    font_normal(cr, 10)
-    cairo_set_source_rgba(cr, r, g, b, .66)
-
-    local df = max_freq - min_freq
-
-    -- ticks --
-    for freq = 1, max_freq, .25 do
-        local x = x_min + (x_max - x_min) * (freq - min_freq) / df
-        local big = math.floor(freq) == freq
-        if big then
-            write_centered(cr, x, y_max + 8.5, freq)
-        end
-        cairo_move_to(cr, math.floor(x) + .5, y_max + 1.5)
-        cairo_rel_line_to(cr, 0, big and 3 or 2)
-    end
-    cairo_stroke(cr)
-
-    --- shadow outline
-    polygon(cr, {
-        x_min - 1, y_max - (y_max - y_min) * min_freq / max_freq - 1,
-        x_max + 1, y_min - 1,
-        x_max + 1, y_max + 1,
-        x_min - 1, y_max + 1,
-    })
-    cairo_set_source_rgba(cr, 0, 0, 0, .4)
-    cairo_set_line_width(cr, 1)
-    cairo_stroke(cr)
-
-    -- background --
-    polygon(cr, {
-        x_min, y_max - (y_max - y_min) * min_freq / max_freq,
-        x_max, y_min,
-        x_max, y_max,
-        x_min, y_max,
-    })
-    cairo_set_source_rgba(cr, r, g, b, .15)
-    cairo_fill_preserve(cr)
-    cairo_set_source_rgba(cr, r, g, b, .3)
-    cairo_stroke_preserve(cr)
-
-    -- frequencies --
-    for _, frequency in ipairs(frequencies) do
-        local stop = (frequency - min_freq) / df
-        alpha_gradient(cr, x_min, 0, x_max, 0, r, g, b, {
-             {0,          .01},
-             {stop - .4,  .015},
-             {stop - .2,  .05},
-             {stop - .1,  .1},
-             {stop - .02, .2},
-             {stop,       .6},
-             {stop,       0},
-        })
-        cairo_fill_preserve(cr)
-    end
-    cairo_new_path(cr)
-end
 
 function draw_drive(path, device_name, y_offset)
     local perc = data.drive_percentage(path)

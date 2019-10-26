@@ -332,7 +332,7 @@ function Cpu:layout(container)
 end
 
 function Cpu:render(cr)
-    local temperatures = data.cpu_temperatures(self.cores)
+    local temperatures = data.cpu_temperatures()
     local avg_temperature = util.avg(temperatures)
     local percentages = data.cpu_percentages(self.cores)
     local r, g, b = temp_color(avg_temperature, 30, 80)
@@ -378,6 +378,96 @@ function Cpu:render(cr)
         cairo_fill(cr)
     end
 end
+
+
+local CpuFrequencies = util.class(Widget)
+
+function CpuFrequencies:init(cores, min_freq, max_freq, height)
+    self.cores = cores
+    self.min_freq = min_freq
+    self.max_freq = max_freq
+    self._height = height
+    self.height = height + 10
+end
+
+function CpuFrequencies:layout(container)
+    self.x_min = container.x_offset + 2
+    self.x_max = container.x_max - 20
+    self.y_min = container.y_offset
+    self.y_max = container.y_offset + self._height
+    self._polygon_coordinates = {
+        self.x_min, self.y_max - (self.y_max - self.y_min) * self.min_freq / self.max_freq,
+        self.x_max, self.y_min,
+        self.x_max, self.y_max,
+        self.x_min, self.y_max,
+    }
+end
+
+function CpuFrequencies:render_background(cr)
+    font_normal(cr)
+    cairo_set_source_rgba(cr, unpack(text_color))
+    write_left(cr, self.x_max + 5, self.y_min + 0.5 * self._height + 3, "GHz")
+
+    --- shadow outline
+    polygon(cr, {
+        self._polygon_coordinates[1] - 1, self._polygon_coordinates[2] - 1,
+        self._polygon_coordinates[3] + 1, self._polygon_coordinates[4] - 1,
+        self._polygon_coordinates[5] + 1, self._polygon_coordinates[6] + 1,
+        self._polygon_coordinates[7] - 1, self._polygon_coordinates[8] + 1,
+    })
+    cairo_set_source_rgba(cr, 0, 0, 0, .4)
+    cairo_set_line_width(cr, 1)
+    cairo_stroke(cr)
+end
+
+function CpuFrequencies:render(cr)
+    local frequencies = data.cpu_frequencies(self.cores)
+    local temperatures = data.cpu_temperatures()
+    local r, g, b = temp_color(util.avg(temperatures), 30, 80)
+    local df = self.max_freq - self.min_freq
+
+    cairo_set_line_width(cr, 1)
+
+    -- ticks --
+    font_normal(cr)
+    cairo_set_source_rgba(cr, r, g, b, .66)
+    for freq = 1, self.max_freq, .25 do
+        local x = self.x_min + (self.x_max - self.x_min) * (freq - self.min_freq) / df
+        local big = math.floor(freq) == freq
+        if big then
+            write_centered(cr, x, self.y_max + 8.5, freq)
+        end
+        cairo_move_to(cr, math.floor(x) + .5, self.y_max + 1.5)
+        cairo_rel_line_to(cr, 0, big and 3 or 2)
+    end
+    cairo_stroke(cr)
+
+
+    -- background --
+    polygon(cr, self._polygon_coordinates)
+    cairo_set_source_rgba(cr, r, g, b, .15)
+    cairo_fill_preserve(cr)
+    cairo_set_source_rgba(cr, r, g, b, .3)
+    cairo_stroke_preserve(cr)
+
+    -- frequencies --
+    for _, frequency in ipairs(frequencies) do
+        local stop = (frequency - self.min_freq) / df
+        alpha_gradient(cr, self.x_min, 0, self.x_max, 0, r, g, b, {
+             {0,          .01},
+             {stop - .4,  .015},
+             {stop - .2,  .05},
+             {stop - .1,  .1},
+             {stop - .02, .2},
+             {stop,       .6},
+             {stop,       0},
+        })
+        cairo_fill_preserve(cr)
+    end
+    cairo_new_path(cr)
+end
+
+
 
 
 local MemoryGrid = util.class(Widget)
@@ -471,6 +561,7 @@ return {
     MemoryBar = MemoryBar,
     Graph = Graph,
     Cpu = Cpu,
+    CpuFrequencies = CpuFrequencies,
     MemoryGrid = MemoryGrid,
     Gpu = Gpu,
 }

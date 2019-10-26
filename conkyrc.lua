@@ -93,7 +93,7 @@ ${template9}$color5${execbar ~/bin/echo100.sh}$color3${template9}${\1 \2 \3}${te
 
     -- top: number
     template2 = [[
-${template9}${color1}${top name \1}${template8}${top cpu \1}${top mem \1}$color]],
+${template9}${color1}${top name \1}${template8}${top cpu \1} %$color]],
 
 --     -- top (cpu): number
 --     template3 = [[
@@ -141,7 +141,7 @@ $color#
 ${voffset 200}
 #
 ### top ###
-${template6 top}${template8}cpu mem
+${template6 top}${template8}cpu
 ${voffset 3}#
 ${template2 1}
 ${template2 2}
@@ -152,7 +152,7 @@ ${template2 5}
 
 ### mem ###
 ${template6 mem} ${template8}$memperc% # $mem / $memmax
-${voffset 20}
+${voffset 24}
 ### memtop ###
 ${template4 1}
 ${template4 2}

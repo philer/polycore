@@ -63,9 +63,9 @@ function setup()
     wili:add(widget.Cpu(6, 23, 5, 24))
     wili:add(widget.Gap(12))
     wili:add(widget.CpuFrequencies(6, 0.75, 4.3, 16))
-    wili:add(widget.Gap(136))
+    wili:add(widget.Gap(138))
     wili:add(widget.MemoryGrid(5, 40, 2, 1, true))
-    wili:add(widget.Gap(82))
+    wili:add(widget.Gap(84))
     wili:add(widget.Gpu())
     wili:add(widget.Gap(130))
     downspeed_graph = wili:add(widget.Graph(20, 10*1024))
@@ -97,7 +97,7 @@ function update(cr, update_count)
 
     wili:render(cr)
 
-    local y_offset = 800 - 15
+    local y_offset = 800 - 10
     font_normal(cr)
     cairo_set_source_rgba(cr, unpack(text_color))
     local drive_height = 47

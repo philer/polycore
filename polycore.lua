@@ -47,21 +47,17 @@ end
 
 ---
 
+os.setlocale("C")  -- decimal dot
+
 local cr, cs
 local win_width = 140
 local x_left = 10
 local x_right = win_width - x_left
 text_color = {1, 1, 1, .8}
 graph_color = temperature_colors[1]
-local r, g, b
-
--- local gpu_graph_data = util.CycleQueue(90)
-local downspeed_graph_data = util.CycleQueue(90)
-local upspeed_graph_data = util.CycleQueue(90)
-
-os.setlocale("C")  -- decimal dot
 
 local wili
+local downspeed_graph, upspeed_graph
 
 function setup()
     wili = widget.WidgetList(140, 1080 - 28, 10)
@@ -71,19 +67,28 @@ function setup()
     wili:add(widget.MemoryGrid(5, 40, 2, 1, true))
     wili:add(widget.Gap(82))
     wili:add(widget.Gpu())
+
+    downspeed_graph = widget.Graph(20, max_download)
+    upspeed_graph = widget.Graph(20, max_upload)
+
+    wili:add(widget.Gap(130))
+    wili:add(downspeed_graph)
+    wili:add(widget.Gap(33))
+    wili:add(upspeed_graph)
+
     wili:layout()
 end
 
 function update(cr, update_count)
+    local down, up = data.network_speed("enp0s31f6")
+    downspeed_graph:update(down)
+    upspeed_graph:update(up)
     font_normal(cr)
     wili:render(cr)
 
 
     local y_offset = 110
-
-    local cpu_temps = data.cpu_temperatures()
-    r, g, b = temp_color(util.avg(cpu_temps), 30, 80)
-
+    font_normal(cr)
     cairo_set_source_rgba(cr, unpack(text_color))
 
     fans = data.fan_rpm()
@@ -91,23 +96,16 @@ function update(cr, update_count)
                    fans[1] .. " rpm   ·   " .. fans[2] .. " rpm")
     y_offset = y_offset + 11
 
+    local cpu_temps = data.cpu_temperatures()
     write_centered(cr, win_width / 2, y_offset,
                    table.concat(cpu_temps, " · ") .. " °C")
-    y_offset = y_offset + 10
+    y_offset = y_offset + 135
 
-    y_offset = y_offset + 125
-
-    cairo_set_source_rgba(cr, unpack(text_color))
-    font_normal(cr, 10)
     write_left(cr, x_right - 15, y_offset + 12, "GHz")
+
     draw_cpu_frequencies(data.cpu_frequencies(6),
                          x_left + 2, x_right - 20,
                          y_offset, y_offset + 16)
-
-    -- draw_memory(437)
-
-    -- draw_gpu(514)
-    draw_network("enp0s31f6", 665)
 
     y_offset = 800 - 15
     local drive_height = 47
@@ -126,6 +124,8 @@ end
 --- DRAWING ---
 
 function draw_cpu_frequencies(frequencies, x_min, x_max, y_min, y_max)
+    local cpu_temps = data.cpu_temperatures()
+    local r, g, b = temp_color(util.avg(cpu_temps), 30, 80)
     cairo_set_line_width(cr, 1)
     font_normal(cr, 10)
     cairo_set_source_rgba(cr, r, g, b, .66)
@@ -182,20 +182,6 @@ function draw_cpu_frequencies(frequencies, x_min, x_max, y_min, y_max)
         cairo_fill_preserve(cr)
     end
     cairo_new_path(cr)
-end
-
-function draw_network(interface, y_offset)
-    local down, up = data.network_speed(interface)
-    max_download = math.max(max_download, down)
-    max_upload = math.max(max_upload, up)
-    downspeed_graph_data:put(down)
-    graph(downspeed_graph_data, max_download, y_offset, 20)
-    upspeed_graph_data:put(up)
-    graph(upspeed_graph_data, max_upload, y_offset + 53, 20)
-    -- downspeed_graph_data:put(math.log10(math.max(1, down)))
-    -- graph(downspeed_graph_data, math.log10(max_download), y_offset, 20)
-    -- upspeed_graph_data:put(math.log10(math.max(1, up)))
-    -- graph(upspeed_graph_data, math.log10(max_upload), y_offset + 51, 20)
 end
 
 function draw_drive(path, device_name, y_offset)
@@ -274,64 +260,10 @@ function bar(unit, fraction, ticks, big_ticks, y_offset, r, g, b)
     cairo_stroke(cr)
 end
 
-function graph(data, max, y_offset, height, r, g, b)
-    if r == nil then
-        r, g, b = unpack(graph_color)
-    end
-    cairo_set_line_width(cr, 1)
 
-    --- background shadow ---
-    rectangle(cr, x_left - 1, y_offset - 1, x_right + 1, y_offset + height + 1)
-    cairo_set_source_rgba(cr, 0, 0, 0, .33)
-    cairo_stroke(cr)
-
-    --- background ---
-    rectangle(cr, x_left, y_offset, x_right, y_offset + height)
-    -- alpha_gradient(cr, 0, y_offset, 0, y_offset + height, r, g, b, {
-    --     {0, .1}, {.5, .18}, {.51, .12},
-    -- })
-    alpha_gradient(cr, 0, y_offset, 0, y_offset + height, r, g, b, {
-        {.1, .14}, {.1, .06}, {.2, .06}, {.2, .14},
-        {.3, .14}, {.3, .06}, {.4, .06}, {.4, .14},
-        {.5, .14}, {.5, .06}, {.6, .06}, {.6, .14},
-        {.7, .14}, {.7, .06}, {.8, .06}, {.8, .14},
-        {.9, .14}, {.9, .06},
-    })
-    cairo_fill_preserve(cr)
-    cairo_set_source_rgba(cr, r, g, b, .2)
-    cairo_stroke(cr)
-
-    --- actual graph ---
-    local x_scale = 1 / data.length * (x_right - x_left)
-    local y_scale = 1 / max * height
-    cairo_set_antialias(cr, CAIRO_ANTIALIAS_DEFAULT)
-    cairo_move_to(cr, x_left + .5,
-                  math.floor(y_offset + height - data:head() * y_scale) + .5)
-    data:map(function(val, idx)
-        max = math.max(max, val)
-        cairo_line_to(cr, x_left + idx * x_scale,
-                          y_offset + height - val * y_scale)
-    end)
-    cairo_set_source_rgba(cr, r, g, b, 1)
-    cairo_set_line_width(cr, .5)
-    cairo_stroke_preserve(cr)
-
-    --- fill under graph ---
-    cairo_line_to(cr, x_right + .5, y_offset + height + .5)
-    cairo_line_to(cr, x_left + .5, y_offset + height + .5)
-    cairo_close_path(cr)
-    alpha_gradient(cr, 0, y_offset + height - max * y_scale,
-                       0, y_offset + height,
-                       r, g, b, {{0, .66}, {.5, .33}, {1, .25}})
-    cairo_fill(cr)
-
-end
-
----------------------
 --+–––––––––––––––+--
 --| CAIRO HELPERS |--
 --+–––––––––––––––+--
----------------------
 
 function draw_right_border(cr)
     cairo_move_to(cr, win_width - .5, 0)

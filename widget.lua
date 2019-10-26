@@ -210,7 +210,79 @@ function MemoryBar:update(used)
 end
 
 
-local Cpu = util.class()
+local Graph = util.class(Widget)
+
+function Graph:init(height, max, data_points, color)
+    self.height = height
+    self.max = max
+    self.data = util.CycleQueue(data_points or 90)
+    self.color = color or graph_color
+end
+
+function Graph:layout(container)
+    self.x_offset = container.x_offset
+    self.y_offset = container.y_offset
+    self.x_max = container.x_max
+end
+
+function Graph:render_background(cr)
+    local r, g, b = unpack(self.color)
+    cairo_set_line_width(cr, 1)
+
+    --- background shadow ---
+    rectangle(cr, self.x_offset - 1, self.y_offset - 1, self.x_max + 1, self.y_offset + self.height + 1)
+    cairo_set_source_rgba(cr, 0, 0, 0, .33)
+    cairo_stroke(cr)
+
+    --- background ---
+    rectangle(cr, self.x_offset, self.y_offset, self.x_max, self.y_offset + self.height)
+    alpha_gradient(cr, 0, self.y_offset, 0, self.y_offset + self.height, r, g, b, {
+        {.1, .14}, {.1, .06}, {.2, .06}, {.2, .14},
+        {.3, .14}, {.3, .06}, {.4, .06}, {.4, .14},
+        {.5, .14}, {.5, .06}, {.6, .06}, {.6, .14},
+        {.7, .14}, {.7, .06}, {.8, .06}, {.8, .14},
+        {.9, .14}, {.9, .06},
+    })
+    cairo_fill_preserve(cr)
+    cairo_set_source_rgba(cr, r, g, b, .2)
+    cairo_stroke(cr)
+end
+
+function Graph:update(value)
+    self.data:put(value)
+    if value > self.max then
+        self.max = value
+    end
+end
+
+function Graph:render(cr)
+    local x_scale = 1 / self.data.length * (self.x_max - self.x_offset)
+    local y_scale = 1 / self.max * self.height
+    cairo_set_antialias(cr, CAIRO_ANTIALIAS_DEFAULT)
+    cairo_move_to(cr, self.x_offset + .5,
+                  math.floor(self.y_offset + self.height - self.data:head() * y_scale) + .5)
+    self.data:map(function(val, idx)
+        cairo_line_to(cr, self.x_offset + idx * x_scale,
+                          self.y_offset + self.height - val * y_scale)
+    end)
+
+    local r, g, b = unpack(self.color)
+    cairo_set_source_rgba(cr, r, g, b, 1)
+    cairo_set_line_width(cr, .5)
+    cairo_stroke_preserve(cr)
+
+    --- fill under graph ---
+    cairo_line_to(cr, self.x_max + .5, self.y_offset + self.height + .5)
+    cairo_line_to(cr, self.x_offset + .5, self.y_offset + self.height + .5)
+    cairo_close_path(cr)
+    alpha_gradient(cr, 0, self.y_offset + self.height - self.max * y_scale,
+                       0, self.y_offset + self.height,
+                       r, g, b, {{0, .66}, {.5, .33}, {1, .25}})
+    cairo_fill(cr)
+end
+
+
+local Cpu = util.class(Widget)
 
 function Cpu:init(cores, scale, gap, segment_size)
     self.cores = cores
@@ -308,7 +380,7 @@ function Cpu:render(cr)
 end
 
 
-local MemoryGrid = util.class()
+local MemoryGrid = util.class(Widget)
 
 function MemoryGrid:init(rows, columns, point_size, gap, shuffle)
     self.rows = rows
@@ -393,10 +465,12 @@ end
 return {
     WidgetList = WidgetList,
     Widget = Widget,
+    WidgetGroup = WidgetGroup,
     Gap = Gap,
     Bar = Bar,
-    Cpu = Cpu,
-    Gpu = Gpu,
-    MemoryGrid = MemoryGrid,
     MemoryBar = MemoryBar,
+    Graph = Graph,
+    Cpu = Cpu,
+    MemoryGrid = MemoryGrid,
+    Gpu = Gpu,
 }

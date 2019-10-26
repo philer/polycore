@@ -100,6 +100,16 @@ function util.map(fn, iter)
     return arr
 end
 
+function util.filter(fn, arr)
+    local result = {}
+    for _, item in ipairs(arr) do
+        if fn(item) then
+            table.insert(result, item)
+        end
+    end
+    return result
+end
+
 function util.reduce(fn, init, arr)
     for _, item in ipairs(arr) do
         init = fn(init, item)

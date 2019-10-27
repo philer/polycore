@@ -56,6 +56,7 @@ local downspeed_graph, upspeed_graph
 
 function setup()
     wili = widget.WidgetList(140, 1080 - 28, 10)
+    wili:add(widget.BorderRight(wili))
     wili:add(widget.Gap(100))
     fan_rpm_text = wili:add(widget.TextLine())
     cpu_temps_text = wili:add(widget.TextLine())
@@ -72,16 +73,6 @@ function setup()
     wili:add(widget.Gap(33))
     upspeed_graph = wili:add(widget.Graph(20, 1024))
     wili:layout()
-
-    -- hacky right border
-    local bg_cr = cairo_create(wili._background_surface)
-    cairo_move_to(bg_cr, wili.width - .5, 0)
-    cairo_line_to(bg_cr, wili.width - .5, wili.height)
-    cairo_set_antialias(bg_cr, CAIRO_ANTIALIAS_NONE)
-    cairo_set_line_width(bg_cr, 1)
-    cairo_set_source_rgba(bg_cr, 1, 1, 1, .05)
-    cairo_stroke(bg_cr)
-    cairo_destroy(bg_cr)
 end
 
 function update(cr, update_count)

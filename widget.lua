@@ -135,6 +135,22 @@ function TextLine:render(cr)
 end
 
 
+local BorderRight = util.class(Widget)
+
+function BorderRight:init(block)
+    self.block = block
+end
+
+function BorderRight:render_background(cr)
+    cairo_set_antialias(cr, CAIRO_ANTIALIAS_NONE)
+    cairo_set_line_width(cr, 1)
+    cairo_set_source_rgba(cr, 0.8, 1, 1, 0.05)
+    cairo_move_to(cr, self.block.width - 0.5, 0)
+    cairo_line_to(cr, self.block.width - 0.5, self.block.height)
+    cairo_stroke(cr)
+end
+
+
 local Bar = util.class(Widget)
 
 function Bar:init(ticks, big_ticks, unit, thickness, color)
@@ -611,16 +627,17 @@ end
 
 
 return {
-    WidgetList = WidgetList,
-    Widget = Widget,
-    WidgetGroup = WidgetGroup,
-    Gap = Gap,
-    TextLine = TextLine,
     Bar = Bar,
-    MemoryBar = MemoryBar,
-    Graph = Graph,
+    BorderRight = BorderRight,
     Cpu = Cpu,
     CpuFrequencies = CpuFrequencies,
-    MemoryGrid = MemoryGrid,
+    Gap = Gap,
     Gpu = Gpu,
+    Graph = Graph,
+    MemoryBar = MemoryBar,
+    MemoryGrid = MemoryGrid,
+    TextLine = TextLine,
+    Widget = Widget,
+    WidgetGroup = WidgetGroup,
+    WidgetList = WidgetList,
 }

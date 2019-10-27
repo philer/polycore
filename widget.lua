@@ -509,12 +509,10 @@ function MemoryGrid:layout(container)
         for row = 0, self.rows - 1, 1 do
             table.insert(self.coordinates, {container.x_offset + col * point_plus_gap,
                                             container.y_offset + row * point_plus_gap,
-                                            container.x_offset + col * point_plus_gap + self.point_size,
-                                            container.y_offset + row * point_plus_gap + self.point_size})
+                                            self.point_size, self.point_size})
         end
     end
     if shuffle == nil or shuffle then
-        math.randomseed(1069140724)
         util.shuffle(self.coordinates)
     end
 end
@@ -531,21 +529,22 @@ function MemoryGrid:render(cr)
         r, g, b = unpack(temperature_colors[#temperature_colors])
     end
 
+    cairo_set_antialias(cr, CAIRO_ANTIALIAS_NONE)
     for i = 1, used_points do
-        rectangle(cr, unpack(self.coordinates[i]))
-        cairo_set_source_rgba(cr, r, g, b, .8)
-        cairo_fill(cr)
+        cairo_rectangle(cr, unpack(self.coordinates[i]))
     end
+    cairo_set_source_rgba(cr, r, g, b, .8)
+    cairo_fill(cr)
     for i = used_points, used_points + cache_points do
-        rectangle(cr, unpack(self.coordinates[i]))
-        cairo_set_source_rgba(cr, r, g, b, .35)
-        cairo_fill(cr)
+        cairo_rectangle(cr, unpack(self.coordinates[i]))
     end
+    cairo_set_source_rgba(cr, r, g, b, .35)
+    cairo_fill(cr)
     for i = used_points + cache_points, total_points do
-        rectangle(cr, unpack(self.coordinates[i]))
-        cairo_set_source_rgba(cr, r, g, b, .1)
-        cairo_fill(cr)
+        cairo_rectangle(cr, unpack(self.coordinates[i]))
     end
+    cairo_set_source_rgba(cr, r, g, b, .1)
+    cairo_fill(cr)
 end
 
 

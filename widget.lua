@@ -15,13 +15,12 @@ end
 
 function WidgetList:add(w)
     table.insert(self._widgets, w)
-    if w.render then
-        table.insert(self._render_widgets, w)
-    end
+    if w.render then table.insert(self._render_widgets, w) end
     return w
 end
 
 function WidgetList:layout()
+    print("layout reflow…")
     local x_offset, y_offset = self.padding, self.padding
     local width = self.width - 2 * self.padding
     local x_max = self.width - self.padding
@@ -40,6 +39,14 @@ function WidgetList:layout()
     background_cr = nil
 end
 
+function WidgetList:update()
+    local reflow = false
+    for _, w in ipairs(self._render_widgets) do
+        reflow = w:update() or reflow
+    end
+    if reflow then self:layout() end
+end
+
 function WidgetList:render(cr)
     cairo_set_antialias(cr, CAIRO_ANTIALIAS_NONE)
     cairo_set_source_surface(cr, self._background_surface, 0, 0);
@@ -55,20 +62,20 @@ Widget.height = 0
 -- function Widget:init(y) end
 function Widget:layout(container) end
 function Widget:render_background(cr) end
--- function Widget:update(...) end
+function Widget:update() return false end
 -- function Widget:render(cr) end
 
 
 local WidgetGroup = util.class(Widget)
 
 function WidgetGroup:init(widgets)
-    self.widgets = widgets
-    self.render_widgets = util.filter(function(w) return w.render end, widgets)
+    self._widgets = widgets
+    self._render_widgets = util.filter(function(w) return w.render end, widgets)
 end
 
 function WidgetGroup:layout(container)
     local y_offset = container.y_offset
-    for _, w in ipairs(self.widgets) do
+    for _, w in ipairs(self._widgets) do
         if w.layout then
             w:layout{x_offset = container.x_offset,
                      y_offset = y_offset,
@@ -81,13 +88,21 @@ function WidgetGroup:layout(container)
 end
 
 function WidgetGroup:render_background(cr)
-    for _, w in ipairs(self.widgets) do
+    for _, w in ipairs(self._widgets) do
         w:render_background(cr)
     end
 end
 
+function WidgetGroup:update()
+    local reflow = false
+    for _, w in ipairs(self._render_widgets) do
+        reflow = w:update() or reflow
+    end
+    return reflow
+end
+
 function WidgetGroup:render(cr)
-    for _, w in ipairs(self.render_widgets) do
+    for _, w in ipairs(self._render_widgets) do
         w:render(cr)
     end
 end
@@ -108,7 +123,7 @@ function TextLine:layout(container)
                    container.y_offset + 0.5 * self.height}
 end
 
-function TextLine:update(text)
+function TextLine:set_text(text)
     self.text = text
 end
 
@@ -168,7 +183,7 @@ function Bar:render_background(cr)
     end
 end
 
-function Bar:update(fraction)
+function Bar:set_fill(fraction)
     self.fraction = fraction
 end
 
@@ -226,8 +241,8 @@ function MemoryBar:init(total, unit, color)
     end
 end
 
-function MemoryBar:update(used)
-    self.fraction = used / self.total
+function MemoryBar:set_used(used)
+    Bar:set_fill(used / self.total)
 end
 
 
@@ -270,7 +285,7 @@ function Graph:render_background(cr)
     cairo_stroke(cr)
 end
 
-function Graph:update(value)
+function Graph:add_value(value)
     self.data:put(value)
     if value > self.max then
         self.max = value
@@ -352,10 +367,13 @@ function Cpu:layout(container)
     end
 end
 
+function Cpu:update()
+    self.percentages = data.cpu_percentages(self.cores)
+    self.temperatures = data.cpu_temperatures()
+end
+
 function Cpu:render(cr)
-    local temperatures = data.cpu_temperatures()
-    local avg_temperature = util.avg(temperatures)
-    local percentages = data.cpu_percentages(self.cores)
+    local avg_temperature = util.avg(self.temperatures)
     local r, g, b = temp_color(avg_temperature, 30, 80)
 
     polygon(cr, self.center_coordinates)
@@ -376,7 +394,7 @@ function Cpu:render(cr)
     for core = 1, self.cores do
         polygon(cr, self.segment_coordinates[core])
         local gradient = cairo_pattern_create_linear(unpack(self.gradient_coordinates[core]))
-        local r, g, b = temp_color(temperatures[core], 30, 80)
+        local r, g, b = temp_color(self.temperatures[core], 30, 80)
         cairo_set_source_rgba(cr, 0, 0, 0, .4)
         cairo_set_line_width(cr, 1.5)
         cairo_stroke_preserve(cr)
@@ -384,7 +402,7 @@ function Cpu:render(cr)
         cairo_set_line_width(cr, .75)
         cairo_stroke_preserve(cr)
 
-        local h_rel = percentages[core]/100
+        local h_rel = self.percentages[core]/100
         cairo_pattern_add_color_stop_rgba(gradient, 0,            r, g, b, .33)
         cairo_pattern_add_color_stop_rgba(gradient, h_rel - .045, r, g, b, .75)
         cairo_pattern_add_color_stop_rgba(gradient, h_rel,
@@ -456,10 +474,13 @@ function CpuFrequencies:render_background(cr)
     cairo_stroke(cr)
 end
 
+function CpuFrequencies:update()
+    self.frequencies = data.cpu_frequencies(self.cores)
+    self.temperatures = data.cpu_temperatures()
+end
+
 function CpuFrequencies:render(cr)
-    local frequencies = data.cpu_frequencies(self.cores)
-    local temperatures = data.cpu_temperatures()
-    local r, g, b = temp_color(util.avg(temperatures), 30, 80)
+    local r, g, b = temp_color(util.avg(self.temperatures), 30, 80)
 
     cairo_set_line_width(cr, 1)
 
@@ -485,7 +506,7 @@ function CpuFrequencies:render(cr)
 
     -- frequencies --
     local df = self.max_freq - self.min_freq
-    for _, frequency in ipairs(frequencies) do
+    for _, frequency in ipairs(self.frequencies) do
         local stop = (frequency - self.min_freq) / df
         alpha_gradient(cr, self.x_min, 0, self.x_max, 0, r, g, b, {
              {0,          .01},
@@ -530,16 +551,18 @@ function MemoryGrid:layout(container)
     end
 end
 
-function MemoryGrid:render(cr)
-    local used, easyfree, free, total = data.memory()
+function MemoryGrid:update()
+    self.used, self.easyfree, self.free, self.total = data.memory()
+end
 
+function MemoryGrid:render(cr)
     local total_points = #self.coordinates
-    local used_points = math.floor(total_points * used / total + 0.5)
-    local cache_points = math.floor(total_points * (easyfree - free) / total + 0.5)
+    local used_points = math.floor(total_points * self.used / self.total + 0.5)
+    local cache_points = math.floor(total_points * (self.easyfree - self.free) / self.total + 0.5)
     local r, g, b = unpack(graph_color)  -- TODO color manager
 
-    if used / total > 0.7 then
-        if used / total > 0.85 then
+    if self.used / self.total > 0.7 then
+        if self.used / self.total > 0.85 then
             r, g, b = unpack(temperature_colors[#temperature_colors])
         else
             r, g, b = unpack(temperature_colors[#temperature_colors - 1])
@@ -574,17 +597,15 @@ function Gpu:init()
     WidgetGroup.init(self, {self.usebar, Gap(2), self.membar})
 end
 
-function Gpu:render(cr)
-    self.usebar:update(data.gpu_percentage() / 100)
+function Gpu:update()
+    self.usebar:set_fill(data.gpu_percentage() / 100)
 
     local mem_used, _ = data.gpu_memory()
-    self.membar:update(mem_used / 1024)
+    self.membar:set_used(mem_used / 1024)
 
     local color = util.pack(temp_color(data.gpu_temperature(), 30, 80))
     self.usebar.color = color
     self.membar.color = color
-
-    WidgetGroup.render(self, cr)
 end
 
 

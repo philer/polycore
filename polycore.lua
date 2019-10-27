@@ -86,15 +86,16 @@ end
 
 function update(cr, update_count)
     local fan1, fan2 = unpack(data.fan_rpm())
-    fan_rpm_text:update(fan1 .. " rpm   ·   " .. fan2 .. " rpm")
+    fan_rpm_text:set_text(fan1 .. " rpm   ·   " .. fan2 .. " rpm")
 
     local cpu_temps = data.cpu_temperatures()
-    cpu_temps_text:update(table.concat(cpu_temps, " · ") .. " °C")
+    cpu_temps_text:set_text(table.concat(cpu_temps, " · ") .. " °C")
 
     local down, up = data.network_speed("enp0s31f6")
-    downspeed_graph:update(down)
-    upspeed_graph:update(up)
+    downspeed_graph:add_value(down)
+    upspeed_graph:add_value(up)
 
+    wili:update()
     wili:render(cr)
 
     local y_offset = 800 - 10

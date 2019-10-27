@@ -201,9 +201,9 @@ function Bar:render(cr)
     cairo_stroke(cr)
 
     --- ticks ---
-    for _, coords in ipairs(self._ticks) do
-        cairo_move_to(cr, coords[1], coords[2])
-        cairo_rel_line_to(cr, 0, coords[3])
+    for _, tick in ipairs(self._ticks) do
+        cairo_move_to(cr, tick[1], tick[2])
+        cairo_rel_line_to(cr, 0, tick[3])
     end
     cairo_set_source_rgba(cr, r, g, b, .5)
     cairo_stroke(cr)
@@ -422,6 +422,21 @@ function CpuFrequencies:layout(container)
         self.x_max, self.y_max,
         self.x_min, self.y_max,
     }
+    self._ticks = {}
+    self._tick_labels = {}
+
+    local df = self.max_freq - self.min_freq
+    local width = self.x_max - self.x_min
+    for freq = 1, self.max_freq, .25 do
+        local x = self.x_min + width * (freq - self.min_freq) / df
+        local big = math.floor(freq) == freq
+        if big then
+            table.insert(self._tick_labels, {x, self.y_max + 8.5, freq})
+        end
+        table.insert(self._ticks, {math.floor(x) + .5,
+                                   self.y_max + 1.5,
+                                   big and 3 or 2})
+    end
 end
 
 function CpuFrequencies:render_background(cr)
@@ -445,23 +460,20 @@ function CpuFrequencies:render(cr)
     local frequencies = data.cpu_frequencies(self.cores)
     local temperatures = data.cpu_temperatures()
     local r, g, b = temp_color(util.avg(temperatures), 30, 80)
-    local df = self.max_freq - self.min_freq
 
     cairo_set_line_width(cr, 1)
 
     -- ticks --
-    font_normal(cr)
     cairo_set_source_rgba(cr, r, g, b, .66)
-    for freq = 1, self.max_freq, .25 do
-        local x = self.x_min + (self.x_max - self.x_min) * (freq - self.min_freq) / df
-        local big = math.floor(freq) == freq
-        if big then
-            write_centered(cr, x, self.y_max + 8.5, freq)
-        end
-        cairo_move_to(cr, math.floor(x) + .5, self.y_max + 1.5)
-        cairo_rel_line_to(cr, 0, big and 3 or 2)
+    for _, tick in ipairs(self._ticks) do
+        cairo_move_to(cr, tick[1], tick[2])
+        cairo_rel_line_to(cr, 0, tick[3])
     end
     cairo_stroke(cr)
+    font_normal(cr)
+    for _, label in ipairs(self._tick_labels) do
+        write_centered(cr, label[1], label[2], label[3])
+    end
 
 
     -- background --
@@ -472,6 +484,7 @@ function CpuFrequencies:render(cr)
     cairo_stroke_preserve(cr)
 
     -- frequencies --
+    local df = self.max_freq - self.min_freq
     for _, frequency in ipairs(frequencies) do
         local stop = (frequency - self.min_freq) / df
         alpha_gradient(cr, self.x_min, 0, self.x_max, 0, r, g, b, {

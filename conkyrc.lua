@@ -110,7 +110,7 @@ ${template9}${color1}${top_mem name \1}${template8}${top_mem mem_res \1}$color]]
 -- $endif]],
     template5 = [[
 ${if_mounted \2}
-${template9}${offset 1}${font Ubuntu:pixelsize=11:bold}${color0}· \1 ·\n${voffset 8}${color1}${font Ubuntu:pixelsize=10}${template9}${fs_used \2}  /   ${fs_size \2}${template8}${if_match ${fs_used_perc \2}>=85}${color b54}$else$color$endif${fs_used_perc \2}%$font$color
+${template9}${offset 1}${font Ubuntu:pixelsize=11:bold}${color0}· \1 ·\n${voffset 8}${color1}${font Ubuntu:pixelsize=10}${template9}${fs_used \2}  /  ${fs_size \2}${template8}${if_match ${fs_used_perc \2}>=85}${color b54}$else$color$endif${fs_used_perc \2}%$font$color
 $endif]],
 
     -- title: title
@@ -151,8 +151,8 @@ ${template2 5}
 
 
 ### mem ###
-${template6 mem} ${template8}$memperc% # $mem / $memmax
-${voffset 24}
+${template6 mem} ${template8}$memperc %
+${voffset 12}
 ### memtop ###
 ${template4 1}
 ${template4 2}

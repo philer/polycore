@@ -525,8 +525,12 @@ function MemoryGrid:render(cr)
     local cache_points = math.floor(total_points * (easyfree - free) / total + 0.5)
     local r, g, b = unpack(graph_color)  -- TODO color manager
 
-    if used / total > 0.8 then
-        r, g, b = unpack(temperature_colors[#temperature_colors])
+    if used / total > 0.7 then
+        if used / total > 0.85 then
+            r, g, b = unpack(temperature_colors[#temperature_colors])
+        else
+            r, g, b = unpack(temperature_colors[#temperature_colors - 1])
+        end
     end
 
     cairo_set_antialias(cr, CAIRO_ANTIALIAS_NONE)

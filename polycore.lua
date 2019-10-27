@@ -21,7 +21,8 @@ local drives = {
 local font_family = "Ubuntu"
 local font_size = 10
 
-local temperature_colors = {
+text_color = {1, 1, 1, .8}
+temperature_colors = {
     {.4,  1,  1},
     {.5,  1, .8},
     {.7, .9, .6},
@@ -29,6 +30,7 @@ local temperature_colors = {
     {1,  .6, .2},
     {1,  .2, .2},
 }
+graph_color = temperature_colors[1]
 function temp_color(temp, low, high)
     local idx = (temp - low) / (high - low) * (#temperature_colors - 1) + 1
     local weight = idx - math.floor(idx)
@@ -47,8 +49,6 @@ local cr, cs
 local win_width = 140
 local x_left = 10
 local x_right = win_width - x_left
-text_color = {1, 1, 1, .8}
-graph_color = temperature_colors[1]
 
 local wili
 local fan_rpm_text, cpu_temps_text

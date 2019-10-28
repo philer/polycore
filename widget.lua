@@ -26,6 +26,15 @@ function WidgetRenderer:layout()
     self.root:layout(container)
 
     local background_cr = cairo_create(self._background_surface)
+    if DEBUG then
+        cairo_rectangle(background_cr, self.padding, self.padding,
+                                       self.width - 2 * self.padding,
+                                       self.height - 2 * self.padding)
+        cairo_set_line_width(background_cr, 1)
+        cairo_set_antialias(background_cr, CAIRO_ANTIALIAS_NONE)
+        cairo_set_source_rgba(background_cr, 1, 0, 0, .5)
+        cairo_stroke(background_cr)
+    end
     self.root:render_background(background_cr)
     cairo_destroy(background_cr)
 end
@@ -83,6 +92,7 @@ function WidgetGroup:init(widgets)
 end
 
 function WidgetGroup:layout(container)
+    self.container = container  -- used by DEBUG
     local y_offset = container.y_offset
     for _, w in ipairs(self._widgets) do
         w:layout{x_offset = container.x_offset,
@@ -94,6 +104,18 @@ function WidgetGroup:layout(container)
 end
 
 function WidgetGroup:render_background(cr)
+    if DEBUG then
+        local y_offset = self.container.y_offset
+        for _, w in ipairs(self._widgets) do
+            cairo_move_to(cr, self.container.x_offset, y_offset)
+            cairo_rel_line_to(cr, self.container.width, 0)
+            y_offset = y_offset + w.height
+        end
+        cairo_set_line_width(cr, 1)
+        cairo_set_antialias(cr, CAIRO_ANTIALIAS_NONE)
+        cairo_set_source_rgba(cr, 1, 0, 0, 0.33)
+        cairo_stroke(cr)
+    end
     for _, w in ipairs(self._widgets) do
         w:render_background(cr)
     end

@@ -9,6 +9,9 @@ local util = require 'util'
 local widget = require 'widget'
 
 -- global defaults
+
+DEBUG = false
+
 default_font_family = "Ubuntu"
 default_font_size = 10
 default_text_color = {1, 1, 1, .8}

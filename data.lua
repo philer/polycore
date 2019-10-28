@@ -2,12 +2,12 @@ local util = require 'util'
 
 local data = {}
 
-local function read_cmd(cmd)
+local read_cmd = util.memoize(1, function(cmd)
     local pipe = io.popen(cmd)
     local result = pipe:read("*a")
     pipe:close()
     return result
-end
+end)
 
 function data.cpu_percentages(cores)
     local conky_string = "${cpu cpu1}"

@@ -193,9 +193,9 @@ function Bar:layout(container)
         self.x_max = container.x_max
     end
 
+    self._ticks = {}
     if self.ticks then
         self.height = self.height + (self.big_ticks and 4 or 3)
-        self._ticks = {}
         local x, tick_length
         for offset, frac in ipairs(self.ticks) do
             x = math.floor(self.x_offset + frac * (self.x_max - self.x_offset)) + 0.5

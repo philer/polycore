@@ -21,6 +21,14 @@ end
 
 function WidgetList:layout()
     print("layout reflow…")
+    local content_height = 0
+    for _, w in ipairs(self._widgets) do
+        content_height = content_height + w.height
+    end
+    if self.height - 2 * self.padding < content_height then
+        print("Warning: Content too high, will be clipped.")
+    end
+
     local x_offset, y_offset = self.padding, self.padding
     local width = self.width - 2 * self.padding
     local x_max = self.width - self.padding
@@ -71,6 +79,10 @@ local WidgetGroup = util.class(Widget)
 function WidgetGroup:init(widgets)
     self._widgets = widgets
     self._render_widgets = util.filter(function(w) return w.render end, widgets)
+    self.height = 0
+    for _, w in ipairs(widgets) do
+        self.height = self.height + w.height
+    end
 end
 
 function WidgetGroup:layout(container)
@@ -84,7 +96,6 @@ function WidgetGroup:layout(container)
         end
         y_offset = y_offset + w.height
     end
-    self.height = y_offset - container.y_offset
 end
 
 function WidgetGroup:render_background(cr)
@@ -180,22 +191,27 @@ function Bar:init(ticks, big_ticks, unit, thickness, color)
     self.unit = unit
     self.thickness = thickness or 5
     self.color = color or default_graph_color
+
+    self.height = self.thickness
+    if ticks then
+        self.height = self.height + (big_ticks and 5 or 4)
+    end
+    if unit then
+        self.height = math.max(self.height, 8)  -- line_height
+    end
 end
 
 function Bar:layout(container)
-    self.height = 5
     self.x_offset = container.x_offset
     self.y_offset = container.y_offset
     if self.unit then
         self.x_max = container.x_max - 20
-        self.height = 7
     else
         self.x_max = container.x_max
     end
 
     self._ticks = {}
     if self.ticks then
-        self.height = self.height + (self.big_ticks and 4 or 3)
         local x, tick_length
         for offset, frac in ipairs(self.ticks) do
             x = math.floor(self.x_offset + frac * (self.x_max - self.x_offset)) + 0.5
@@ -631,7 +647,7 @@ function Gpu:init()
     self.usebar = Bar({.25, .5, .75}, nil, "%")
     local _, mem_total = data.gpu_memory()
     self.membar = MemoryBar(mem_total / 1024, "GiB")
-    WidgetGroup.init(self, {self.usebar, Gap(2), self.membar})
+    WidgetGroup.init(self, {self.usebar, Gap(4), self.membar})
 end
 
 function Gpu:update()

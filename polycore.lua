@@ -35,55 +35,54 @@ end
 
 os.setlocale("C")  -- decimal dot
 
-local wili
+local win_width, win_height = 140, 1080 - 28
 local downspeed_graph, upspeed_graph
+local renderer
 
 -- Called once on startup to initialize widgets etc.
 local function setup()
-    wili = widget.WidgetList(140, 1080 - 28, 10)
-    wili:add(widget.BorderRight(wili))
+    downspeed_graph = widget.Graph(20, 10*1024)
+    upspeed_graph = widget.Graph(20, 1024)
 
-    wili:add(widget.Gap(98))
     local fan_rpm_text = widget.TextLine("center")
     fan_rpm_text.update = function(self)
         local fan1, fan2 = unpack(data.fan_rpm())
         self:set_text(fan1 .. " rpm   ·   " .. fan2 .. " rpm")
     end
-    wili:add(fan_rpm_text)
-
-    wili:add(widget.Gap(2))
 
     local cpu_temps_text = widget.TextLine("center")
     cpu_temps_text.update = function(self)
         local cpu_temps = data.cpu_temperatures()
         self:set_text(table.concat(cpu_temps, " · ") .. " °C")
     end
-    wili:add(cpu_temps_text)
 
-    wili:add(widget.Gap(8))
-    wili:add(widget.Cpu(6, 23, 5, 24))
-    wili:add(widget.Gap(12))
-    wili:add(widget.CpuFrequencies(6, 0.75, 4.3, 16))
-
-    wili:add(widget.Gap(138))
-    wili:add(widget.MemoryGrid(5, 40, 2, 1, true))
-
-    wili:add(widget.Gap(84))
-    wili:add(widget.Gpu())
-
-    wili:add(widget.Gap(130))
-    downspeed_graph = wili:add(widget.Graph(20, 10*1024))
-    wili:add(widget.Gap(33))
-    upspeed_graph = wili:add(widget.Graph(20, 1024))
-
-    wili:add(widget.Gap(37))
-    wili:add(widget.Drive("/", "/dev/nvme0"))
-    wili:add(widget.Drive("/home", "/dev/nvme0"))
-    wili:add(widget.Drive("/mnt/blackstor", "WDC WD2002FAEX-007BA0"))
-    wili:add(widget.Drive("/mnt/bluestor", "WDC WD20EZRZ-00Z5HB0"))
-    wili:add(widget.Drive("/mnt/cryptstor", "/dev/disk/by-uuid/9e340509-be93-42b5-9dcc-99bdbd428e22"))
-
-    wili:layout()
+    local root = widget.WidgetGroup({
+        widget.BorderRight(win_width, win_height),
+        widget.Gap(98),
+        fan_rpm_text,
+        widget.Gap(2),
+        cpu_temps_text,
+        widget.Gap(8),
+        widget.Cpu(6, 23, 5, 24),
+        widget.Gap(12),
+        widget.CpuFrequencies(6, 0.75, 4.3, 16),
+        widget.Gap(138),
+        widget.MemoryGrid(5, 40, 2, 1, true),
+        widget.Gap(84),
+        widget.Gpu(),
+        widget.Gap(130),
+        downspeed_graph,
+        widget.Gap(33),
+        upspeed_graph,
+        widget.Gap(37),
+        widget.Drive("/", "/dev/nvme0"),
+        widget.Drive("/home", "/dev/nvme0"),
+        widget.Drive("/mnt/blackstor", "WDC WD2002FAEX-007BA0"),
+        widget.Drive("/mnt/bluestor", "WDC WD20EZRZ-00Z5HB0"),
+        widget.Drive("/mnt/cryptstor", "/dev/disk/by-uuid/9e340509-be93-42b5-9dcc-99bdbd428e22"),
+    })
+    renderer = widget.WidgetRenderer(root, win_width, win_height, 10)
+    renderer:layout()
 end
 
 -- Called once per update cycle to (re-)draw the entire surface.
@@ -92,8 +91,8 @@ local function update(cr, update_count)
     downspeed_graph:add_value(down)
     upspeed_graph:add_value(up)
 
-    wili:update()
-    wili:render(cr)
+    renderer:update()
+    renderer:render(cr)
 
     util.reset_data(update_count)
 end

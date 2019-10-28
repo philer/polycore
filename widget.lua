@@ -5,65 +5,39 @@ local ch = require 'cairo_helpers'
 
 -- Root widget wrapper
 -- Takes care of managing layout reflows and background caching.
-local WidgetList = util.class()
+local WidgetRenderer = util.class()
 
-function WidgetList:init(width, height, padding)
+function WidgetRenderer:init(root, width, height, padding)
+    self.root = root
     self.width = width
     self.height = height
     self.padding = padding
-
-    self._widgets = {}
-    self._render_widgets = {}
     self._background_surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, width, height)
 end
 
-function WidgetList:add(w)
-    table.insert(self._widgets, w)
-    if w.render then table.insert(self._render_widgets, w) end
-    return w
-end
-
-function WidgetList:layout()
+function WidgetRenderer:layout()
     print("layout reflow…")
-    local content_height = 0
-    for _, w in ipairs(self._widgets) do
-        content_height = content_height + w.height
-    end
-    if self.height - 2 * self.padding < content_height then
-        print("Warning: Content too high, will be clipped.")
-    end
+    local container = {
+        x_offset = self.padding,
+        y_offset = self.padding,
+        width = self.width - 2 * self.padding,
+        x_max = self.width - self.padding,
+    }
+    self.root:layout(container)
 
-    local x_offset, y_offset = self.padding, self.padding
-    local width = self.width - 2 * self.padding
-    local x_max = self.width - self.padding
     local background_cr = cairo_create(self._background_surface)
-    cairo_set_antialias(background_cr, CAIRO_ANTIALIAS_NONE)
-    for _, w in ipairs(self._widgets) do
-        if w.layout then
-            w:layout{x_offset=x_offset, y_offset=y_offset, width=width, x_max=x_max}
-        end
-        y_offset = y_offset + w.height
-        if w.render_background then
-            w:render_background(background_cr)
-        end
-    end
+    self.root:render_background(background_cr)
     cairo_destroy(background_cr)
 end
 
-function WidgetList:update()
-    local reflow = false
-    for _, w in ipairs(self._render_widgets) do
-        reflow = w:update() or reflow
-    end
-    if reflow then self:layout() end
+function WidgetRenderer:update()
+    if self.root:update() then self:layout() end
 end
 
-function WidgetList:render(cr)
-    cairo_set_source_surface(cr, self._background_surface, 0, 0);
-    cairo_paint(cr);
-    for _, w in ipairs(self._render_widgets) do
-        w:render(cr)
-    end
+function WidgetRenderer:render(cr)
+    cairo_set_source_surface(cr, self._background_surface, 0, 0)
+    cairo_paint(cr)
+    self.root:render(cr)
 end
 
 
@@ -111,12 +85,10 @@ end
 function WidgetGroup:layout(container)
     local y_offset = container.y_offset
     for _, w in ipairs(self._widgets) do
-        if w.layout then
-            w:layout{x_offset = container.x_offset,
-                     y_offset = y_offset,
-                     width = container.width,
-                     x_max = container.x_max}
-        end
+        w:layout{x_offset = container.x_offset,
+                 y_offset = y_offset,
+                 width = container.width,
+                 x_max = container.x_max}
         y_offset = y_offset + w.height
     end
 end
@@ -150,20 +122,22 @@ function Gap:init(height)
 end
 
 
--- Draw a border on the right side of the drawable surface.
--- First :init argument needs to be a WidgetList instance.
+-- Draw a border on the right side of the described area.
+-- Arguments:
+--   x_offset, height: described area
 local BorderRight = util.class(Widget)
 
-function BorderRight:init(block)
-    self.block = block
+function BorderRight:init(x_offset, height)
+    self.x_offset = x_offset
+    self._height = height
 end
 
 function BorderRight:render_background(cr)
     cairo_set_antialias(cr, CAIRO_ANTIALIAS_NONE)
     cairo_set_line_width(cr, 1)
     cairo_set_source_rgba(cr, 0.8, 1, 1, 0.05)
-    cairo_move_to(cr, self.block.width - 0.5, 0)
-    cairo_line_to(cr, self.block.width - 0.5, self.block.height)
+    cairo_move_to(cr, self.x_offset - 0.5, 0)
+    cairo_line_to(cr, self.x_offset - 0.5, self._height)
     cairo_stroke(cr)
 end
 
@@ -726,6 +700,12 @@ function Drive:init(path, device_name)
     end
 end
 
+function Drive:render_background(cr)
+    if self.is_mounted then
+        WidgetGroup.render_background(self, cr)
+    end
+end
+
 function Drive:update()
     local was_mounted = self.is_mounted
     self.is_mounted = data.is_mounted(self.path)
@@ -768,5 +748,5 @@ return {
     TextLine = TextLine,
     Widget = Widget,
     WidgetGroup = WidgetGroup,
-    WidgetList = WidgetList,
+    WidgetRenderer = WidgetRenderer,
 }

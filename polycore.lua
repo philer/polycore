@@ -95,12 +95,6 @@ end
 --| CAIRO HELPERS |--
 --+–––––––––––––––+--
 
-function rectangle(cr, x1, y1, x2, y2)
-    -- polygon({x1, y1, x2, y1, x2, y2, x1, y2})
-    cairo_set_antialias(cr, CAIRO_ANTIALIAS_NONE)
-    cairo_rectangle(cr, x1, y1, x2 - x1, y2 - y1)
-end
-
 function polygon(cr, coordinates)
     -- +.5 for sharp lines, see https://cairographics.org/FAQ/#sharp_lines
     cairo_set_antialias(cr, CAIRO_ANTIALIAS_DEFAULT)
@@ -112,7 +106,6 @@ function polygon(cr, coordinates)
     end
     cairo_close_path(cr)
 end
-
 
 function alpha_gradient(cr, x1, y1, x2, y2, r, g, b, stops)
     local gradient = cairo_pattern_create_linear(x1, y1, x2, y2)
@@ -129,16 +122,11 @@ function alpha_gradient(cr, x1, y1, x2, y2, r, g, b, stops)
     cairo_pattern_destroy(gradient)
 end
 
-function font_normal(cr, size)
+
+function font_normal(cr)
     cairo_select_font_face(cr, default_font_family, CAIRO_FONT_SLANT_NORMAL,
                                                     CAIRO_FONT_WEIGHT_NORMAL)
-    cairo_set_font_size(cr, size or default_font_size)
-end
-
-function font_bold(cr, size)
-    cairo_select_font_face(cr, default_font_family, CAIRO_FONT_SLANT_NORMAL,
-                                                    CAIRO_FONT_WEIGHT_BOLD)
-    cairo_set_font_size(cr, size or default_font_size)
+    cairo_set_font_size(cr, default_font_size)
 end
 
 function text_extents(cr, text)

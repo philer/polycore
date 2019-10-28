@@ -55,7 +55,6 @@ function WidgetList:update()
 end
 
 function WidgetList:render(cr)
-    cairo_set_antialias(cr, CAIRO_ANTIALIAS_NONE)
     cairo_set_source_surface(cr, self._background_surface, 0, 0);
     cairo_paint(cr);
     for _, w in ipairs(self._render_widgets) do
@@ -204,16 +203,16 @@ function Bar:layout(container)
     self.x_offset = container.x_offset
     self.y_offset = container.y_offset
     if self.unit then
-        self.x_max = container.x_max - 20
+        self.width = container.width - 20
     else
-        self.x_max = container.x_max
+        self.width = container.width
     end
 
     self._ticks = {}
     if self.ticks then
         local x, tick_length
         for offset, frac in ipairs(self.ticks) do
-            x = math.floor(self.x_offset + frac * (self.x_max - self.x_offset)) + 0.5
+            x = math.floor(self.x_offset + frac * self.width) + 0.5
             tick_length = 3
             if self.big_ticks then
                 if self.big_ticks[offset] then
@@ -231,7 +230,7 @@ function Bar:render_background(cr)
     if self.unit then
         font_normal(cr)
         cairo_set_source_rgba(cr, unpack(default_text_color))
-        write_left(cr, self.x_max + 5, self.y_offset + 6, self.unit)
+        write_left(cr, self.x_offset + self.width + 5, self.y_offset + 6, self.unit)
     end
 end
 
@@ -241,8 +240,9 @@ end
 
 function Bar:render(cr)
     local r, g, b = unpack(self.color)
-    rectangle(cr, self.x_offset, self.y_offset, self.x_max, self.y_offset + self.thickness)
-    alpha_gradient(cr, self.x_offset, 0, self.x_max, 0, r, g, b, {
+    cairo_set_antialias(cr, CAIRO_ANTIALIAS_NONE)
+    cairo_rectangle(cr, self.x_offset, self.y_offset, self.width, self.thickness)
+    alpha_gradient(cr, self.x_offset, 0, self.x_offset + self.width, 0, r, g, b, {
         -- {0, .55}, {.1, .25},
         {self.fraction - .33, .33},
         {self.fraction - .08, .66},
@@ -263,7 +263,7 @@ function Bar:render(cr)
     cairo_stroke(cr)
 
     --- border ---
-    rectangle(cr, self.x_offset + 1, self.y_offset + 1, self.x_max - 1, self.y_offset + self.thickness - 1)
+    cairo_rectangle(cr, self.x_offset + 1, self.y_offset + 1, self.width - 2, self.thickness - 2)
     cairo_set_source_rgba(cr, r, g, b, .2)
     cairo_stroke(cr)
 
@@ -310,20 +310,21 @@ end
 function Graph:layout(container)
     self.x_offset = container.x_offset
     self.y_offset = container.y_offset
-    self.x_max = container.x_max
+    self.width = container.width
 end
 
 function Graph:render_background(cr)
     local r, g, b = unpack(self.color)
+    cairo_set_antialias(cr, CAIRO_ANTIALIAS_NONE)
     cairo_set_line_width(cr, 1)
 
     --- background shadow ---
-    rectangle(cr, self.x_offset - 1, self.y_offset - 1, self.x_max + 1, self.y_offset + self.height + 1)
+    cairo_rectangle(cr, self.x_offset - 1, self.y_offset - 1, self.width + 2, self.height + 2)
     cairo_set_source_rgba(cr, 0, 0, 0, .33)
     cairo_stroke(cr)
 
     --- background ---
-    rectangle(cr, self.x_offset, self.y_offset, self.x_max, self.y_offset + self.height)
+    cairo_rectangle(cr, self.x_offset, self.y_offset, self.width, self.height)
     alpha_gradient(cr, 0, self.y_offset, 0, self.y_offset + self.height, r, g, b, {
         {.1, .14}, {.1, .06}, {.2, .06}, {.2, .14},
         {.3, .14}, {.3, .06}, {.4, .06}, {.4, .14},
@@ -346,10 +347,11 @@ end
 
 function Graph:render(cr)
     local r, g, b = unpack(self.color)
-    local x_scale = 1 / self.data.length * (self.x_max - self.x_offset)
+    local x_scale = 1 / self.data.length * self.width
     local y_scale = 1 / self.max * self.height
     local y_bottom = self.y_offset + self.height - 0.5
     cairo_set_antialias(cr, CAIRO_ANTIALIAS_DEFAULT)
+
     cairo_move_to(cr, self.x_offset, y_bottom - self.data:head() * y_scale)
     self.data:map(function(val, idx)
         cairo_line_to(cr, self.x_offset + (idx - 1) * x_scale, y_bottom - val * y_scale)
@@ -427,6 +429,7 @@ end
 function Cpu:render(cr)
     local avg_temperature = util.avg(self.temperatures)
     local r, g, b = temp_color(avg_temperature, 30, 80)
+    cairo_set_antialias(cr, CAIRO_ANTIALIAS_DEFAULT)
 
     polygon(cr, self.center_coordinates)
     cairo_set_line_width(cr, 6)
@@ -438,11 +441,12 @@ function Cpu:render(cr)
     cairo_set_source_rgba(cr, r, g, b, .18)
     cairo_fill(cr)
 
-    font_bold(cr, 16)
+    cairo_select_font_face(cr, default_font_family, CAIRO_FONT_SLANT_NORMAL,
+                                                    CAIRO_FONT_WEIGHT_BOLD)
+    cairo_set_font_size(cr, 16)
     cairo_set_source_rgba(cr, r, g, b, .4)
     write_middle(cr, self.mx + 1, self.my, string.format("%d°", avg_temperature))
 
-    font_normal(cr, 10)
     for core = 1, self.cores do
         polygon(cr, self.segment_coordinates[core])
         local gradient = cairo_pattern_create_linear(unpack(self.gradient_coordinates[core]))
@@ -533,7 +537,7 @@ end
 
 function CpuFrequencies:render(cr)
     local r, g, b = temp_color(util.avg(self.temperatures), 30, 80)
-
+    cairo_set_antialias(cr, CAIRO_ANTIALIAS_NONE)
     cairo_set_line_width(cr, 1)
 
     -- ticks --
@@ -547,7 +551,6 @@ function CpuFrequencies:render(cr)
     for _, label in ipairs(self._tick_labels) do
         write_centered(cr, label[1], label[2], label[3])
     end
-
 
     -- background --
     polygon(cr, self._polygon_coordinates)

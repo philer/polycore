@@ -36,14 +36,10 @@ end
 os.setlocale("C")  -- decimal dot
 
 local win_width, win_height = 140, 1080 - 28
-local downspeed_graph, upspeed_graph
 local renderer
 
 -- Called once on startup to initialize widgets etc.
 local function setup()
-    downspeed_graph = widget.Graph(20, 10*1024)
-    upspeed_graph = widget.Graph(20, 1024)
-
     local fan_rpm_text = widget.TextLine("center")
     fan_rpm_text.update = function(self)
         local fan1, fan2 = unpack(data.fan_rpm())
@@ -70,11 +66,9 @@ local function setup()
         widget.MemoryGrid(5, 40, 2, 1, true),
         widget.Gap(84),
         widget.Gpu(),
-        widget.Gap(130),
-        downspeed_graph,
-        widget.Gap(33),
-        upspeed_graph,
-        widget.Gap(37),
+        widget.Gap(132),
+        widget.Network("enp0s31f6"),
+        widget.Gap(66),
         widget.Drive("/", "/dev/nvme0"),
         widget.Drive("/home", "/dev/nvme0"),
         widget.Drive("/mnt/blackstor", "WDC WD2002FAEX-007BA0"),
@@ -87,10 +81,6 @@ end
 
 -- Called once per update cycle to (re-)draw the entire surface.
 local function update(cr, update_count)
-    local down, up = data.network_speed("enp0s31f6")
-    downspeed_graph:add_value(down)
-    upspeed_graph:add_value(up)
-
     renderer:update()
     renderer:render(cr)
 

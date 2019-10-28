@@ -310,9 +310,10 @@ end
 -- Track changing data
 local Graph = util.class(Widget)
 
-function Graph:init(height, max, data_points, color)
+function Graph:init(height, max, upside_down, data_points, color)
     self.height = height
     self.max = max
+    self.upside_down = upside_down
     self.data = util.CycleQueue(data_points or 90)
     self.color = color or default_graph_color
 end
@@ -321,6 +322,15 @@ function Graph:layout(container)
     self.x_offset = container.x_offset
     self.y_offset = container.y_offset
     self.width = container.width
+    self.x_max = container.x_max
+    self.x_scale = 1 / self.data.length * self.width
+    self.y_scale = 1 / self.max * self.height
+    if self.upside_down then
+        self.y_scale = -self.y_scale
+        self.y_start = self.y_offset - 0.5
+    else
+        self.y_start = self.y_offset + self.height - 0.5
+    end
 end
 
 function Graph:render_background(cr)
@@ -356,26 +366,21 @@ end
 
 function Graph:render(cr)
     local r, g, b = unpack(self.color)
-    local x_scale = 1 / self.data.length * self.width
-    local y_scale = 1 / self.max * self.height
-    local y_bottom = self.y_offset + self.height - 0.5
     cairo_set_antialias(cr, CAIRO_ANTIALIAS_DEFAULT)
 
-    cairo_move_to(cr, self.x_offset, y_bottom - self.data:head() * y_scale)
+    cairo_move_to(cr, self.x_offset, self.y_start)
     self.data:map(function(val, idx)
-        cairo_line_to(cr, self.x_offset + (idx - 1) * x_scale, y_bottom - val * y_scale)
+        cairo_line_to(cr, self.x_offset + (idx - 1) * self.x_scale,
+                          self.y_start - val * self.y_scale)
     end)
-
+    cairo_line_to(cr, self.x_max, self.y_start)
     cairo_set_source_rgba(cr, r, g, b, 1)
     cairo_set_line_width(cr, .5)
     cairo_stroke_preserve(cr)
 
     --- fill under graph ---
-    cairo_line_to(cr, self.x_max, y_bottom)
-    cairo_line_to(cr, self.x_offset, y_bottom)
-    cairo_close_path(cr)
-    ch.alpha_gradient(cr, 0, y_bottom - self.max * y_scale,
-                       0, y_bottom,
+    ch.alpha_gradient(cr, 0, self.y_start - self.max * self.y_scale,
+                       0, self.y_start,
                        r, g, b, {{0, .66}, {.5, .33}, {1, .25}})
     cairo_fill(cr)
 end
@@ -676,6 +681,21 @@ function Gpu:update()
 end
 
 
+local Network = util.class(WidgetGroup)
+
+function Network:init(interface)
+    self.interface = interface
+    self.downspeed_graph = Graph(20, 10*1024, false)
+    self.upspeed_graph = Graph(20, 1024, true)
+    WidgetGroup.init(self, {self.downspeed_graph, self.upspeed_graph})
+end
+
+function Network:update()
+    local down, up = data.network_speed(self.interface)
+    self.downspeed_graph:add_value(down)
+    self.upspeed_graph:add_value(up)
+end
+
 -- Visualize drive usage and temperature in a colorized Bar.
 -- Also writes temperature as text.
 -- This widget is exptected to be combined with some special conky.text.
@@ -745,6 +765,7 @@ return {
     Graph = Graph,
     MemoryBar = MemoryBar,
     MemoryGrid = MemoryGrid,
+    Network = Network,
     TextLine = TextLine,
     Widget = Widget,
     WidgetGroup = WidgetGroup,

@@ -115,26 +115,6 @@ function Gap:init(height)
 end
 
 
-local TextLine = util.class(Widget)
-TextLine.height = 11
-
-function TextLine:layout(container)
-    self.center = {container.x_offset + 0.5 * container.width,
-                   container.y_offset + 0.5 * self.height}
-end
-
-function TextLine:set_text(text)
-    self.text = text
-end
-
-function TextLine:render(cr)
-    local mx, my = unpack(self.center)
-    font_normal(cr)
-    cairo_set_source_rgba(cr, unpack(text_color))
-    write_centered(cr, mx, my, self.text)
-end
-
-
 local BorderRight = util.class(Widget)
 
 function BorderRight:init(block)
@@ -151,6 +131,47 @@ function BorderRight:render_background(cr)
 end
 
 
+local TextLine = util.class(Widget)
+
+function TextLine:init(align, font_family, font_size, color)
+    self.align = align or "left"
+    self.font_family = font_family or default_font_family
+    self.font_size = font_size or default_font_size
+    self.color = color or default_text_color
+
+    local write_fns = {left = write_left, center = write_centered, right = write_right}
+    self._write_fn = write_fns[align]
+
+    local extents = font_extents(self.font_family, self.font_size)
+    self.height = extents.height
+    local line_spacing = extents.height - (extents.ascent + extents.descent)
+    self._baseline_offset = extents.ascent + 0.5 * line_spacing
+end
+
+function TextLine:set_text(text)
+    self.text = text
+end
+
+function TextLine:layout(container)
+    self._y = container.y_offset + self._baseline_offset
+    if self.align == "center" then
+        self._x = container.x_offset + 0.5 * container.width
+    elseif self.align == "left" then
+        self._x = container.x_offset
+    else
+        self._x = container.x_max
+    end
+end
+
+function TextLine:render(cr)
+    cairo_select_font_face(cr, self.font_family, CAIRO_FONT_SLANT_NORMAL,
+                                                 CAIRO_FONT_WEIGHT_NORMAL)
+    cairo_set_font_size(cr, self.font_size)
+    cairo_set_source_rgba(cr, unpack(self.color))
+    self._write_fn(cr, self._x, self._y, self.text)
+end
+
+
 local Bar = util.class(Widget)
 
 function Bar:init(ticks, big_ticks, unit, thickness, color)
@@ -158,7 +179,7 @@ function Bar:init(ticks, big_ticks, unit, thickness, color)
     self.big_ticks = big_ticks
     self.unit = unit
     self.thickness = thickness or 5
-    self.color = color or graph_color
+    self.color = color or default_graph_color
 end
 
 function Bar:layout(container)
@@ -194,7 +215,7 @@ end
 function Bar:render_background(cr)
     if self.unit then
         font_normal(cr)
-        cairo_set_source_rgba(cr, unpack(text_color))
+        cairo_set_source_rgba(cr, unpack(default_text_color))
         write_left(cr, self.x_max + 5, self.y_offset + 6, self.unit)
     end
 end
@@ -268,7 +289,7 @@ function Graph:init(height, max, data_points, color)
     self.height = height
     self.max = max
     self.data = util.CycleQueue(data_points or 90)
-    self.color = color or graph_color
+    self.color = color or default_graph_color
 end
 
 function Graph:layout(container)
@@ -404,7 +425,7 @@ function Cpu:render(cr)
 
     font_bold(cr, 16)
     cairo_set_source_rgba(cr, r, g, b, .4)
-    write_centered(cr, self.mx + 1, self.my, string.format("%d°", avg_temperature))
+    write_middle(cr, self.mx + 1, self.my, string.format("%d°", avg_temperature))
 
     font_normal(cr, 10)
     for core = 1, self.cores do
@@ -465,7 +486,7 @@ function CpuFrequencies:layout(container)
         local x = self.x_min + width * (freq - self.min_freq) / df
         local big = math.floor(freq) == freq
         if big then
-            table.insert(self._tick_labels, {x, self.y_max + 8.5, freq})
+            table.insert(self._tick_labels, {x, self.y_max + 10.5, freq})
         end
         table.insert(self._ticks, {math.floor(x) + .5,
                                    self.y_max + 1.5,
@@ -475,7 +496,7 @@ end
 
 function CpuFrequencies:render_background(cr)
     font_normal(cr)
-    cairo_set_source_rgba(cr, unpack(text_color))
+    cairo_set_source_rgba(cr, unpack(default_text_color))
     write_left(cr, self.x_max + 5, self.y_min + 0.5 * self._height + 3, "GHz")
 
     --- shadow outline
@@ -575,7 +596,7 @@ function MemoryGrid:render(cr)
     local total_points = #self.coordinates
     local used_points = math.floor(total_points * self.used / self.total + 0.5)
     local cache_points = math.floor(total_points * (self.easyfree - self.free) / self.total + 0.5)
-    local r, g, b = unpack(graph_color)  -- TODO color manager
+    local r, g, b = unpack(default_graph_color)  -- TODO color manager
 
     if self.used / self.total > 0.7 then
         if self.used / self.total > 0.85 then

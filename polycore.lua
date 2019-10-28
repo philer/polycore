@@ -18,10 +18,10 @@ local drives = {
     {"/mnt/cryptstor", "/dev/disk/by-uuid/9e340509-be93-42b5-9dcc-99bdbd428e22"},
 }
 
-local font_family = "Ubuntu"
-local font_size = 10
+default_font_family = "Ubuntu"
+default_font_size = 10
+default_text_color = {1, 1, 1, .8}
 
-text_color = {1, 1, 1, .8}
 temperature_colors = {
     {.4,  1,  1},
     {.5,  1, .8},
@@ -30,7 +30,7 @@ temperature_colors = {
     {1,  .6, .2},
     {1,  .2, .2},
 }
-graph_color = temperature_colors[1]
+default_graph_color = temperature_colors[1]
 function temp_color(temp, low, high)
     local idx = (temp - low) / (high - low) * (#temperature_colors - 1) + 1
     local weight = idx - math.floor(idx)
@@ -57,9 +57,10 @@ local downspeed_graph, upspeed_graph
 function setup()
     wili = widget.WidgetList(140, 1080 - 28, 10)
     wili:add(widget.BorderRight(wili))
-    wili:add(widget.Gap(100))
-    fan_rpm_text = wili:add(widget.TextLine())
-    cpu_temps_text = wili:add(widget.TextLine())
+    wili:add(widget.Gap(98))
+    fan_rpm_text = wili:add(widget.TextLine("center"))
+    wili:add(widget.Gap(2))
+    cpu_temps_text = wili:add(widget.TextLine("center"))
     wili:add(widget.Gap(8))
     wili:add(widget.Cpu(6, 23, 5, 24))
     wili:add(widget.Gap(12))
@@ -91,7 +92,7 @@ function update(cr, update_count)
 
     local y_offset = 800 - 10
     font_normal(cr)
-    cairo_set_source_rgba(cr, unpack(text_color))
+    cairo_set_source_rgba(cr, unpack(default_text_color))
     local drive_height = 47
     for _, drive in ipairs(drives) do
         if data.is_mounted(drive[1]) then
@@ -109,7 +110,7 @@ end
 function draw_drive(path, device_name, y_offset)
     local perc = data.drive_percentage(path)
     local temp = data.hddtemp()[device_name]
-    cairo_set_source_rgba(cr, unpack(text_color))
+    cairo_set_source_rgba(cr, unpack(default_text_color))
     local r, g, b
     if temp == nil then
         write_left(cr, x_right - 21, y_offset, "––––")
@@ -124,13 +125,13 @@ end
 
 function bar(unit, fraction, ticks, big_ticks, y_offset, r, g, b)
     if r == nil then
-        r, g, b = unpack(graph_color)
+        r, g, b = unpack(default_graph_color)
     end
     local height = 5
     local x_max
     if unit then
         x_max = x_right - 20
-        cairo_set_source_rgba(cr, unpack(text_color))
+        cairo_set_source_rgba(cr, unpack(default_text_color))
         write_left(cr, x_right - 15, y_offset + 6, unit)
     else
         x_max = x_right
@@ -222,48 +223,62 @@ function alpha_gradient(cr, x1, y1, x2, y2, r, g, b, stops)
 end
 
 function font_normal(cr, size)
-    cairo_select_font_face(cr, font_family, CAIRO_FONT_SLANT_NORMAL,
-                                            CAIRO_FONT_WEIGHT_NORMAL)
-    cairo_set_font_size(cr, size or font_size)
+    cairo_select_font_face(cr, default_font_family, CAIRO_FONT_SLANT_NORMAL,
+                                                    CAIRO_FONT_WEIGHT_NORMAL)
+    cairo_set_font_size(cr, size or default_font_size)
 end
 
 function font_bold(cr, size)
-    cairo_select_font_face(cr, font_family, CAIRO_FONT_SLANT_NORMAL,
-                                            CAIRO_FONT_WEIGHT_BOLD)
-    cairo_set_font_size(cr, size or font_size)
+    cairo_select_font_face(cr, default_font_family, CAIRO_FONT_SLANT_NORMAL,
+                                                    CAIRO_FONT_WEIGHT_BOLD)
+    cairo_set_font_size(cr, size or default_font_size)
 end
 
-function write_left(cr, x, y, text)
-    cairo_move_to(cr, x, y)
-    cairo_show_text(cr, text)
-end
-
-function write_centered(cr, mx, my, text)
-    cairo_move_to(cr, text_center_coordinates(cr, mx, my, text))
-    cairo_show_text(cr, text)
-end
-
-local function text_extents(cr, text)
+function text_extents(cr, text)
     local extents = cairo_text_extents_t:create()
     tolua.takeownership(extents)
     cairo_text_extents(cr, text, extents)
     return extents
 end
 
-function text_center_coordinates(cr, mx, my, text)
+font_extents = util.memoize(function(font_family, font_size)
+    local tmp_surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, 100, 100)
+    local tmp_cr = cairo_create(tmp_surface)
+    cairo_surface_destroy(tmp_surface)
+    cairo_select_font_face(tmp_cr, font_family, CAIRO_FONT_SLANT_NORMAL,
+                                                CAIRO_FONT_WEIGHT_NORMAL)
+    cairo_set_font_size(tmp_cr, font_size)
+    local extents = cairo_font_extents_t:create()
+    tolua.takeownership(extents)
+    cairo_font_extents(tmp_cr, extents)
+    cairo_destroy(tmp_cr)
+    return extents
+end)
+
+function write_left(cr, x, y, text)
+    cairo_move_to(cr, x, y)
+    cairo_show_text(cr, text)
+end
+
+function write_right(cr, x, y, text)
+    cairo_move_to(cr, x, y - text_extents(cr, text).width)
+    cairo_show_text(cr, text)
+end
+
+function write_centered(cr, mx, y, text)
     local extents = text_extents(cr, text)
-    return mx - (extents.width / 2 + extents.x_bearing),
-           my - (extents.height / 2 + extents.y_bearing)
+    local x = mx - (extents.width / 2 + extents.x_bearing)
+    cairo_move_to(cr, x, y)
+    cairo_show_text(cr, text)
 end
 
-function text_height(cr, text)
-    return text_extents(cr, text).height
+function write_middle(cr, mx, my, text)
+    local extents = text_extents(cr, text)
+    local x = mx - (extents.width / 2 + extents.x_bearing)
+    local y = my - (extents.height / 2 + extents.y_bearing)
+    cairo_move_to(cr, x, y)
+    cairo_show_text(cr, text)
 end
-
-function text_width(cr, text)
-    return text_extents(cr, text).width
-end
-
 
 
 --+–––––––––––––+--

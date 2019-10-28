@@ -662,12 +662,61 @@ function Gpu:update()
 end
 
 
+local Drive = util.class(WidgetGroup)
+
+function Drive:init(path, device_name)
+    self.path = path
+    self.device_name = device_name
+
+    self._temperature_text = TextLine("right")
+    self._bar = Bar()
+    blah = TextLine("center")
+    blah:set_text("blah")
+    WidgetGroup.init(self, {self._temperature_text,
+                            Gap(3),
+                            self._bar,
+                            Gap(28)})
+    self._height = self.height
+    self.is_mounted = data.is_mounted(self.path)
+    if not self.is_mounted then
+        self.height = 0
+    end
+end
+
+function Drive:update()
+    local was_mounted = self.is_mounted
+    self.is_mounted = data.is_mounted(self.path)
+    if self.is_mounted then
+        self._bar:set_fill(data.drive_percentage(self.path) / 100)
+        self.temperature = data.hddtemp()[self.device_name]
+        self.height = self._height
+    else
+        self.height = 0
+    end
+    return self.is_mounted ~= was_mounted
+end
+
+function Drive:render(cr)
+    if not self.is_mounted then
+        return
+    end
+    if self.temperature then
+        self._bar.color = {temp_color(self.temperature, 35, 65)}
+        self._temperature_text:set_text(self.temperature .. "°C")
+    else
+        self._bar.color = {0.8, 0.8, 0.8}
+        self._temperature_text:set_text("––––")
+    end
+    WidgetGroup.render(self, cr)
+end
+
 
 return {
     Bar = Bar,
     BorderRight = BorderRight,
     Cpu = Cpu,
     CpuFrequencies = CpuFrequencies,
+    Drive = Drive,
     Gap = Gap,
     Gpu = Gpu,
     Graph = Graph,

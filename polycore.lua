@@ -8,16 +8,6 @@ local data = require 'data'
 local util = require 'util'
 local widget = require 'widget'
 
-
-
-local drives = {
-    {"/", "/dev/nvme0"},
-    {"/home", "/dev/nvme0"},
-    {"/mnt/blackstor", "WDC WD2002FAEX-007BA0"},
-    {"/mnt/bluestor", "WDC WD20EZRZ-00Z5HB0"},
-    {"/mnt/cryptstor", "/dev/disk/by-uuid/9e340509-be93-42b5-9dcc-99bdbd428e22"},
-}
-
 default_font_family = "Ubuntu"
 default_font_size = 10
 default_text_color = {1, 1, 1, .8}
@@ -57,22 +47,35 @@ local downspeed_graph, upspeed_graph
 function setup()
     wili = widget.WidgetList(140, 1080 - 28, 10)
     wili:add(widget.BorderRight(wili))
+
     wili:add(widget.Gap(98))
     fan_rpm_text = wili:add(widget.TextLine("center"))
     wili:add(widget.Gap(2))
     cpu_temps_text = wili:add(widget.TextLine("center"))
+
     wili:add(widget.Gap(8))
     wili:add(widget.Cpu(6, 23, 5, 24))
     wili:add(widget.Gap(12))
     wili:add(widget.CpuFrequencies(6, 0.75, 4.3, 16))
+
     wili:add(widget.Gap(138))
     wili:add(widget.MemoryGrid(5, 40, 2, 1, true))
+
     wili:add(widget.Gap(84))
     wili:add(widget.Gpu())
+
     wili:add(widget.Gap(130))
     downspeed_graph = wili:add(widget.Graph(20, 10*1024))
     wili:add(widget.Gap(33))
     upspeed_graph = wili:add(widget.Graph(20, 1024))
+
+    wili:add(widget.Gap(37))
+    wili:add(widget.Drive("/", "/dev/nvme0"))
+    wili:add(widget.Drive("/home", "/dev/nvme0"))
+    wili:add(widget.Drive("/mnt/blackstor", "WDC WD2002FAEX-007BA0"))
+    wili:add(widget.Drive("/mnt/bluestor", "WDC WD20EZRZ-00Z5HB0"))
+    wili:add(widget.Drive("/mnt/cryptstor", "/dev/disk/by-uuid/9e340509-be93-42b5-9dcc-99bdbd428e22"))
+
     wili:layout()
 end
 
@@ -90,97 +93,7 @@ function update(cr, update_count)
     wili:update()
     wili:render(cr)
 
-    local y_offset = 800 - 10
-    font_normal(cr)
-    cairo_set_source_rgba(cr, unpack(default_text_color))
-    local drive_height = 47
-    for _, drive in ipairs(drives) do
-        if data.is_mounted(drive[1]) then
-            draw_drive(drive[1], drive[2], y_offset)
-            y_offset = y_offset + drive_height
-        end
-    end
-
     util.reset_data(update_count)
-end
-
-
---- DRAWING ---
-
-function draw_drive(path, device_name, y_offset)
-    local perc = data.drive_percentage(path)
-    local temp = data.hddtemp()[device_name]
-    cairo_set_source_rgba(cr, unpack(default_text_color))
-    local r, g, b
-    if temp == nil then
-        write_left(cr, x_right - 21, y_offset, "––––")
-        r, g, b = .8, .8, .8
-    else
-        write_left(cr, x_right - 24, y_offset, temp .. " °C")
-        r, g, b = temp_color(temp, 35, 65)
-    end
-    y_offset = y_offset + 4
-    bar(nil, perc / 100, {}, nil, y_offset, r, g, b)
-end
-
-function bar(unit, fraction, ticks, big_ticks, y_offset, r, g, b)
-    if r == nil then
-        r, g, b = unpack(default_graph_color)
-    end
-    local height = 5
-    local x_max
-    if unit then
-        x_max = x_right - 20
-        cairo_set_source_rgba(cr, unpack(default_text_color))
-        write_left(cr, x_right - 15, y_offset + 6, unit)
-    else
-        x_max = x_right
-    end
-
-    rectangle(cr, x_left, y_offset, x_max, y_offset + height)
-    alpha_gradient(cr, x_left, 0, x_max, 0, r, g, b, {
-        -- {0, .55}, {.1, .25},
-        {fraction - .33, .33},
-        {fraction - .08, .66},
-        {fraction - .01, .75},
-        {fraction,         1},
-        -- {fraction + .01,  .1},
-        {fraction + .01,  .2},
-        {fraction + .1,  .1},
-
-        {1,              .15},
-    })
-    cairo_fill_preserve(cr)
-
-    cairo_set_line_width(cr, 1)
-
-    --- fake shadow border ---
-    cairo_set_source_rgba(cr, 0, 0, 0, .66)
-    cairo_stroke(cr)
-
-    --- border ---
-    rectangle(cr, x_left + 1, y_offset + 1, x_max - 1, y_offset + height - 1)
-    cairo_set_source_rgba(cr, r, g, b, .2)
-    cairo_stroke(cr)
-
-    --- ticks ---
-    -- cairo_set_source_rgba(cr, r, g, b, .66)  -- ticks text color
-    for offset, frac in ipairs(ticks) do
-        local x = math.floor(x_left + frac * (x_max - x_left)) + .5
-        cairo_move_to(cr, x, y_offset + height + .5)
-        if big_ticks then
-            if big_ticks[offset] then
-                cairo_rel_line_to(cr, 0, 4)
-                -- write_centered(x, y_offset + height + 8.5, big_ticks[offset])
-            else
-                cairo_rel_line_to(cr, 0, 2)
-            end
-        else
-            cairo_rel_line_to(cr, 0, 3)
-        end
-    end
-    cairo_set_source_rgba(cr, r, g, b, .5)
-    cairo_stroke(cr)
 end
 
 
@@ -261,7 +174,7 @@ function write_left(cr, x, y, text)
 end
 
 function write_right(cr, x, y, text)
-    cairo_move_to(cr, x, y - text_extents(cr, text).width)
+    cairo_move_to(cr, x - text_extents(cr, text).width, y)
     cairo_show_text(cr, text)
 end
 

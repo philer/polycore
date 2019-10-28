@@ -26,12 +26,9 @@ conky.config = {
     gap_y = 28,
     minimum_width = 140,
     maximum_width = 140,
-    -- minimum_height = 732, -- 700 minus bar height
     minimum_height = 1080 - 28,
-    -- maximum_height = 690, -- 700 minus bar height (Unknown setting)
 
     uppercase = false,
-    --use_spacer left
     cpu_avg_samples = 2,
     net_avg_samples = 1,
 
@@ -48,30 +45,23 @@ conky.config = {
 
     -- font --
     use_xft = true,
-    font = 'Ubuntu:pixelsize=10',
     xftalpha = 0.1,
+    font = 'Ubuntu:pixelsize=10',
 
     -- bars --
     default_bar_width = 120,
     default_bar_height = 4,
-    --default_graph_size 40 20
     default_graph_width = 120,
     default_graph_height = 16,
 
     ------------
     -- colors --
     ------------
-    default_shade_color = '191919',
-    --default_outline_color black
 
     default_color = 'fafafa',
 
     color0 = '377',    -- titles
     color1 = 'b9b9b7', -- secondary text color
-    -- color2 = '466',    -- bar seperator
-    color3 = '99c5c5', -- bar color
-    color4 = '0A0A0A', -- bar borders
-    color5 = '1f2c2b', -- bar background
 
     --- lua ---
     lua_load = os.getenv("HOME") .. "/.config/conky/polycore/polycore.lua",
@@ -83,39 +73,23 @@ conky.config = {
     --- templates ---
     -----------------
 
-    -- bars: bartype arg
-    template0 = [[
-${template9}$color5${execbar ~/bin/echo100.sh}$color3${template9}${\1 \2}${template9}$color4${execbar ~/bin/echo0.sh}$color]],
-
-    -- bars: bartype arg1 arg2
+    -- title: title
     template1 = [[
-${template9}$color5${execbar ~/bin/echo100.sh}$color3${template9}${\1 \2 \3}${template9}$color4${execbar ~/bin/echo0.sh}$color]],
+${template9}${offset 1}${font Ubuntu:pixelsize=11:bold}${color0}[ \1 ]$color$font]],
 
-    -- top: number
+    -- top (cpu): number
     template2 = [[
 ${template9}${color1}${top name \1}${template8}${top cpu \1} %$color]],
 
---     -- top (cpu): number
---     template3 = [[
--- ${template9}${color1}${top name \1}${template8}${top cpu \1}$color]],
-
     -- top (mem): number
-    template4 = [[
+    template3 = [[
 ${template9}${color1}${top_mem name \1}${template8}${top_mem mem_res \1}$color]],
 
     -- drives: name dir --
---     template5 = [[
--- ${if_mounted \2}
--- ${template9}${offset 1}${font Ubuntu:pixelsize=11:bold}${color0}· \1 ·\n${color1}${font Ubuntu:pixelsize=10}${template9}${fs_used \2}  /   ${fs_size \2}${template8}${if_match ${fs_used_perc \2}>=85}${color b54}$endif${fs_used_perc \2}%$color$font\n${template0 fs_bar \2}$color
--- $endif]],
     template5 = [[
 ${if_mounted \2}
 ${template9}${offset 1}${font Ubuntu:pixelsize=11:bold}${color0}· \1 ·\n${voffset 8}${color1}${font Ubuntu:pixelsize=10}${template9}${fs_used \2}  /  ${fs_size \2}${template8}${if_match ${fs_used_perc \2}>=85}${color b54}$else$color$endif${fs_used_perc \2}%$font$color
 $endif]],
-
-    -- title: title
-    template6 = [[
-${template9}${offset 1}${font Ubuntu:pixelsize=11:bold}${color0}[ \1 ]$color$font]],
 
     -- distance middle | right | left
     template7 = '${alignc}',
@@ -141,7 +115,7 @@ $color#
 ${voffset 200}
 #
 ### top ###
-${template6 top}${template8}cpu
+${template1 top}${template8}cpu
 ${voffset 3}#
 ${template2 1}
 ${template2 2}
@@ -151,16 +125,16 @@ ${template2 5}
 
 
 ### mem ###
-${template6 mem} ${template8}$memperc %
+${template1 mem} ${template8}$memperc %
 ${voffset 12}
 ### memtop ###
-${template4 1}
-${template4 2}
-${template4 3}
+${template3 1}
+${template3 2}
+${template3 3}
 
 
 ### GPU ###
-${template6 gpu}  ${nvidia gpufreq} MHz#
+${template1 gpu}  ${nvidia gpufreq} MHz#
 ${template8}#
 ${if_match 75 <= ${nvidia temp}}${color b54}${font Ubuntu:pixelsize=10:bold}$endif#
 ${nvidia temp}°C$color
@@ -169,7 +143,7 @@ $color1${execpi 5 ~/bin/nvidia-top.sh}
 
 
 ### net ###
-${template6 net}${template8}
+${template1 net}
 ${voffset 3}#
 ${template9}${color1}Down$color${template8}${downspeed enp0s31f6}
 ${template9}${color1}Total$color${template8}${totaldown enp0s31f6}

@@ -6,6 +6,12 @@ local util = {}
 
 local _memoization_clearers = {}
 
+-- Wrap a function to store its results for identical arguments
+-- Arguments:
+--   delay: int, optinal - number of updates that should pass before
+--                         data is cleared; use 0/false/nil to never clear
+--   fn:    function     - function to be memoized; should only take stringable
+--                         arguments and return a non-nil value
 function util.memoize(delay, fn)
     if fn == nil then
         fn = delay
@@ -26,6 +32,8 @@ function util.memoize(delay, fn)
     end
 end
 
+-- Clear outdated memoization data (see util.memoize)
+-- Call this once per update cycle
 function util.reset_data(update_count)
     for _, memclear in ipairs(_memoization_clearers) do
         if update_count % memclear[1] == 0 then

@@ -2,12 +2,13 @@
 
 require 'cairo'
 
--- lua's import system is retarded.
+-- lua's import system is confusing.
 package.path = os.getenv("HOME") .. "/.config/conky/polycore/?.lua;" .. package.path
 local data = require 'data'
 local util = require 'util'
 local widget = require 'widget'
 
+-- global defaults
 default_font_family = "Ubuntu"
 default_font_size = 10
 default_text_color = {1, 1, 1, .8}
@@ -38,7 +39,8 @@ local wili
 local fan_rpm_text, cpu_temps_text
 local downspeed_graph, upspeed_graph
 
-function setup()
+-- Called once on startup to initialize widgets etc.
+local function setup()
     wili = widget.WidgetList(140, 1080 - 28, 10)
     wili:add(widget.BorderRight(wili))
 
@@ -73,7 +75,8 @@ function setup()
     wili:layout()
 end
 
-function update(cr, update_count)
+-- Called once per update cycle to (re-)draw the entire surface.
+local function update(cr, update_count)
     local fan1, fan2 = unpack(data.fan_rpm())
     fan_rpm_text:set_text(fan1 .. " rpm   ·   " .. fan2 .. " rpm")
 
@@ -91,11 +94,15 @@ function update(cr, update_count)
 end
 
 
+-- Simple error handler to show a stacktrace
 local function error_handler(err)
     print(err)
     print(debug.traceback())
 end
 
+-- Global update cycle entry point, called by conky as per conkyrc.lua
+-- Takes care of managing the primary cairo drawing context plus some
+-- error handling on calling the update function.
 function conky_main()
     if conky_window == nil then
         return

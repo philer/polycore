@@ -25,10 +25,12 @@ function data.cpu_frequencies(cores)
     return util.map(tonumber, conky_parse(conky_string):gmatch("%d+[,.]?%d*"))
 end
 
+-- relies on lm_sensors to be installed
 function data.cpu_temperatures()
     return util.map(tonumber, read_cmd("sensors"):gmatch("Core %d: +%+(%d%d)"))
 end
 
+-- relies on lm_sensors to be installed
 function data.fan_rpm()
     return util.map(tonumber, read_cmd("sensors"):gmatch("fan%d: +(%d+) RPM"))
 end
@@ -55,6 +57,7 @@ function data.network_speed(interface)
     return unpack(util.map(tonumber, result:gmatch("%d+[,.]?%d*")))
 end
 
+-- relies on nvidia-smi to be installed
 local function cmd_nvidia_smi()
     return read_cmd("nvidia-smi -q -d UTILIZATION,MEMORY,TEMPERATURE")
 end
@@ -85,6 +88,9 @@ data.is_mounted = util.memoize(5, function(path)
     return "1" == conky_parse(string.format("${if_mounted %s}1${else}0${endif}", path))
 end)
 
+-- relies on hddtemp to be running daemon mode
+-- For NVME-Support, requires "nvme smart-log" to be available
+-- and added as an exception in sudoers, hddtemp does not support NVME.
 data.hddtemp = util.memoize(5, function()
     local result = read_cmd("nc localhost 7634 -d")
     local temperatures = {}

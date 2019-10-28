@@ -2,6 +2,9 @@ local data = require 'data'
 local util = require 'util'
 local ch = require 'cairo_helpers'
 
+
+-- Root widget wrapper
+-- Takes care of managing layout reflows and background caching.
 local WidgetList = util.class()
 
 function WidgetList:init(width, height, padding)
@@ -64,15 +67,36 @@ function WidgetList:render(cr)
 end
 
 
+-- Base Widget class
+-- Subclasses that change their visible content should
+-- implement :render(cr) to do so.
+-- :update() will be called before :render(cr) is called.
 local Widget = util.class()
+
+-- Every widget needs a height used by the layout engine to correctly position
+-- each widget
 Widget.height = 0
--- function Widget:init(y) end
+
+-- Called at least once to inform the widget of its position and size
+-- constraints. The argument is a table containing
+--   x_offset: space to be left clear on the left on the drabble surface
+--   y_offset: space to be left clear towards the top of the drabble surface
+--   width: maximal width of the rendered content
+--   x_max: (= x_offset + width) highest x-value to draw on
 function Widget:layout(container) end
+
+-- Called at least once to allow the widget to draw static content
 function Widget:render_background(cr) end
+
+-- Called only if :render(cr) is also defined, before each call to :render.
+-- If this function returns a true-ish value, a reflow will be triggered.
+-- Since this involves calls to all widgets' :layout functions,
+-- reflows should be used sparingly.
 function Widget:update() return false end
--- function Widget:render(cr) end
 
 
+-- Basic combination of widgets. Grouped widgets are drawn in a vertical stack,
+-- starting at the top of the drawble surface.
 local WidgetGroup = util.class(Widget)
 
 function WidgetGroup:init(widgets)
@@ -118,6 +142,7 @@ function WidgetGroup:render(cr)
 end
 
 
+-- Leave some space between widgets
 local Gap = util.class(Widget)
 
 function Gap:init(height)
@@ -125,6 +150,8 @@ function Gap:init(height)
 end
 
 
+-- Draw a border on the right side of the drawable surface.
+-- First :init argument needs to be a WidgetList instance.
 local BorderRight = util.class(Widget)
 
 function BorderRight:init(block)
@@ -141,6 +168,8 @@ function BorderRight:render_background(cr)
 end
 
 
+-- Draw a single line changeable of text.
+-- Use this widget for text that will be updated on each cycle.
 local TextLine = util.class(Widget)
 
 function TextLine:init(align, font_family, font_size, color)
@@ -184,6 +213,8 @@ function TextLine:render(cr)
 end
 
 
+-- Progress-bar like box. Can have small and big ticks for visual clarity,
+-- and a unit (static, up to 3 characters) written behind the end.
 local Bar = util.class(Widget)
 
 function Bar:init(ticks, big_ticks, unit, thickness, color)
@@ -280,6 +311,7 @@ function Bar:render(cr)
 end
 
 
+-- Specialized unit-based Bar
 local MemoryBar = util.class(Bar)
 
 function MemoryBar:init(total, unit, color)
@@ -301,6 +333,7 @@ function MemoryBar:set_used(used)
 end
 
 
+-- Track changing data
 local Graph = util.class(Widget)
 
 function Graph:init(height, max, data_points, color)
@@ -374,6 +407,7 @@ function Graph:render(cr)
 end
 
 
+-- Polygon-style CPU usage & temperature tracking
 local Cpu = util.class(Widget)
 
 function Cpu:init(cores, scale, gap, segment_size)
@@ -476,6 +510,7 @@ function Cpu:render(cr)
 end
 
 
+-- Visualize cpu-frequencies in a style reminiscent of stacked progress bars.
 local CpuFrequencies = util.class(Widget)
 
 function CpuFrequencies:init(cores, min_freq, max_freq, height)
@@ -579,8 +614,9 @@ function CpuFrequencies:render(cr)
 end
 
 
-
-
+-- Visualize memory usage in a randomized grid. Does not represent actual
+-- distribution of used memory.
+-- Also shows buffere/cache memory at reduced brightness.
 local MemoryGrid = util.class(Widget)
 
 function MemoryGrid:init(rows, columns, point_size, gap, shuffle)
@@ -644,6 +680,7 @@ function MemoryGrid:render(cr)
 end
 
 
+-- Compound widget to display GPU and VRAM usage.
 local Gpu = util.class(WidgetGroup)
 
 function Gpu:init()
@@ -665,6 +702,9 @@ function Gpu:update()
 end
 
 
+-- Visualize drive usage and temperature in a colorized Bar.
+-- Also writes temperature as text.
+-- This widget is exptected to be combined with some special conky.text.
 local Drive = util.class(WidgetGroup)
 
 function Drive:init(path, device_name)

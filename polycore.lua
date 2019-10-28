@@ -94,10 +94,10 @@ local function update(cr, update_count)
 end
 
 
--- Simple error handler to show a stacktrace
+-- Simple error handler to show a stacktrace.
+-- Stacktrace will also include conky_main and this error_handler.
 local function error_handler(err)
-    print(err)
-    print(debug.traceback())
+    print(debug.traceback("\027[31m" .. err .. "\027[0m"))
 end
 
 -- Global update cycle entry point, called by conky as per conkyrc.lua
@@ -117,6 +117,7 @@ function conky_main()
     cairo_surface_destroy(cs)
 
     local update_count = tonumber(conky_parse('${updates}'))
+    -- Lua 5.1 requires xpcall to use a wrapper function
     local status, err = xpcall(function() update(cr, update_count) end, error_handler)
 
     cairo_destroy(cr)

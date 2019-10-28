@@ -44,7 +44,6 @@ function WidgetList:layout()
         end
     end
     cairo_destroy(background_cr)
-    background_cr = nil
 end
 
 function WidgetList:update()

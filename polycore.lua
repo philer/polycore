@@ -31,14 +31,8 @@ function temp_color(temp, low, high)
            cool[3] + weight * (hot[3] - cool[3])
 end
 
----
 
 os.setlocale("C")  -- decimal dot
-
-local cr, cs
-local win_width = 140
-local x_left = 10
-local x_right = win_width - x_left
 
 local wili
 local fan_rpm_text, cpu_temps_text
@@ -208,21 +202,18 @@ function conky_main()
         return
     end
 
-    cs = cairo_xlib_surface_create(conky_window.display,
-                                   conky_window.drawable,
-                                   conky_window.visual,
-                                   conky_window.text_width,
-                                   conky_window.text_height)
-    cr = cairo_create(cs)
+    local cs = cairo_xlib_surface_create(conky_window.display,
+                                         conky_window.drawable,
+                                         conky_window.visual,
+                                         conky_window.text_width,
+                                         conky_window.text_height)
+    local cr = cairo_create(cs)
+    cairo_surface_destroy(cs)
 
     local update_count = tonumber(conky_parse('${updates}'))
-
     local status, err = xpcall(function() update(cr, update_count) end, error_handler)
 
     cairo_destroy(cr)
-    cairo_surface_destroy(cs)
-    cr = nil
-    cs = nil
 end
 
 xpcall(setup, error_handler)

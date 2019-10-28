@@ -36,7 +36,6 @@ end
 os.setlocale("C")  -- decimal dot
 
 local wili
-local fan_rpm_text, cpu_temps_text
 local downspeed_graph, upspeed_graph
 
 -- Called once on startup to initialize widgets etc.
@@ -45,9 +44,21 @@ local function setup()
     wili:add(widget.BorderRight(wili))
 
     wili:add(widget.Gap(98))
-    fan_rpm_text = wili:add(widget.TextLine("center"))
+    local fan_rpm_text = widget.TextLine("center")
+    fan_rpm_text.update = function(self)
+        local fan1, fan2 = unpack(data.fan_rpm())
+        self:set_text(fan1 .. " rpm   ·   " .. fan2 .. " rpm")
+    end
+    wili:add(fan_rpm_text)
+
     wili:add(widget.Gap(2))
-    cpu_temps_text = wili:add(widget.TextLine("center"))
+
+    local cpu_temps_text = widget.TextLine("center")
+    cpu_temps_text.update = function(self)
+        local cpu_temps = data.cpu_temperatures()
+        self:set_text(table.concat(cpu_temps, " · ") .. " °C")
+    end
+    wili:add(cpu_temps_text)
 
     wili:add(widget.Gap(8))
     wili:add(widget.Cpu(6, 23, 5, 24))
@@ -77,12 +88,6 @@ end
 
 -- Called once per update cycle to (re-)draw the entire surface.
 local function update(cr, update_count)
-    local fan1, fan2 = unpack(data.fan_rpm())
-    fan_rpm_text:set_text(fan1 .. " rpm   ·   " .. fan2 .. " rpm")
-
-    local cpu_temps = data.cpu_temperatures()
-    cpu_temps_text:set_text(table.concat(cpu_temps, " · ") .. " °C")
-
     local down, up = data.network_speed("enp0s31f6")
     downspeed_graph:add_value(down)
     upspeed_graph:add_value(up)

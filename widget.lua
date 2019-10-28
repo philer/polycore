@@ -1,5 +1,6 @@
 local data = require 'data'
 local util = require 'util'
+local ch = require 'cairo_helpers'
 
 local WidgetList = util.class()
 
@@ -148,10 +149,12 @@ function TextLine:init(align, font_family, font_size, color)
     self.font_size = font_size or default_font_size
     self.color = color or default_text_color
 
-    local write_fns = {left = write_left, center = write_centered, right = write_right}
+    local write_fns = {left = ch.write_left,
+                       center = ch.write_centered,
+                       right = ch.write_right}
     self._write_fn = write_fns[align]
 
-    local extents = font_extents(self.font_family, self.font_size)
+    local extents = ch.font_extents(self.font_family, self.font_size)
     self.height = extents.height
     local line_spacing = extents.height - (extents.ascent + extents.descent)
     self._baseline_offset = extents.ascent + 0.5 * line_spacing
@@ -228,9 +231,9 @@ end
 
 function Bar:render_background(cr)
     if self.unit then
-        font_normal(cr)
+        ch.font_normal(cr)
         cairo_set_source_rgba(cr, unpack(default_text_color))
-        write_left(cr, self.x_offset + self.width + 5, self.y_offset + 6, self.unit)
+        ch.write_left(cr, self.x_offset + self.width + 5, self.y_offset + 6, self.unit)
     end
 end
 
@@ -242,7 +245,7 @@ function Bar:render(cr)
     local r, g, b = unpack(self.color)
     cairo_set_antialias(cr, CAIRO_ANTIALIAS_NONE)
     cairo_rectangle(cr, self.x_offset, self.y_offset, self.width, self.thickness)
-    alpha_gradient(cr, self.x_offset, 0, self.x_offset + self.width, 0, r, g, b, {
+    ch.alpha_gradient(cr, self.x_offset, 0, self.x_offset + self.width, 0, r, g, b, {
         -- {0, .55}, {.1, .25},
         {self.fraction - .33, .33},
         {self.fraction - .08, .66},
@@ -325,7 +328,7 @@ function Graph:render_background(cr)
 
     --- background ---
     cairo_rectangle(cr, self.x_offset, self.y_offset, self.width, self.height)
-    alpha_gradient(cr, 0, self.y_offset, 0, self.y_offset + self.height, r, g, b, {
+    ch.alpha_gradient(cr, 0, self.y_offset, 0, self.y_offset + self.height, r, g, b, {
         {.1, .14}, {.1, .06}, {.2, .06}, {.2, .14},
         {.3, .14}, {.3, .06}, {.4, .06}, {.4, .14},
         {.5, .14}, {.5, .06}, {.6, .06}, {.6, .14},
@@ -334,7 +337,6 @@ function Graph:render_background(cr)
     })
     cairo_fill_preserve(cr)
     cairo_set_source_rgba(cr, r, g, b, .2)
-    -- cairo_set_source_rgba(cr, 1, 0, 0, 1)
     cairo_stroke(cr)
 end
 
@@ -365,7 +367,7 @@ function Graph:render(cr)
     cairo_line_to(cr, self.x_max, y_bottom)
     cairo_line_to(cr, self.x_offset, y_bottom)
     cairo_close_path(cr)
-    alpha_gradient(cr, 0, y_bottom - self.max * y_scale,
+    ch.alpha_gradient(cr, 0, y_bottom - self.max * y_scale,
                        0, y_bottom,
                        r, g, b, {{0, .66}, {.5, .33}, {1, .25}})
     cairo_fill(cr)
@@ -429,9 +431,8 @@ end
 function Cpu:render(cr)
     local avg_temperature = util.avg(self.temperatures)
     local r, g, b = temp_color(avg_temperature, 30, 80)
-    cairo_set_antialias(cr, CAIRO_ANTIALIAS_DEFAULT)
 
-    polygon(cr, self.center_coordinates)
+    ch.polygon(cr, self.center_coordinates)
     cairo_set_line_width(cr, 6)
     cairo_set_source_rgba(cr, r, g, b, .33)
     cairo_stroke_preserve(cr)
@@ -445,10 +446,10 @@ function Cpu:render(cr)
                                                     CAIRO_FONT_WEIGHT_BOLD)
     cairo_set_font_size(cr, 16)
     cairo_set_source_rgba(cr, r, g, b, .4)
-    write_middle(cr, self.mx + 1, self.my, string.format("%d°", avg_temperature))
+    ch.write_middle(cr, self.mx + 1, self.my, string.format("%d°", avg_temperature))
 
     for core = 1, self.cores do
-        polygon(cr, self.segment_coordinates[core])
+        ch.polygon(cr, self.segment_coordinates[core])
         local gradient = cairo_pattern_create_linear(unpack(self.gradient_coordinates[core]))
         local r, g, b = temp_color(self.temperatures[core], 30, 80)
         cairo_set_source_rgba(cr, 0, 0, 0, .4)
@@ -514,12 +515,12 @@ function CpuFrequencies:layout(container)
 end
 
 function CpuFrequencies:render_background(cr)
-    font_normal(cr)
+    ch.font_normal(cr)
     cairo_set_source_rgba(cr, unpack(default_text_color))
-    write_left(cr, self.x_max + 5, self.y_min + 0.5 * self._height + 3, "GHz")
+    ch.write_left(cr, self.x_max + 5, self.y_min + 0.5 * self._height + 3, "GHz")
 
     --- shadow outline
-    polygon(cr, {
+    ch.polygon(cr, {
         self._polygon_coordinates[1] - 1, self._polygon_coordinates[2] - 1,
         self._polygon_coordinates[3] + 1, self._polygon_coordinates[4] - 1,
         self._polygon_coordinates[5] + 1, self._polygon_coordinates[6] + 1,
@@ -547,13 +548,13 @@ function CpuFrequencies:render(cr)
         cairo_rel_line_to(cr, 0, tick[3])
     end
     cairo_stroke(cr)
-    font_normal(cr)
+    ch.font_normal(cr)
     for _, label in ipairs(self._tick_labels) do
-        write_centered(cr, label[1], label[2], label[3])
+        ch.write_centered(cr, label[1], label[2], label[3])
     end
 
     -- background --
-    polygon(cr, self._polygon_coordinates)
+    ch.polygon(cr, self._polygon_coordinates)
     cairo_set_source_rgba(cr, r, g, b, .15)
     cairo_fill_preserve(cr)
     cairo_set_source_rgba(cr, r, g, b, .3)
@@ -563,7 +564,7 @@ function CpuFrequencies:render(cr)
     local df = self.max_freq - self.min_freq
     for _, frequency in ipairs(self.frequencies) do
         local stop = (frequency - self.min_freq) / df
-        alpha_gradient(cr, self.x_min, 0, self.x_max, 0, r, g, b, {
+        ch.alpha_gradient(cr, self.x_min, 0, self.x_max, 0, r, g, b, {
              {0,          .01},
              {stop - .4,  .015},
              {stop - .2,  .05},

@@ -70,7 +70,7 @@ local function setup()
         widget.Gap(84),
         widget.Gpu(),
         widget.Gap(132),
-        widget.Network("enp0s31f6"),
+        widget.Network("enp0s31f6", 5 * 1024, 1024),
         widget.Gap(37),
         widget.Drive("/", "/dev/nvme0"),
         widget.Drive("/home", "/dev/nvme0"),

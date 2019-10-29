@@ -18,7 +18,7 @@ function util.memoize(delay, fn)
         delay = 0
     end
     local results = {}
-    if delay > 1 then
+    if delay > 0 then
         table.insert(_memoization_clearers, {delay, function()
             results = {}
         end})

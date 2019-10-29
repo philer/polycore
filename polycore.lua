@@ -71,7 +71,7 @@ local function setup()
         widget.Gpu(),
         widget.Gap(132),
         widget.Network("enp0s31f6"),
-        widget.Gap(66),
+        widget.Gap(37),
         widget.Drive("/", "/dev/nvme0"),
         widget.Drive("/home", "/dev/nvme0"),
         widget.Drive("/mnt/blackstor", "WDC WD2002FAEX-007BA0"),

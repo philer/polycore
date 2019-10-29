@@ -707,9 +707,9 @@ local Network = util.class(WidgetGroup)
 
 function Network:init(interface)
     self.interface = interface
-    self.downspeed_graph = Graph(20, 10*1024, false)
-    self.upspeed_graph = Graph(20, 1024, true)
-    WidgetGroup.init(self, {self.downspeed_graph, self.upspeed_graph})
+    self.downspeed_graph = Graph(20, 10*1024)
+    self.upspeed_graph = Graph(20, 1024)
+    WidgetGroup.init(self, {self.downspeed_graph, Gap(33), self.upspeed_graph})
 end
 
 function Network:update()

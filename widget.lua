@@ -383,6 +383,7 @@ function Graph:add_value(value)
     self.data:put(value)
     if value > self.max then
         self.max = value
+        self:layout(self)
     end
 end
 

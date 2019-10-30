@@ -259,16 +259,13 @@ function Bar:render(cr)
     cairo_set_antialias(cr, CAIRO_ANTIALIAS_NONE)
     cairo_rectangle(cr, 0, 0, self._width, self.thickness)
     ch.alpha_gradient(cr, 0, 0, self._width, 0, r, g, b, {
-        -- {0, .55}, {.1, .25},
-        {self.fraction - .33, .33},
-        {self.fraction - .08, .66},
-        {self.fraction - .01, .75},
-        {self.fraction,         1},
-        -- {self.fraction + .01,  .1},
-        {self.fraction + .01,  .2},
-        {self.fraction + .1,  .1},
-
-        {1,              .15},
+        self.fraction - 0.33, 0.33,
+        self.fraction - 0.08, 0.66,
+        self.fraction - 0.01, 0.75,
+        self.fraction, 1,
+        self.fraction + 0.01,  0.2,
+        self.fraction + 0.1,  0.1,
+        1, 0.15,
     })
     cairo_fill_preserve(cr)
 
@@ -351,11 +348,11 @@ function Graph:render_background(cr)
     --- background ---
     cairo_rectangle(cr, 0, 0, self.width, self.height)
     ch.alpha_gradient(cr, 0, 0, 0, self.height, r, g, b, {
-        {.1, .14}, {.1, .06}, {.2, .06}, {.2, .14},
-        {.3, .14}, {.3, .06}, {.4, .06}, {.4, .14},
-        {.5, .14}, {.5, .06}, {.6, .06}, {.6, .14},
-        {.7, .14}, {.7, .06}, {.8, .06}, {.8, .14},
-        {.9, .14}, {.9, .06},
+        .1, .14, .1, .06, .2, .06, .2, .14,
+        .3, .14, .3, .06, .4, .06, .4, .14,
+        .5, .14, .5, .06, .6, .06, .6, .14,
+        .7, .14, .7, .06, .8, .06, .8, .14,
+        .9, .14, .9, .06,
     })
     cairo_fill_preserve(cr)
     cairo_set_source_rgba(cr, r, g, b, .2)
@@ -386,7 +383,7 @@ function Graph:render(cr)
     --- fill under graph ---
     ch.alpha_gradient(cr, 0, self.y_start - self.max * self.y_scale,
                        0, self.y_start,
-                       r, g, b, {{0, .66}, {.5, .33}, {1, .25}})
+                       r, g, b, {0, .66, .5, .33, 1, .25})
     cairo_fill(cr)
 end
 
@@ -420,8 +417,8 @@ function Cpu:layout(width)
         local dx_center, dy_center = math.cos(rad_center), math.sin(rad_center)
         local dx_left, dy_left = math.cos(rad_left), math.sin(rad_left)
         local dx_right, dy_right = math.cos(rad_right), math.sin(rad_right)
-        table.insert(self.center_coordinates, self.mx + self.scale * dx_left)
-        table.insert(self.center_coordinates, self.my + self.scale * dy_left)
+        self.center_coordinates[2 * core - 1] = self.mx + self.scale * dx_left
+        self.center_coordinates[2 * core] = self.my + self.scale * dy_left
 
         -- segment corners
         local dx_gap, dy_gap = self.gap * dx_center, self.gap * dy_center
@@ -433,11 +430,9 @@ function Cpu:layout(width)
         local y3 = self.my + max * dy_right + dy_gap
         local x4 = self.mx + min * dx_right + dx_gap
         local y4 = self.my + min * dy_right + dy_gap
-        table.insert(self.segment_coordinates, {x1, y1, x2, y2, x3, y3, x4, y4})
-        table.insert(self.gradient_coordinates, {(x1 + x4) / 2,
-                                                 (y1 + y4) / 2,
-                                                 (x2 + x3) / 2,
-                                                 (y2 + y3) / 2})
+        self.segment_coordinates[core] = {x1, y1, x2, y2, x3, y3, x4, y4}
+        self.gradient_coordinates[core] = {(x1 + x4) / 2, (y1 + y4) / 2,
+                                           (x2 + x3) / 2, (y2 + y3) / 2}
     end
 end
 
@@ -580,13 +575,13 @@ function CpuFrequencies:render(cr)
     for _, frequency in ipairs(self.frequencies) do
         local stop = (frequency - self.min_freq) / df
         ch.alpha_gradient(cr, 0, 0, self._width, 0, r, g, b, {
-             {0,          .01},
-             {stop - .4,  .015},
-             {stop - .2,  .05},
-             {stop - .1,  .1},
-             {stop - .02, .2},
-             {stop,       .6},
-             {stop,       0},
+             0, 0.01,
+             stop - .4, 0.015,
+             stop - .2, 0.05,
+             stop - .1, 0.1,
+             stop - .02, 0.2,
+             stop, 0.6,
+             stop, 0,
         })
         cairo_fill_preserve(cr)
     end

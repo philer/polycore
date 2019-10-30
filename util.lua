@@ -4,7 +4,7 @@
 
 local util = {}
 
-local _memoization_clearers = {}
+local memoization_clearers = {}
 
 -- Wrap a function to store its results for identical arguments
 -- Arguments:
@@ -14,12 +14,11 @@ local _memoization_clearers = {}
 --                         arguments and return a non-nil value
 function util.memoize(delay, fn)
     if fn == nil then
-        fn = delay
-        delay = 0
+        delay, fn = 0, delay
     end
     local results = {}
     if delay > 0 then
-        table.insert(_memoization_clearers, {delay, function()
+        table.insert(memoization_clearers, {delay, function()
             results = {}
         end})
     end
@@ -35,9 +34,9 @@ end
 -- Clear outdated memoization data (see util.memoize)
 -- Call this once per update cycle
 function util.reset_data(update_count)
-    for _, memclear in ipairs(_memoization_clearers) do
-        if update_count % memclear[1] == 0 then
-            memclear[2]()
+    for i = 1, #memoization_clearers do
+        if update_count % memoization_clearers[i][1] == 0 then
+            memoization_clearers[i][2]()
         end
     end
 end
@@ -97,58 +96,63 @@ function util.pack(...)
 end
 
 function util.clamp(min, max, val)
-    return math.max(min, math.min(val, max))
+    if val < min then return min end
+    if val > max then return max end
+    return val
 end
 
 function util.map(fn, iter)
     local arr = {}
+    local i = 1
     for item in iter do
-        table.insert(arr, fn(item))
+        arr[i] = fn(item)
+        i = i + 1
     end
     return arr
 end
 
 function util.filter(fn, arr)
     local result = {}
-    for _, item in ipairs(arr) do
-        if fn(item) then
-            table.insert(result, item)
+    local k = 1
+    for i = 1, #arr do
+        if fn(arr[i]) then
+            result[k] = arr[i]
+            k = k + 1
         end
     end
     return result
 end
 
 function util.reduce(fn, init, arr)
-    for _, item in ipairs(arr) do
-        init = fn(init, item)
+    for i = 1, #arr do
+        init = fn(init, arr[i])
     end
     return init
 end
 
 function util.range(start, stop, step)
     local arr = {}
-    for i = start, stop, step or 1 do
-        table.insert(arr, i)
+    local i = 1
+    for value = start, stop, step or 1 do
+        arr[i] = value
+        i = i + 1
     end
     return arr
 end
 
 function util.avg(arr)
     local acc = 0
-    for _, nr in ipairs(arr) do
-        acc = acc + nr
+    for i = 1, #arr do
+        acc = acc + arr[i]
     end
     return acc / #arr
 end
 
 -- Fisher-Yates shuffle
--- https://stackoverflow.com/a/17120745
 function util.shuffle(array)
-    local counter = #array
-    while counter > 1 do
+    for counter = #array, 2, -1 do
         local index = math.random(counter)
         array[index], array[counter] = array[counter], array[index]
-        counter = counter - 1
     end
 end
 

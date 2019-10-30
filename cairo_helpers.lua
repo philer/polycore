@@ -5,12 +5,12 @@ local cairo_helpers = {}
 -- Draw a polygon with the given vertices.
 function cairo_helpers.polygon(cr, coordinates)
     -- +.5 for sharp lines, see https://cairographics.org/FAQ/#sharp_lines
+    local floor = math.floor
     cairo_set_antialias(cr, CAIRO_ANTIALIAS_DEFAULT)
-    cairo_move_to(cr, math.floor(coordinates[1]) + .5,
-                      math.floor(coordinates[2]) + .5)
+    cairo_move_to(cr, floor(coordinates[1]) + .5, floor(coordinates[2]) + .5)
     for i = 3, #coordinates, 2 do
-        cairo_line_to(cr, math.floor(coordinates[i]) + .5,
-                          math.floor(coordinates[i + 1]) + .5)
+        cairo_line_to(cr, floor(coordinates[i]) + .5,
+                          floor(coordinates[i + 1]) + .5)
     end
     cairo_close_path(cr)
 end
@@ -27,14 +27,13 @@ end
 --          by color variation
 function cairo_helpers.alpha_gradient(cr, x1, y1, x2, y2, r, g, b, stops)
     local gradient = cairo_pattern_create_linear(x1, y1, x2, y2)
-    for _, stop in ipairs(stops) do
-        local rw, gw, bw = r, g, b
+    for i = 1, #stops, 2 do
+        local offset, alpha = stops[i], stops[i + 1]
         -- additional brightness (white) for peaks
-        if stop[2] > 0.5 then
-            rw, gw, bw = r * 1.3, g * 1.3, b * 1.3
+        if alpha > 0.5 then
+            r, g, b = r * 1.3, g * 1.3, b * 1.3
         end
-        cairo_pattern_add_color_stop_rgba(gradient,
-            stop[1], rw, gw, bw, stop[2])
+        cairo_pattern_add_color_stop_rgba(gradient, offset, r, g, b, alpha)
     end
     cairo_set_source(cr, gradient)
     cairo_pattern_destroy(gradient)

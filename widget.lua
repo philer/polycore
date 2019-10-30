@@ -17,26 +17,20 @@ end
 
 function WidgetRenderer:layout()
     print("layout reflow…")
-    local container = {
-        x_offset = self.padding,
-        y_offset = self.padding,
-        width = self.width - 2 * self.padding,
-        x_max = self.width - self.padding,
-    }
-    self.root:layout(container)
+    self.root:layout(self.width - 2 * self.padding)
 
-    local background_cr = cairo_create(self._background_surface)
-    if DEBUG then
-        cairo_rectangle(background_cr, self.padding, self.padding,
-                                       self.width - 2 * self.padding,
-                                       self.height - 2 * self.padding)
-        cairo_set_line_width(background_cr, 1)
-        cairo_set_antialias(background_cr, CAIRO_ANTIALIAS_NONE)
-        cairo_set_source_rgba(background_cr, 1, 0, 0, .5)
-        cairo_stroke(background_cr)
-    end
-    self.root:render_background(background_cr)
-    cairo_destroy(background_cr)
+    local cr = cairo_create(self._background_surface)
+
+    -- clear surface
+    cairo_save (cr)
+    cairo_set_source_rgba(cr, 0, 0, 0, 0)
+    cairo_set_operator(cr, CAIRO_OPERATOR_SOURCE)
+    cairo_paint(cr)
+    cairo_restore(cr)
+
+    cairo_translate(cr, self.padding, self.padding)
+    self.root:render_background(cr)
+    cairo_destroy(cr)
 end
 
 function WidgetRenderer:update()
@@ -46,36 +40,32 @@ end
 function WidgetRenderer:render(cr)
     cairo_set_source_surface(cr, self._background_surface, 0, 0)
     cairo_paint(cr)
+    cairo_translate(cr, self.padding, self.padding)
     self.root:render(cr)
 end
 
 
 -- Base Widget class
--- Subclasses that change their visible content should
--- implement :render(cr) to do so.
--- :update() will be called before :render(cr) is called.
 local Widget = util.class()
 
 -- Every widget needs a height used by the layout engine to correctly position
 -- each widget
 Widget.height = 0
 
--- Called at least once to inform the widget of its position and size
--- constraints. The argument is a table containing
---   x_offset: space to be left clear on the left on the drabble surface
---   y_offset: space to be left clear towards the top of the drabble surface
---   width: maximal width of the rendered content
---   x_max: (= x_offset + width) highest x-value to draw on
-function Widget:layout(container) end
+-- Called at least once to inform the widget of its width
+function Widget:layout(width) end
 
 -- Called at least once to allow the widget to draw static content
 function Widget:render_background(cr) end
 
--- Called only if :render(cr) is also defined, before each call to :render.
+-- Called before each call to :render(cr).
 -- If this function returns a true-ish value, a reflow will be triggered.
 -- Since this involves calls to all widgets' :layout functions,
 -- reflows should be used sparingly.
 function Widget:update() return false end
+
+-- Called once per update to do draw dynamic content
+function Widget:render(cr) end
 
 
 -- Basic combination of widgets. Grouped widgets are drawn in a vertical stack,
@@ -84,31 +74,24 @@ local WidgetGroup = util.class(Widget)
 
 function WidgetGroup:init(widgets)
     self._widgets = widgets
-    self._render_widgets = util.filter(function(w) return w.render end, widgets)
     self.height = 0
     for _, w in ipairs(widgets) do
         self.height = self.height + w.height
     end
 end
 
-function WidgetGroup:layout(container)
-    self.container = container  -- used by DEBUG
-    local y_offset = container.y_offset
+function WidgetGroup:layout(width)
+    self._width = width  -- used to draw debug lines
     for _, w in ipairs(self._widgets) do
-        w:layout{x_offset = container.x_offset,
-                 y_offset = y_offset,
-                 width = container.width,
-                 x_max = container.x_max}
-        y_offset = y_offset + w.height
+        w:layout(width)
     end
 end
 
 function WidgetGroup:render_background(cr)
     if DEBUG then
-        local y_offset = self.container.y_offset
+        local y_offset = 0
         for _, w in ipairs(self._widgets) do
-            cairo_move_to(cr, self.container.x_offset, y_offset)
-            cairo_rel_line_to(cr, self.container.width, 0)
+            cairo_rectangle(cr, 0, y_offset, self._width, w.height)
             y_offset = y_offset + w.height
         end
         cairo_set_line_width(cr, 1)
@@ -116,23 +99,30 @@ function WidgetGroup:render_background(cr)
         cairo_set_source_rgba(cr, 1, 0, 0, 0.33)
         cairo_stroke(cr)
     end
+
+    cairo_save(cr)
     for _, w in ipairs(self._widgets) do
         w:render_background(cr)
+        cairo_translate(cr, 0, w.height)
     end
+    cairo_restore(cr)
 end
 
 function WidgetGroup:update()
     local reflow = false
-    for _, w in ipairs(self._render_widgets) do
+    for _, w in ipairs(self._widgets) do
         reflow = w:update() or reflow
     end
     return reflow
 end
 
 function WidgetGroup:render(cr)
-    for _, w in ipairs(self._render_widgets) do
+    cairo_save(cr)
+    for _, w in ipairs(self._widgets) do
         w:render(cr)
+        cairo_translate(cr, 0, w.height)
     end
+    cairo_restore(cr)
 end
 
 
@@ -155,12 +145,15 @@ function BorderRight:init(x_offset, height)
 end
 
 function BorderRight:render_background(cr)
+    cairo_save(cr)
+    cairo_identity_matrix(cr)
     cairo_set_antialias(cr, CAIRO_ANTIALIAS_NONE)
     cairo_set_line_width(cr, 1)
     cairo_set_source_rgba(cr, 0.8, 1, 1, 0.05)
     cairo_move_to(cr, self.x_offset - 0.5, 0)
     cairo_line_to(cr, self.x_offset - 0.5, self._height)
     cairo_stroke(cr)
+    cairo_restore(cr)
 end
 
 
@@ -189,14 +182,13 @@ function TextLine:set_text(text)
     self.text = text
 end
 
-function TextLine:layout(container)
-    self._y = container.y_offset + self._baseline_offset
+function TextLine:layout(width)
     if self.align == "center" then
-        self._x = container.x_offset + 0.5 * container.width
+        self._x = 0.5 * width
     elseif self.align == "left" then
-        self._x = container.x_offset
-    else
-        self._x = container.x_max
+        self._x = 0
+    else  -- self.align == "right"
+        self._x = width
     end
 end
 
@@ -205,7 +197,7 @@ function TextLine:render(cr)
                                                  CAIRO_FONT_WEIGHT_NORMAL)
     cairo_set_font_size(cr, self.font_size)
     cairo_set_source_rgba(cr, unpack(self.color))
-    self._write_fn(cr, self._x, self._y, self.text)
+    self._write_fn(cr, self._x, self._baseline_offset, self.text)
 end
 
 
@@ -229,29 +221,23 @@ function Bar:init(ticks, big_ticks, unit, thickness, color)
     end
 end
 
-function Bar:layout(container)
-    self.x_offset = container.x_offset
-    self.y_offset = container.y_offset
-    if self.unit then
-        self.width = container.width - 20
-    else
-        self.width = container.width
-    end
+function Bar:layout(width)
+    self._width = width - (self.unit and 20 or 0)
 
     self._ticks = {}
     if self.ticks then
         local x, tick_length
-        for offset, frac in ipairs(self.ticks) do
-            x = math.floor(self.x_offset + frac * self.width) + 0.5
+        for i, frac in ipairs(self.ticks) do
+            x = math.floor(frac * self._width) + 0.5
             tick_length = 3
             if self.big_ticks then
-                if self.big_ticks[offset] then
+                if self.big_ticks[i] then
                     tick_length = 4
                 else
                     tick_length = 2
                 end
             end
-            table.insert(self._ticks, {x, self.y_offset + self.thickness + 0.5, tick_length})
+            table.insert(self._ticks, {x, self.thickness + 0.5, tick_length})
         end
     end
 end
@@ -260,7 +246,7 @@ function Bar:render_background(cr)
     if self.unit then
         ch.font_normal(cr)
         cairo_set_source_rgba(cr, unpack(default_text_color))
-        ch.write_left(cr, self.x_offset + self.width + 5, self.y_offset + 6, self.unit)
+        ch.write_left(cr, self._width + 5, 6, self.unit)
     end
 end
 
@@ -271,8 +257,8 @@ end
 function Bar:render(cr)
     local r, g, b = unpack(self.color)
     cairo_set_antialias(cr, CAIRO_ANTIALIAS_NONE)
-    cairo_rectangle(cr, self.x_offset, self.y_offset, self.width, self.thickness)
-    ch.alpha_gradient(cr, self.x_offset, 0, self.x_offset + self.width, 0, r, g, b, {
+    cairo_rectangle(cr, 0, 0, self._width, self.thickness)
+    ch.alpha_gradient(cr, 0, 0, self._width, 0, r, g, b, {
         -- {0, .55}, {.1, .25},
         {self.fraction - .33, .33},
         {self.fraction - .08, .66},
@@ -293,7 +279,7 @@ function Bar:render(cr)
     cairo_stroke(cr)
 
     --- border ---
-    cairo_rectangle(cr, self.x_offset + 1, self.y_offset + 1, self.width - 2, self.thickness - 2)
+    cairo_rectangle(cr, 1, 1, self._width - 2, self.thickness - 2)
     cairo_set_source_rgba(cr, r, g, b, .2)
     cairo_stroke(cr)
 
@@ -340,18 +326,15 @@ function Graph:init(height, max, upside_down, data_points, color)
     self.color = color or default_graph_color
 end
 
-function Graph:layout(container)
-    self.x_offset = container.x_offset
-    self.y_offset = container.y_offset
-    self.width = container.width
-    self.x_max = container.x_max
-    self.x_scale = 1 / self.data.length * self.width
+function Graph:layout(width)
+    self.width = width
+    self.x_scale = 1 / self.data.length * width
     self.y_scale = 1 / self.max * self.height
     if self.upside_down then
         self.y_scale = -self.y_scale
-        self.y_start = self.y_offset - 0.5
+        self.y_start = -0.5
     else
-        self.y_start = self.y_offset + self.height - 0.5
+        self.y_start = self.height - 0.5
     end
 end
 
@@ -361,13 +344,13 @@ function Graph:render_background(cr)
     cairo_set_line_width(cr, 1)
 
     --- background shadow ---
-    cairo_rectangle(cr, self.x_offset - 1, self.y_offset - 1, self.width + 2, self.height + 2)
+    cairo_rectangle(cr, -1, -1, self.width + 2, self.height + 2)
     cairo_set_source_rgba(cr, 0, 0, 0, .33)
     cairo_stroke(cr)
 
     --- background ---
-    cairo_rectangle(cr, self.x_offset, self.y_offset, self.width, self.height)
-    ch.alpha_gradient(cr, 0, self.y_offset, 0, self.y_offset + self.height, r, g, b, {
+    cairo_rectangle(cr, 0, 0, self.width, self.height)
+    ch.alpha_gradient(cr, 0, 0, 0, self.height, r, g, b, {
         {.1, .14}, {.1, .06}, {.2, .06}, {.2, .14},
         {.3, .14}, {.3, .06}, {.4, .06}, {.4, .14},
         {.5, .14}, {.5, .06}, {.6, .06}, {.6, .14},
@@ -391,12 +374,11 @@ function Graph:render(cr)
     local r, g, b = unpack(self.color)
     cairo_set_antialias(cr, CAIRO_ANTIALIAS_DEFAULT)
 
-    cairo_move_to(cr, self.x_offset, self.y_start)
+    cairo_move_to(cr, 0, self.y_start)
     self.data:map(function(val, idx)
-        cairo_line_to(cr, self.x_offset + (idx - 1) * self.x_scale,
-                          self.y_start - val * self.y_scale)
+        cairo_line_to(cr, (idx - 1) * self.x_scale, self.y_start - val * self.y_scale)
     end)
-    cairo_line_to(cr, self.x_max, self.y_start)
+    cairo_line_to(cr, self.width, self.y_start)
     cairo_set_source_rgba(cr, r, g, b, 1)
     cairo_set_line_width(cr, .5)
     cairo_stroke_preserve(cr)
@@ -419,11 +401,11 @@ function Cpu:init(cores, scale, gap, segment_size)
     self.segment_size = segment_size
 end
 
-function Cpu:layout(container)
+function Cpu:layout(width)
     local radius = self.scale + self.gap + self.segment_size
     self.height = 2 * radius
-    self.mx = container.x_offset + container.width / 2
-    self.my = container.y_offset + radius
+    self.mx = width / 2
+    self.my = radius
 
     self.center_coordinates = {}
     self.segment_coordinates = {}
@@ -523,30 +505,26 @@ function CpuFrequencies:init(cores, min_freq, max_freq, height)
     self.height = height + 10
 end
 
-function CpuFrequencies:layout(container)
-    self.x_min = container.x_offset + 2
-    self.x_max = container.x_max - 20
-    self.y_min = container.y_offset
-    self.y_max = container.y_offset + self._height
+function CpuFrequencies:layout(width)
+    self._width = width - 25
     self._polygon_coordinates = {
-        self.x_min, self.y_max - (self.y_max - self.y_min) * self.min_freq / self.max_freq,
-        self.x_max, self.y_min,
-        self.x_max, self.y_max,
-        self.x_min, self.y_max,
+        0, self._height * (1 - self.min_freq / self.max_freq),
+        self._width, 0,
+        self._width, self._height,
+        0, self._height,
     }
     self._ticks = {}
     self._tick_labels = {}
 
     local df = self.max_freq - self.min_freq
-    local width = self.x_max - self.x_min
     for freq = 1, self.max_freq, .25 do
-        local x = self.x_min + width * (freq - self.min_freq) / df
+        local x = self._width * (freq - self.min_freq) / df
         local big = math.floor(freq) == freq
         if big then
-            table.insert(self._tick_labels, {x, self.y_max + 10.5, freq})
+            table.insert(self._tick_labels, {x, self._height + 10.5, freq})
         end
         table.insert(self._ticks, {math.floor(x) + .5,
-                                   self.y_max + 1.5,
+                                   self._height + 1.5,
                                    big and 3 or 2})
     end
 end
@@ -554,7 +532,7 @@ end
 function CpuFrequencies:render_background(cr)
     ch.font_normal(cr)
     cairo_set_source_rgba(cr, unpack(default_text_color))
-    ch.write_left(cr, self.x_max + 5, self.y_min + 0.5 * self._height + 3, "GHz")
+    ch.write_left(cr, self._width + 5, 0.5 * self._height + 3, "GHz")
 
     --- shadow outline
     ch.polygon(cr, {
@@ -601,7 +579,7 @@ function CpuFrequencies:render(cr)
     local df = self.max_freq - self.min_freq
     for _, frequency in ipairs(self.frequencies) do
         local stop = (frequency - self.min_freq) / df
-        ch.alpha_gradient(cr, self.x_min, 0, self.x_max, 0, r, g, b, {
+        ch.alpha_gradient(cr, 0, 0, self._width, 0, r, g, b, {
              {0,          .01},
              {stop - .4,  .015},
              {stop - .2,  .05},
@@ -630,13 +608,13 @@ function MemoryGrid:init(rows, columns, point_size, gap, shuffle)
     self.height = rows * point_size + (rows - 1) * gap
 end
 
-function MemoryGrid:layout(container)
+function MemoryGrid:layout(width)
     self.coordinates = {}
     local point_plus_gap = self.point_size + self.gap
     for col = 0, self.columns - 1, 1 do
         for row = 0, self.rows - 1, 1 do
-            table.insert(self.coordinates, {container.x_offset + col * point_plus_gap,
-                                            container.y_offset + row * point_plus_gap,
+            table.insert(self.coordinates, {col * point_plus_gap,
+                                            row * point_plus_gap,
                                             self.point_size, self.point_size})
         end
     end

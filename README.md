@@ -13,7 +13,7 @@ understood by inspecting the `setup` and `update` functions in the main `polycor
 Widgets will be rendered by a `WidgetRenderer` instance and can have a cached background. A `WidgetGroup` instance can serve as root of a complex layout of nested widgets. All widgets are rendered in a vertical stack. The width is defined by the `WidgetRenderer` while the height is chosen by each widget.
 It makes sense to combine this with normal conky text rendering - in fact some Widgets (e.g. `Network` and `Drive`) assume this.
 
-In order to add your own Widget you should inherit the base class (`util.class(Widget)`). Look at `widget.lua` for examples as well as the base class with documentation of the relevant methods `:layout(container)`, `:render_background(cr)`, `:update()` and `:render(cr)`.
+In order to add your own Widget you should inherit the base class (`util.class(Widget)`). Look at `widget.lua` for examples as well as the base class with documentation of the relevant methods `:layout(width)`, `:render_background(cr)`, `:update()` and `:render(cr)`.
 
 The following Widget classes are currently available:
 

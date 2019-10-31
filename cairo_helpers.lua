@@ -29,11 +29,13 @@ function cairo_helpers.alpha_gradient(cr, x1, y1, x2, y2, r, g, b, stops)
     local gradient = cairo_pattern_create_linear(x1, y1, x2, y2)
     for i = 1, #stops, 2 do
         local offset, alpha = stops[i], stops[i + 1]
-        -- additional brightness (white) for peaks
         if alpha > 0.5 then
-            r, g, b = r * 1.3, g * 1.3, b * 1.3
+            -- additional brightness (white) for peaks
+            cairo_pattern_add_color_stop_rgba(gradient, offset, r * 1.3, g * 1.3, b * 1.3, alpha)
+        else
+            cairo_pattern_add_color_stop_rgba(gradient, offset, r, g, b, alpha)
         end
-        cairo_pattern_add_color_stop_rgba(gradient, offset, r, g, b, alpha)
+
     end
     cairo_set_source(cr, gradient)
     cairo_pattern_destroy(gradient)

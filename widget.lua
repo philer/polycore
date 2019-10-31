@@ -372,8 +372,10 @@ function Graph:render(cr)
     cairo_set_antialias(cr, CAIRO_ANTIALIAS_DEFAULT)
 
     cairo_move_to(cr, 0, self.y_start)
-    self.data:map(function(val, idx)
+    local current_max = 0
+    self.data:each(function(val, idx)
         cairo_line_to(cr, (idx - 1) * self.x_scale, self.y_start - val * self.y_scale)
+        if val > current_max then current_max = val end
     end)
     cairo_line_to(cr, self.width, self.y_start)
     cairo_set_source_rgba(cr, r, g, b, 1)
@@ -381,7 +383,7 @@ function Graph:render(cr)
     cairo_stroke_preserve(cr)
 
     --- fill under graph ---
-    ch.alpha_gradient(cr, 0, self.y_start - self.max * self.y_scale,
+    ch.alpha_gradient(cr, 0, self.y_start - current_max * self.y_scale,
                        0, self.y_start,
                        r, g, b, {0, .66, .5, .33, 1, .25})
     cairo_fill(cr)

@@ -79,8 +79,8 @@ function util.CycleQueue:put(item)
     self[self.latest] = item
 end
 
-function util.CycleQueue:map(fn)
-    for i = self.latest % self.length + 1, self.length do
+function util.CycleQueue:each(fn)
+    for i = self.latest + 1, self.length do
         fn(self[i], i - self.latest % self.length)
     end
     for i = 1, self.latest do

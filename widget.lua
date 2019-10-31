@@ -175,9 +175,10 @@ function TextLine:init(args)
     self._write_fn = write_fns[self.align]
 
     local extents = ch.font_extents(self.font_family, self.font_size)
-    self.height = extents.height
+    self.height = extents.height + 1
     local line_spacing = extents.height - (extents.ascent + extents.descent)
-    self._baseline_offset = extents.ascent + 0.5 * line_spacing
+    -- try to match conky's line spacing:
+    self._baseline_offset = extents.ascent + 0.5 * line_spacing + 1
 end
 
 function TextLine:set_text(text)
@@ -694,7 +695,8 @@ function GpuTop:init(args)
     self._line_height = extents.height
     self.height = self._lines * self._line_height
     local line_spacing = extents.height - (extents.ascent + extents.descent)
-    self._baseline_offset = extents.ascent + 0.5 * line_spacing
+    -- try to match conky's line spacing:
+    self._baseline_offset = extents.ascent + 0.5 * line_spacing + 1
 end
 
 function GpuTop:layout(width)
@@ -710,13 +712,14 @@ function GpuTop:render(cr)
                                                  CAIRO_FONT_WEIGHT_NORMAL)
     cairo_set_font_size(cr, self._font_size)
     cairo_set_source_rgba(cr, unpack(self._color))
+    cairo_set_antialias(cr, CAIRO_ANTIALIAS_NONE)
 
     local lines = math.min(self._lines, #self._processes)
     local y = self._baseline_offset
     for i = 1, lines do
         ch.write_left(cr, 0, y, self._processes[i][1])
         ch.write_right(cr, self._width, y, self._processes[i][2] .. " MiB")
-        y = y + self._line_height + 1  -- try to match conky's line spacing
+        y = y + self._line_height
     end
 end
 

@@ -44,13 +44,13 @@ local renderer
 
 -- Called once on startup to initialize widgets etc.
 local function setup()
-    local fan_rpm_text = widget.TextLine{align="center"}
+    local fan_rpm_text = widget.TextLine{align="center", color=secondary_text_color}
     fan_rpm_text.update = function(self)
         local fan1, fan2 = unpack(data.fan_rpm())
         self:set_text(fan1 .. " rpm   ·   " .. fan2 .. " rpm")
     end
 
-    local cpu_temps_text = widget.TextLine{align="center"}
+    local cpu_temps_text = widget.TextLine{align="center", color=secondary_text_color}
     cpu_temps_text.update = function(self)
         local cpu_temps = data.cpu_temperatures()
         self:set_text(table.concat(cpu_temps, " · ") .. " °C")
@@ -60,7 +60,6 @@ local function setup()
         widget.BorderRight{x=win_width, height=win_height},
         widget.Gap(98),
         fan_rpm_text,
-        widget.Gap(2),
         cpu_temps_text,
         widget.Gap(8),
         widget.Cpu{cores=6, scale=23, gap=5, segment_size=24},

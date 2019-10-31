@@ -7,12 +7,14 @@ local ch = require 'cairo_helpers'
 -- Takes care of managing layout reflows and background caching.
 local WidgetRenderer = util.class()
 
-function WidgetRenderer:init(root, width, height, padding)
-    self.root = root
-    self.width = width
-    self.height = height
-    self.padding = padding
-    self._background_surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, width, height)
+function WidgetRenderer:init(args)
+    self.root = args.root
+    self.width = args.width
+    self.height = args.height
+    self.padding = args.padding
+    self._background_surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32,
+                                                          args.width,
+                                                          args.height)
 end
 
 function WidgetRenderer:layout()
@@ -139,9 +141,9 @@ end
 --   x_offset, height: described area
 local BorderRight = util.class(Widget)
 
-function BorderRight:init(x_offset, height)
-    self.x_offset = x_offset
-    self._height = height
+function BorderRight:init(args)
+    self._x = args.x
+    self._height = args.height
 end
 
 function BorderRight:render_background(cr)
@@ -150,8 +152,8 @@ function BorderRight:render_background(cr)
     cairo_set_antialias(cr, CAIRO_ANTIALIAS_NONE)
     cairo_set_line_width(cr, 1)
     cairo_set_source_rgba(cr, 0.8, 1, 1, 0.05)
-    cairo_move_to(cr, self.x_offset - 0.5, 0)
-    cairo_line_to(cr, self.x_offset - 0.5, self._height)
+    cairo_move_to(cr, self._x - 0.5, 0)
+    cairo_line_to(cr, self._x - 0.5, self._height)
     cairo_stroke(cr)
     cairo_restore(cr)
 end
@@ -161,16 +163,16 @@ end
 -- Use this widget for text that will be updated on each cycle.
 local TextLine = util.class(Widget)
 
-function TextLine:init(align, font_family, font_size, color)
-    self.align = align or "left"
-    self.font_family = font_family or default_font_family
-    self.font_size = font_size or default_font_size
-    self.color = color or default_text_color
+function TextLine:init(args)
+    self.align = args.align or "left"
+    self.font_family = args.font_family or default_font_family
+    self.font_size = args.font_size or default_font_size
+    self.color = args.color or default_text_color
 
     local write_fns = {left = ch.write_left,
                        center = ch.write_centered,
                        right = ch.write_right}
-    self._write_fn = write_fns[align]
+    self._write_fn = write_fns[self.align]
 
     local extents = ch.font_extents(self.font_family, self.font_size)
     self.height = extents.height
@@ -205,18 +207,18 @@ end
 -- and a unit (static, up to 3 characters) written behind the end.
 local Bar = util.class(Widget)
 
-function Bar:init(ticks, big_ticks, unit, thickness, color)
-    self.ticks = ticks
-    self.big_ticks = big_ticks
-    self.unit = unit
-    self.thickness = thickness or 5
-    self.color = color or default_graph_color
+function Bar:init(args)
+    self.ticks = args.ticks
+    self.big_ticks = args.big_ticks
+    self.unit = args.unit
+    self.thickness = args.thickness or 5
+    self.color = args.color or default_graph_color
 
     self.height = self.thickness
-    if ticks then
-        self.height = self.height + (big_ticks and 5 or 4)
+    if self.ticks then
+        self.height = self.height + (self.big_ticks and 5 or 4)
     end
-    if unit then
+    if self.unit then
         self.height = math.max(self.height, 8)  -- line_height
     end
 end
@@ -293,10 +295,11 @@ end
 -- Specialized unit-based Bar
 local MemoryBar = util.class(Bar)
 
-function MemoryBar:init(total, unit, color)
+function MemoryBar:init(args)
+    local total = args.total
     local ticks = util.range(1 / total, math.floor(total) / total, 1 / total)
     -- ticks = util.range(1/16, 15/16, 1/16)
-    Bar.init(self, ticks, nil, unit, color)
+    Bar.init(self, {ticks=ticks, unit=args.unit or "GiB", color=args.color})
 
     self.total = math.ceil(total)
     if self.total > 8 then
@@ -315,12 +318,12 @@ end
 -- Track changing data
 local Graph = util.class(Widget)
 
-function Graph:init(height, max, upside_down, data_points, color)
-    self.height = height
-    self.max = max
-    self.upside_down = upside_down
-    self.data = util.CycleQueue(data_points or 90)
-    self.color = color or default_graph_color
+function Graph:init(args)
+    self.height = args.height or 20
+    self.max = args.max
+    self.upside_down = args.upside_down
+    self.data = util.CycleQueue(args.data_points or 90)
+    self.color = args.color or default_graph_color
 end
 
 function Graph:layout(width)
@@ -393,11 +396,11 @@ end
 -- Polygon-style CPU usage & temperature tracking
 local Cpu = util.class(Widget)
 
-function Cpu:init(cores, scale, gap, segment_size)
-    self.cores = cores
-    self.scale = scale
-    self.gap = gap
-    self.segment_size = segment_size
+function Cpu:init(args)
+    self.cores = args.cores
+    self.scale = args.scale
+    self.gap = args.gap
+    self.segment_size = args.segment_size
 end
 
 function Cpu:layout(width)
@@ -494,12 +497,12 @@ end
 -- Visualize cpu-frequencies in a style reminiscent of stacked progress bars.
 local CpuFrequencies = util.class(Widget)
 
-function CpuFrequencies:init(cores, min_freq, max_freq, height)
-    self.cores = cores
-    self.min_freq = min_freq
-    self.max_freq = max_freq
-    self._height = height
-    self.height = height + 10
+function CpuFrequencies:init(args)
+    self.cores = args.cores
+    self.min_freq = args.min_freq
+    self.max_freq = args.max_freq
+    self._height = args.height or 16
+    self.height = self._height + 10
 end
 
 function CpuFrequencies:layout(width)
@@ -596,13 +599,13 @@ end
 -- Also shows buffere/cache memory at reduced brightness.
 local MemoryGrid = util.class(Widget)
 
-function MemoryGrid:init(rows, columns, point_size, gap, shuffle)
-    self.rows = rows
-    self.columns = columns
-    self.point_size = point_size
-    self.gap = gap
-    self.shuffle = shuffle
-    self.height = rows * point_size + (rows - 1) * gap
+function MemoryGrid:init(args)
+    self.rows = args.rows
+    self.columns = args.columns
+    self.point_size = args.point_size or 2
+    self.gap = args.gap or 1
+    self.shuffle = args.shuffle == nil and true or args.shuffle
+    self.height = self.rows * self.point_size + (self.rows - 1) * self.gap
 end
 
 function MemoryGrid:layout(width)
@@ -661,9 +664,9 @@ end
 local Gpu = util.class(WidgetGroup)
 
 function Gpu:init()
-    self.usebar = Bar({.25, .5, .75}, nil, "%")
+    self.usebar = Bar{ticks={.25, .5, .75}, unit="%"}
     local _, mem_total = data.gpu_memory()
-    self.membar = MemoryBar(mem_total / 1024, "GiB")
+    self.membar = MemoryBar{total=mem_total / 1024}
     WidgetGroup.init(self, {self.usebar, Gap(4), self.membar})
 end
 
@@ -681,10 +684,10 @@ end
 
 local Network = util.class(WidgetGroup)
 
-function Network:init(interface, downspeed, upspeed, graph_height)
-    self.interface = interface
-    self.downspeed_graph = Graph(graph_height or 20, downspeed or 1024)
-    self.upspeed_graph = Graph(graph_height or 20, upspeed or 1024)
+function Network:init(args)
+    self.interface = args.interface
+    self.downspeed_graph = Graph{height=args.graph_height, max=downspeed or 1024}
+    self.upspeed_graph = Graph{height=args.graph_height, max=upspeed or 1024}
     WidgetGroup.init(self, {self.downspeed_graph, Gap(33), self.upspeed_graph})
 end
 
@@ -703,10 +706,8 @@ function Drive:init(path, device_name)
     self.path = path
     self.device_name = device_name
 
-    self._temperature_text = TextLine("right")
-    self._bar = Bar()
-    blah = TextLine("center")
-    blah:set_text("blah")
+    self._temperature_text = TextLine{align="right"}
+    self._bar = Bar{}
     WidgetGroup.init(self, {self._temperature_text,
                             Gap(3),
                             self._bar,

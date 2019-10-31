@@ -138,8 +138,7 @@ ${template1 gpu}  ${nvidia gpufreq} MHz#
 ${template8}#
 ${if_match 75 <= ${nvidia temp}}${color b54}${font Ubuntu:pixelsize=10:bold}$endif#
 ${nvidia temp}°C$color
-${voffset 20}
-$color1${execpi 5 ~/bin/nvidia-top.sh}
+${voffset 68}
 
 
 ### net ###

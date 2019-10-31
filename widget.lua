@@ -682,6 +682,45 @@ function Gpu:update()
 end
 
 
+local GpuTop = util.class(Widget)
+
+function GpuTop:init(args)
+    self._lines = args.lines or 5
+    self._font_family = args.font_family or default_font_family
+    self._font_size = args.font_size or default_font_size
+    self._color = args.color or default_text_color
+
+    local extents = ch.font_extents(self._font_family, self._font_size)
+    self._line_height = extents.height
+    self.height = self._lines * self._line_height
+    local line_spacing = extents.height - (extents.ascent + extents.descent)
+    self._baseline_offset = extents.ascent + 0.5 * line_spacing
+end
+
+function GpuTop:layout(width)
+    self._width = width
+end
+
+function GpuTop:update()
+    self._processes = data.gpu_top()
+end
+
+function GpuTop:render(cr)
+    cairo_select_font_face(cr, self._font_family, CAIRO_FONT_SLANT_NORMAL,
+                                                 CAIRO_FONT_WEIGHT_NORMAL)
+    cairo_set_font_size(cr, self._font_size)
+    cairo_set_source_rgba(cr, unpack(self._color))
+
+    local lines = math.min(self._lines, #self._processes)
+    local y = self._baseline_offset
+    for i = 1, lines do
+        ch.write_left(cr, 0, y, self._processes[i][1])
+        ch.write_right(cr, self._width, y, self._processes[i][2] .. " MiB")
+        y = y + self._line_height + 1  -- try to match conky's line spacing
+    end
+end
+
+
 local Network = util.class(WidgetGroup)
 
 function Network:init(args)
@@ -761,6 +800,7 @@ return {
     Drive = Drive,
     Gap = Gap,
     Gpu = Gpu,
+    GpuTop = GpuTop,
     Graph = Graph,
     MemoryBar = MemoryBar,
     MemoryGrid = MemoryGrid,

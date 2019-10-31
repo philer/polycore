@@ -14,7 +14,8 @@ DEBUG = false
 
 default_font_family = "Ubuntu"
 default_font_size = 10
-default_text_color = {1, 1, 1, .8}
+default_text_color = {.94, .94, .94, 1}  -- ~fafafa
+local secondary_text_color = {.72, .72, .71, 1}  -- ~b9b9b7
 
 temperature_colors = {
     {.4,  1,  1},
@@ -69,7 +70,9 @@ local function setup()
         widget.MemoryGrid{rows=5, columns=40},
         widget.Gap(84),
         widget.Gpu(),
-        widget.Gap(132),
+        widget.Gap(2),
+        widget.GpuTop{lines=5, color=secondary_text_color},
+        widget.Gap(62),
         widget.Network{interface="enp0s31f6", downspeed=5 * 1024, upspeed=1024},
         widget.Gap(37),
         widget.Drive("/", "/dev/nvme0"),

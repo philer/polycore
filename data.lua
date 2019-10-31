@@ -79,6 +79,16 @@ function data.gpu_memory()
            tonumber(cmd_nvidia_smi():match("Total%s+: (%d+) MiB"))
 end
 
+function data.gpu_top()
+    local output = read_cmd("nvidia-smi -q -d PIDS")
+    local processes = {}
+    for name, mem in output:gmatch("Name%s+: %S*/(%S+)[^\n]*\n%s+Used GPU Memory%s+: (%d+)") do
+        processes[#processes + 1] = {name, tonumber(mem)}
+    end
+    table.sort(processes, function(proc1, proc2) return proc1[2] > proc2[2] end)
+    return processes
+end
+
 
 data.drive_percentage = util.memoize(5, function(path)
     return tonumber(conky_parse(string.format("${fs_used_perc %s}", path)))

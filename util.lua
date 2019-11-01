@@ -7,7 +7,7 @@ local util = {}
 -- @section class
 
 --- simple class creation helper
--- @param parent parent class
+-- @param[opt] parent parent class
 function util.class(parent)
     local cls = setmetatable({}, {
         __index = parent,

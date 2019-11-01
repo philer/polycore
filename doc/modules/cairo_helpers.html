@@ -1,0 +1,426 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+<head>
+    <title>Reference</title>
+    <link rel="stylesheet" href="../ldoc.css" type="text/css" />
+</head>
+<body>
+
+<div id="container">
+
+<div id="product">
+	<div id="product_logo"></div>
+	<div id="product_name"><big><b></b></big></div>
+	<div id="product_description"></div>
+</div> <!-- id="product" -->
+
+
+<div id="main">
+
+
+<!-- Menu -->
+
+<div id="navigation">
+<br/>
+<h1>polycore</h1>
+
+<ul>
+  <li><a href="../index.html">Index</a></li>
+</ul>
+
+<h2>Contents</h2>
+<ul>
+<li><a href="#Functions">Functions</a></li>
+<li><a href="#Local_Functions">Local Functions</a></li>
+</ul>
+
+
+<h2>Modules</h2>
+<ul class="nowrap">
+  <li><a href="../modules/widget.html">widget</a></li>
+  <li><a href="../modules/data.html">data</a></li>
+  <li><strong>cairo_helpers</strong></li>
+  <li><a href="../modules/util.html">util</a></li>
+</ul>
+
+</div>
+
+<div id="content">
+
+<h1>Module <code>cairo_helpers</code></h1>
+<p>Cairo helper functions</p>
+<p></p>
+
+
+<h2><a href="#Functions">Functions</a></h2>
+<table class="function_list">
+	<tr>
+	<td class="name" nowrap><a href="#polygon">polygon(cr, coordinates)</a></td>
+	<td class="summary">Draw a polygon with the given vertices.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#alpha_gradient">alpha_gradient(cr, x1, y1, x2, y2, r, g, b, stops)</a></td>
+	<td class="summary">Set a single color gradient with varying opacity
+ on the given cairo drawing context.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#font_normal">font_normal(cr)</a></td>
+	<td class="summary">Reset font settings to defaults on given cairo drawing context</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#font_extents">font_extents(font_family, font_size)</a></td>
+	<td class="summary">Get cairo_font_extents_t for a given font with size.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#write_left">write_left(cr, x, y, text)</a></td>
+	<td class="summary">Write text left-aligned (to the right of given x).</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#write_right">write_right(cr, x, y, text)</a></td>
+	<td class="summary">Write text right-aligned (to the left of given x).</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#write_centered">write_centered(cr, mx, y, text)</a></td>
+	<td class="summary">Write text centered (spread evenly towards both sides of mx).</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#write_middle">write_middle(cr, mx, my, text)</a></td>
+	<td class="summary">Write text centered horizontally and vertically on the given point mx, my.</td>
+	</tr>
+</table>
+<h2><a href="#Local_Functions">Local Functions</a></h2>
+<table class="function_list">
+	<tr>
+	<td class="name" nowrap><a href="#text_extents">text_extents(cr, text)</a></td>
+	<td class="summary">Get cairo_text_extents_t for given text on given cairo drawing surface
+ with its currently set font.</td>
+	</tr>
+</table>
+
+<br/>
+<br/>
+
+
+    <h2 class="section-header "><a name="Functions"></a>Functions</h2>
+
+    <dl class="function">
+    <dt>
+    <a name = "polygon"></a>
+    <strong>polygon(cr, coordinates)</strong>
+    </dt>
+    <dd>
+    Draw a polygon with the given vertices.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">cr</span>
+            <span class="types"><span class="type">cairo_t</span></span>
+
+        </li>
+        <li><span class="parameter">coordinates</span>
+            <span class="types"><span class="type">{number,...}</span></span>
+         of vertices (x1, y1, x2, y2, ...)
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "alpha_gradient"></a>
+    <strong>alpha_gradient(cr, x1, y1, x2, y2, r, g, b, stops)</strong>
+    </dt>
+    <dd>
+    Set a single color gradient with varying opacity
+ on the given cairo drawing context.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">cr</span>
+            <span class="types"><span class="type">cairo_t</span></span>
+
+        </li>
+        <li><span class="parameter">x1</span>
+            <span class="types"><span class="type">number</span></span>
+         x coordinate of gradient start
+        </li>
+        <li><span class="parameter">y1</span>
+            <span class="types"><span class="type">number</span></span>
+         y coordinate of gradient start
+        </li>
+        <li><span class="parameter">x2</span>
+            <span class="types"><span class="type">number</span></span>
+         x coordinate of gradient end
+        </li>
+        <li><span class="parameter">y2</span>
+            <span class="types"><span class="type">number</span></span>
+         y coordinate of gradient end
+        </li>
+        <li><span class="parameter">r</span>
+            <span class="types"><span class="type">number</span></span>
+         red color component
+        </li>
+        <li><span class="parameter">g</span>
+            <span class="types"><span class="type">number</span></span>
+         green color component
+        </li>
+        <li><span class="parameter">b</span>
+            <span class="types"><span class="type">number</span></span>
+         blue color component
+        </li>
+        <li><span class="parameter">stops</span>
+            <span class="types"><span class="type">{number,...}</span></span>
+         list of offset & alpha value pairs
+          offset between 0 and 1 describes position in the gradient
+          alpha between 0 and 1 describes opacity at given offset.
+          Note: For high/low alpha values the brightness may be emphasized
+          by color variation.
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "font_normal"></a>
+    <strong>font_normal(cr)</strong>
+    </dt>
+    <dd>
+    Reset font settings to defaults on given cairo drawing context
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">cr</span>
+            <span class="types"><span class="type">cairo_t</span></span>
+
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "font_extents"></a>
+    <strong>font_extents(font_family, font_size)</strong>
+    </dt>
+    <dd>
+    Get cairo_font_extents_t for a given font with size.
+ Use this, for example, to determine line-height.
+ see https://cairographics.org/manual/cairo-cairo-scaled-font-t.html#cairo-font-extents-t
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">font_family</span>
+            <span class="types"><span class="type">string</span></span>
+
+        </li>
+        <li><span class="parameter">font_size</span>
+            <span class="types"><span class="type">string</span></span>
+
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><span class="type">cairo_font_extents_t</span></span>
+
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "write_left"></a>
+    <strong>write_left(cr, x, y, text)</strong>
+    </dt>
+    <dd>
+    Write text left-aligned (to the right of given x).
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">cr</span>
+            <span class="types"><span class="type">cairo_t</span></span>
+
+        </li>
+        <li><span class="parameter">x</span>
+            <span class="types"><span class="type">number</span></span>
+         start of the written text
+        </li>
+        <li><span class="parameter">y</span>
+            <span class="types"><span class="type">number</span></span>
+         coordinate of the baseline on top of which the text will be written
+        </li>
+        <li><span class="parameter">text</span>
+            <span class="types"><span class="type">string</span></span>
+
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "write_right"></a>
+    <strong>write_right(cr, x, y, text)</strong>
+    </dt>
+    <dd>
+    Write text right-aligned (to the left of given x).
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">cr</span>
+            <span class="types"><span class="type">cairo_t</span></span>
+
+        </li>
+        <li><span class="parameter">x</span>
+            <span class="types"><span class="type">number</span></span>
+         end of the written text
+        </li>
+        <li><span class="parameter">y</span>
+            <span class="types"><span class="type">number</span></span>
+         coordinate of the baseline on top of which the text will be written
+        </li>
+        <li><span class="parameter">text</span>
+            <span class="types"><span class="type">string</span></span>
+
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "write_centered"></a>
+    <strong>write_centered(cr, mx, y, text)</strong>
+    </dt>
+    <dd>
+    Write text centered (spread evenly towards both sides of mx).
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">cr</span>
+            <span class="types"><span class="type">cairo_t</span></span>
+
+        </li>
+        <li><span class="parameter">mx</span>
+            <span class="types"><span class="type">number</span></span>
+         horizontal center of the written text
+        </li>
+        <li><span class="parameter">y</span>
+            <span class="types"><span class="type">number</span></span>
+         coordinate of the baseline on top of which the text will be written
+        </li>
+        <li><span class="parameter">text</span>
+            <span class="types"><span class="type">string</span></span>
+
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "write_middle"></a>
+    <strong>write_middle(cr, mx, my, text)</strong>
+    </dt>
+    <dd>
+    Write text centered horizontally and vertically on the given point mx, my.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">cr</span>
+            <span class="types"><span class="type">cairo_t</span></span>
+
+        </li>
+        <li><span class="parameter">mx</span>
+            <span class="types"><span class="type">number</span></span>
+         horizontal center of the written text
+        </li>
+        <li><span class="parameter">my</span>
+            <span class="types"><span class="type">number</span></span>
+         vertical center of the written text
+        </li>
+        <li><span class="parameter">text</span>
+            <span class="types"><span class="type">string</span></span>
+
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
+</dl>
+    <h2 class="section-header "><a name="Local_Functions"></a>Local Functions</h2>
+
+    <dl class="function">
+    <dt>
+    <a name = "text_extents"></a>
+    <strong>text_extents(cr, text)</strong>
+    </dt>
+    <dd>
+    Get cairo_text_extents_t for given text on given cairo drawing surface
+ with its currently set font.
+ See https://cairographics.org/manual/cairo-cairo-scaled-font-t.html#cairo-text-extents-t
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">cr</span>
+            <span class="types"><span class="type">cairo_t</span></span>
+
+        </li>
+        <li><span class="parameter">text</span>
+            <span class="types"><span class="type">string</span></span>
+
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><span class="type">cairo_text_extents_t</span></span>
+
+    </ol>
+
+
+
+
+</dd>
+</dl>
+
+
+</div> <!-- id="content" -->
+</div> <!-- id="main" -->
+<div id="about">
+<i>generated by <a href="http://github.com/stevedonovan/LDoc">LDoc 1.4.6</a></i>
+<i style="float:right;">Last updated 2019-11-01 17:58:10 </i>
+</div> <!-- id="about" -->
+</div> <!-- id="container" -->
+</body>
+</html>

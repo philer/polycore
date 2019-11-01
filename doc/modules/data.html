@@ -1,0 +1,462 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+<head>
+    <title>Reference</title>
+    <link rel="stylesheet" href="../ldoc.css" type="text/css" />
+</head>
+<body>
+
+<div id="container">
+
+<div id="product">
+	<div id="product_logo"></div>
+	<div id="product_name"><big><b></b></big></div>
+	<div id="product_description"></div>
+</div> <!-- id="product" -->
+
+
+<div id="main">
+
+
+<!-- Menu -->
+
+<div id="navigation">
+<br/>
+<h1>polycore</h1>
+
+<ul>
+  <li><a href="../index.html">Index</a></li>
+</ul>
+
+<h2>Contents</h2>
+<ul>
+<li><a href="#Functions">Functions</a></li>
+</ul>
+
+
+<h2>Modules</h2>
+<ul class="nowrap">
+  <li><a href="../modules/widget.html">widget</a></li>
+  <li><strong>data</strong></li>
+  <li><a href="../modules/cairo_helpers.html">cairo_helpers</a></li>
+  <li><a href="../modules/util.html">util</a></li>
+</ul>
+
+</div>
+
+<div id="content">
+
+<h1>Module <code>data</code></h1>
+<p>Data gathering facilities for conky widgets</p>
+<p></p>
+
+
+<h2><a href="#Functions">Functions</a></h2>
+<table class="function_list">
+	<tr>
+	<td class="name" nowrap><a href="#cpu_percentages">cpu_percentages(cores)</a></td>
+	<td class="summary">Get the current usage percentages of individual CPU cores</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#cpu_frequencies">cpu_frequencies(cores)</a></td>
+	<td class="summary">Get the current frequencies at which individual CPU cores are running</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#cpu_temperatures">cpu_temperatures()</a></td>
+	<td class="summary">Get the current CPU core temperatures
+ relies on lm_sensors to be installed</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#fan_rpm">fan_rpm()</a></td>
+	<td class="summary">Get the current speed of fans in the system
+ relies on lm_sensors to be installed</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#memory">memory()</a></td>
+	<td class="summary">Get current memory usage info</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#network_speed">network_speed(interface)</a></td>
+	<td class="summary">Get volume of down- and uploaded data since last conky update cycle.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#gpu_percentage">gpu_percentage()</a></td>
+	<td class="summary">Get current GPU usage in percent.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#gpu_frequency">gpu_frequency()</a></td>
+	<td class="summary">Get current GPU frequency.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#gpu_temperature">gpu_temperature()</a></td>
+	<td class="summary">Get current GPU temperature.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#gpu_memory">gpu_memory()</a></td>
+	<td class="summary">Get current VRAM usage.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#gpu_top">gpu_top()</a></td>
+	<td class="summary">Get list of GPU processes with individual VRAM usage in MiB.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#drive_percentag">drive_percentag(path)</a></td>
+	<td class="summary">Get the drive usage in percent for the given path.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#is_mounted">is_mounted(path)</a></td>
+	<td class="summary">Is the given path a mount?</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#hddtemp">hddtemp()</a></td>
+	<td class="summary">Get current HDD/SSD temperatures.</td>
+	</tr>
+</table>
+
+<br/>
+<br/>
+
+
+    <h2 class="section-header "><a name="Functions"></a>Functions</h2>
+
+    <dl class="function">
+    <dt>
+    <a name = "cpu_percentages"></a>
+    <strong>cpu_percentages(cores)</strong>
+    </dt>
+    <dd>
+    Get the current usage percentages of individual CPU cores
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">cores</span>
+            <span class="types"><span class="type">int</span></span>
+         number of CPU cores
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><span class="type">{number,...}</span></span>
+
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "cpu_frequencies"></a>
+    <strong>cpu_frequencies(cores)</strong>
+    </dt>
+    <dd>
+    Get the current frequencies at which individual CPU cores are running
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">cores</span>
+            <span class="types"><span class="type">int</span></span>
+         number of CPU cores
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><span class="type">{number,...}</span></span>
+
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "cpu_temperatures"></a>
+    <strong>cpu_temperatures()</strong>
+    </dt>
+    <dd>
+    Get the current CPU core temperatures
+ relies on lm_sensors to be installed
+
+
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><span class="type">{number,...}</span></span>
+
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "fan_rpm"></a>
+    <strong>fan_rpm()</strong>
+    </dt>
+    <dd>
+    Get the current speed of fans in the system
+ relies on lm_sensors to be installed
+
+
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><span class="type">{number,...}</span></span>
+
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "memory"></a>
+    <strong>memory()</strong>
+    </dt>
+    <dd>
+    Get current memory usage info
+
+
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><span class="type">number,number,number,number</span></span>
+        usage, easyfree, free, total
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "network_speed"></a>
+    <strong>network_speed(interface)</strong>
+    </dt>
+    <dd>
+    Get volume of down- and uploaded data since last conky update cycle.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">interface</span>
+            <span class="types"><span class="type">string</span></span>
+         e.g. "eth0"
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><span class="type">number,number</span></span>
+        downspeed and upspeed in KiB
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "gpu_percentage"></a>
+    <strong>gpu_percentage()</strong>
+    </dt>
+    <dd>
+    Get current GPU usage in percent.
+ Relies on nvidia-smi to be installed.
+
+
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><span class="type">number</span></span>
+
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "gpu_frequency"></a>
+    <strong>gpu_frequency()</strong>
+    </dt>
+    <dd>
+    Get current GPU frequency.
+
+
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><span class="type">number</span></span>
+
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "gpu_temperature"></a>
+    <strong>gpu_temperature()</strong>
+    </dt>
+    <dd>
+    Get current GPU temperature.
+ Relies on nvidia-smi to be installed.
+
+
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><span class="type">number</span></span>
+        temperature in °C
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "gpu_memory"></a>
+    <strong>gpu_memory()</strong>
+    </dt>
+    <dd>
+    Get current VRAM usage.
+ Relies on nvidia-smi to be installed.
+
+
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><span class="type">number,number</span></span>
+        used, total in MiB
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "gpu_top"></a>
+    <strong>gpu_top()</strong>
+    </dt>
+    <dd>
+    Get list of GPU processes with individual VRAM usage in MiB.
+ Relies on nvidia-smi to be installed.
+
+
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><span class="type">{{string,number},...}</span></span>
+        list of {name, mem} value pairs.
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "drive_percentag"></a>
+    <strong>drive_percentag(path)</strong>
+    </dt>
+    <dd>
+    Get the drive usage in percent for the given path.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">path</span>
+            <span class="types"><span class="type">string</span></span>
+
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><span class="type">number</span></span>
+
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "is_mounted"></a>
+    <strong>is_mounted(path)</strong>
+    </dt>
+    <dd>
+    Is the given path a mount?  (see conky's is_mounted)
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">path</span>
+            <span class="types"><span class="type">string</span></span>
+
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><span class="type">bool</span></span>
+
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "hddtemp"></a>
+    <strong>hddtemp()</strong>
+    </dt>
+    <dd>
+    Get current HDD/SSD temperatures.
+ Relies on hddtemp to be running daemon mode. The results depend on what
+ hddtemp reports and may require manual configuration,
+ e.g. via /etc/default/hddtemp
+ For experimental NVME support, requires "nvme smart-log" to be available
+ and added as an exception in sudoers, hddtemp does not support NVME.
+
+
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><span class="type">table</span></span>
+        mapping device names to temperature values
+    </ol>
+
+
+
+
+</dd>
+</dl>
+
+
+</div> <!-- id="content" -->
+</div> <!-- id="main" -->
+<div id="about">
+<i>generated by <a href="http://github.com/stevedonovan/LDoc">LDoc 1.4.6</a></i>
+<i style="float:right;">Last updated 2019-11-01 17:58:10 </i>
+</div> <!-- id="about" -->
+</div> <!-- id="container" -->
+</body>
+</html>

@@ -1,0 +1,1084 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+<head>
+    <title>Reference</title>
+    <link rel="stylesheet" href="../ldoc.css" type="text/css" />
+</head>
+<body>
+
+<div id="container">
+
+<div id="product">
+	<div id="product_logo"></div>
+	<div id="product_name"><big><b></b></big></div>
+	<div id="product_description"></div>
+</div> <!-- id="product" -->
+
+
+<div id="main">
+
+
+<!-- Menu -->
+
+<div id="navigation">
+<br/>
+<h1>polycore</h1>
+
+<ul>
+  <li><a href="../index.html">Index</a></li>
+</ul>
+
+<h2>Contents</h2>
+<ul>
+<li><a href="#Class_WidgetRenderer">Class WidgetRenderer </a></li>
+<li><a href="#Class_Widget">Class Widget </a></li>
+<li><a href="#Class_WidgetGroup">Class WidgetGroup </a></li>
+<li><a href="#Class_Gap">Class Gap </a></li>
+<li><a href="#Class_BorderRight">Class BorderRight </a></li>
+<li><a href="#Class_TextLine">Class TextLine </a></li>
+<li><a href="#Class_Bar">Class Bar </a></li>
+<li><a href="#Class_MemoryBar">Class MemoryBar </a></li>
+<li><a href="#Class_Graph">Class Graph </a></li>
+<li><a href="#Class_Cpu">Class Cpu </a></li>
+<li><a href="#Class_CpuFrequencies">Class CpuFrequencies </a></li>
+<li><a href="#Class_MemoryGrid">Class MemoryGrid </a></li>
+<li><a href="#Class_Gpu">Class Gpu </a></li>
+<li><a href="#Class_GpuTop">Class GpuTop </a></li>
+<li><a href="#Class_Network">Class Network </a></li>
+<li><a href="#Class_Drive">Class Drive </a></li>
+</ul>
+
+
+<h2>Modules</h2>
+<ul class="nowrap">
+  <li><strong>widget</strong></li>
+  <li><a href="../modules/data.html">data</a></li>
+  <li><a href="../modules/cairo_helpers.html">cairo_helpers</a></li>
+  <li><a href="../modules/util.html">util</a></li>
+</ul>
+
+</div>
+
+<div id="content">
+
+<h1>Module <code>widget</code></h1>
+<p>A collection of Widget classes</p>
+<p></p>
+
+
+<h2><a href="#Class_WidgetRenderer">Class WidgetRenderer </a></h2>
+<table class="function_list">
+	<tr>
+	<td class="name" nowrap><a href="#WidgetRenderer:init">WidgetRenderer:init(args)</a></td>
+	<td class="summary"></td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#WidgetRenderer:layout">WidgetRenderer:layout()</a></td>
+	<td class="summary">Layout all Widgets and cache their backgrounds.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#WidgetRenderer:update">WidgetRenderer:update()</a></td>
+	<td class="summary">Update all Widgets</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#WidgetRenderer:render">WidgetRenderer:render(cr)</a></td>
+	<td class="summary">Render to the given context</td>
+	</tr>
+</table>
+<h2><a href="#Class_Widget">Class Widget </a></h2>
+<table class="function_list">
+	<tr>
+	<td class="name" nowrap><a href="#Widget.height">Widget.height</a></td>
+	<td class="summary">Every widget needs a height used by the layout engine to correctly position
+ the widget.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#Widget:layout">Widget:layout(width)</a></td>
+	<td class="summary">Called at least once to inform the widget of its width.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#Widget:render_background">Widget:render_background(cr)</a></td>
+	<td class="summary">Called at least once to allow the widget to draw static content.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#Widget:update">Widget:update()</a></td>
+	<td class="summary">Called before each call to <a href="../modules/widget.html#Widget:render">Widget:render</a>.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#Widget:render">Widget:render(cr)</a></td>
+	<td class="summary">Called once per update to do draw dynamic content.</td>
+	</tr>
+</table>
+<h2><a href="#Class_WidgetGroup">Class WidgetGroup </a></h2>
+<table class="function_list">
+	<tr>
+	<td class="name" nowrap><a href="#WidgetGroup:init">WidgetGroup:init(widgets)</a></td>
+	<td class="summary"></td>
+	</tr>
+</table>
+<h2><a href="#Class_Gap">Class Gap </a></h2>
+<table class="function_list">
+	<tr>
+	<td class="name" nowrap><a href="#Gap:init">Gap:init(height)</a></td>
+	<td class="summary"></td>
+	</tr>
+</table>
+<h2><a href="#Class_BorderRight">Class BorderRight </a></h2>
+<table class="function_list">
+	<tr>
+	<td class="name" nowrap><a href="#BorderRight:init">BorderRight:init(args)</a></td>
+	<td class="summary"></td>
+	</tr>
+</table>
+<h2><a href="#Class_TextLine">Class TextLine </a></h2>
+<table class="function_list">
+	<tr>
+	<td class="name" nowrap><a href="#TextLine:init">TextLine:init(args)</a></td>
+	<td class="summary"></td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#TextLine:set_text">TextLine:set_text(text)</a></td>
+	<td class="summary">Update the text line to be displayed.</td>
+	</tr>
+</table>
+<h2><a href="#Class_Bar">Class Bar </a></h2>
+<table class="function_list">
+	<tr>
+	<td class="name" nowrap><a href="#Bar:init">Bar:init(args)</a></td>
+	<td class="summary"></td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#Bar:set_fill">Bar:set_fill(fraction)</a></td>
+	<td class="summary">Set the fill-ratio of the bar</td>
+	</tr>
+</table>
+<h2><a href="#Class_MemoryBar">Class MemoryBar </a></h2>
+<table class="function_list">
+	<tr>
+	<td class="name" nowrap><a href="#MemoryBar:init">MemoryBar:init(args)</a></td>
+	<td class="summary"></td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#MemoryBar:set_used">MemoryBar:set_used(used)</a></td>
+	<td class="summary">Set the amount of used memory as an absolute value.</td>
+	</tr>
+</table>
+<h2><a href="#Class_Graph">Class Graph </a></h2>
+<table class="function_list">
+	<tr>
+	<td class="name" nowrap><a href="#Graph:init">Graph:init(args)</a></td>
+	<td class="summary"></td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#Graph:add_value">Graph:add_value(value)</a></td>
+	<td class="summary">Append the latest value to be shown - this will displace the oldest value</td>
+	</tr>
+</table>
+<h2><a href="#Class_Cpu">Class Cpu </a></h2>
+<table class="function_list">
+	<tr>
+	<td class="name" nowrap><a href="#Cpu:init">Cpu:init(args)</a></td>
+	<td class="summary"></td>
+	</tr>
+</table>
+<h2><a href="#Class_CpuFrequencies">Class CpuFrequencies </a></h2>
+<table class="function_list">
+	<tr>
+	<td class="name" nowrap><a href="#CpuFrequencies:init">CpuFrequencies:init(args)</a></td>
+	<td class="summary"></td>
+	</tr>
+</table>
+<h2><a href="#Class_MemoryGrid">Class MemoryGrid </a></h2>
+<table class="function_list">
+	<tr>
+	<td class="name" nowrap><a href="#MemoryGrid:init">MemoryGrid:init(args)</a></td>
+	<td class="summary"></td>
+	</tr>
+</table>
+<h2><a href="#Class_Gpu">Class Gpu </a></h2>
+<table class="function_list">
+	<tr>
+	<td class="name" nowrap><a href="#Gpu:init">Gpu:init()</a></td>
+	<td class="summary">no options</td>
+	</tr>
+</table>
+<h2><a href="#Class_GpuTop">Class GpuTop </a></h2>
+<table class="function_list">
+	<tr>
+	<td class="name" nowrap><a href="#GpuTop:init">GpuTop:init(args)</a></td>
+	<td class="summary"></td>
+	</tr>
+</table>
+<h2><a href="#Class_Network">Class Network </a></h2>
+<table class="function_list">
+	<tr>
+	<td class="name" nowrap><a href="#Network:init">Network:init(args)</a></td>
+	<td class="summary"></td>
+	</tr>
+</table>
+<h2><a href="#Class_Drive">Class Drive </a></h2>
+<table class="function_list">
+	<tr>
+	<td class="name" nowrap><a href="#Drive:init">Drive:init(path, device_name)</a></td>
+	<td class="summary"></td>
+	</tr>
+</table>
+
+<br/>
+<br/>
+
+
+    <h2 class="section-header has-description"><a name="Class_WidgetRenderer"></a>Class WidgetRenderer </h2>
+
+          <div class="section-description">
+          Root widget wrapper
+ Takes care of managing layout reflows and background caching.
+          </div>
+    <dl class="function">
+    <dt>
+    <a name = "WidgetRenderer:init"></a>
+    <strong>WidgetRenderer:init(args)</strong>
+    </dt>
+    <dd>
+
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">args</span> table of options
+        <ul>
+        <li><span class="parameter">root</span>
+            <span class="types"><a class="type" href="../modules/widget.html#Widget">Widget</a></span>
+         The Widget subclass that should be rendered,
+                          usually a WidgetGroup
+        </li>
+        <li><span class="parameter">width</span>
+            <span class="types"><span class="type">int</span></span>
+         Width of the surface that should be covered
+        </li>
+        <li><span class="parameter">height</span>
+            <span class="types"><span class="type">int</span></span>
+         Height of the surface that should be covered
+        </li>
+        <li><span class="parameter">padding</span>
+            <span class="types"><span class="type">int</span></span>
+         Distance to be left clear on all sides of the surface
+        </li>
+        </li></ul>
+    </ul>
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "WidgetRenderer:layout"></a>
+    <strong>WidgetRenderer:layout()</strong>
+    </dt>
+    <dd>
+    Layout all Widgets and cache their backgrounds.
+ Call this once to create the initial layout.
+ Will be called again automatically each time the layout changes.
+
+
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "WidgetRenderer:update"></a>
+    <strong>WidgetRenderer:update()</strong>
+    </dt>
+    <dd>
+    Update all Widgets
+
+
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "WidgetRenderer:render"></a>
+    <strong>WidgetRenderer:render(cr)</strong>
+    </dt>
+    <dd>
+    Render to the given context
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">cr</span>
+            <span class="types"><span class="type">cairo_t</span></span>
+
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
+</dl>
+    <h2 class="section-header has-description"><a name="Class_Widget"></a>Class Widget </h2>
+
+          <div class="section-description">
+          Base Widget class.
+          </div>
+    <dl class="function">
+    <dt>
+    <a name = "Widget.height"></a>
+    <strong>Widget.height</strong>
+    </dt>
+    <dd>
+    Every widget needs a height used by the layout engine to correctly position
+ the widget.
+
+
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "Widget:layout"></a>
+    <strong>Widget:layout(width)</strong>
+    </dt>
+    <dd>
+    Called at least once to inform the widget of its width.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">width</span>
+            <span class="types"><span class="type">int</span></span>
+
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "Widget:render_background"></a>
+    <strong>Widget:render_background(cr)</strong>
+    </dt>
+    <dd>
+    Called at least once to allow the widget to draw static content.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">cr</span>
+            <span class="types"><span class="type">cairo_t</span></span>
+         Cairo context for background rendering
+                    (to be cached by the <a href="../modules/widget.html#WidgetRenderer">WidgetRenderer</a>)
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "Widget:update"></a>
+    <strong>Widget:update()</strong>
+    </dt>
+    <dd>
+    Called before each call to <a href="../modules/widget.html#Widget:render">Widget:render</a>.
+ If this function returns a true-ish value, a reflow will be triggered.
+ Since this involves calls to all widgets' :layout functions,
+ reflows should be used sparingly.
+
+
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types">optional <span class="type">bool</span></span>
+        true(-ish) if a layout reflow should be triggered
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "Widget:render"></a>
+    <strong>Widget:render(cr)</strong>
+    </dt>
+    <dd>
+    Called once per update to do draw dynamic content.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">cr</span>
+            <span class="types"><span class="type">cairo_t</span></span>
+
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
+</dl>
+    <h2 class="section-header has-description"><a name="Class_WidgetGroup"></a>Class WidgetGroup </h2>
+
+          <div class="section-description">
+          Basic collection of widgets.
+ Grouped widgets are drawn in a vertical stack,
+ starting at the top of the drawble surface.
+          </div>
+    <dl class="function">
+    <dt>
+    <a name = "WidgetGroup:init"></a>
+    <strong>WidgetGroup:init(widgets)</strong>
+    </dt>
+    <dd>
+
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">widgets</span>
+            <span class="types"><a class="type" href="../modules/widget.html#Widget">{Widget,...}</a></span>
+
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
+</dl>
+    <h2 class="section-header has-description"><a name="Class_Gap"></a>Class Gap </h2>
+
+          <div class="section-description">
+          Leave some space between widgets.
+          </div>
+    <dl class="function">
+    <dt>
+    <a name = "Gap:init"></a>
+    <strong>Gap:init(height)</strong>
+    </dt>
+    <dd>
+
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">height</span>
+            <span class="types"><span class="type">int</span></span>
+         Amount of vertical space in pixels
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
+</dl>
+    <h2 class="section-header has-description"><a name="Class_BorderRight"></a>Class BorderRight </h2>
+
+          <div class="section-description">
+          Draw a border on the right side of the described area.
+          </div>
+    <dl class="function">
+    <dt>
+    <a name = "BorderRight:init"></a>
+    <strong>BorderRight:init(args)</strong>
+    </dt>
+    <dd>
+
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">args</span> table of options
+        <ul>
+        <li><span class="parameter">x</span>
+            <span class="types"><span class="type">int</span></span>
+         Horizontal offset of the border (=width of the framed area)
+        </li>
+        <li><span class="parameter">height</span>
+            <span class="types"><span class="type">int</span></span>
+         Height of the framed area
+        </li>
+        </li></ul>
+    </ul>
+
+
+
+
+
+</dd>
+</dl>
+    <h2 class="section-header has-description"><a name="Class_TextLine"></a>Class TextLine </h2>
+
+          <div class="section-description">
+          Draw a single line changeable of text.
+ Use this widget for text that will be updated on each cycle.
+          </div>
+    <dl class="function">
+    <dt>
+    <a name = "TextLine:init"></a>
+    <strong>TextLine:init(args)</strong>
+    </dt>
+    <dd>
+
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">args</span> table of options
+        <ul>
+        <li><span class="parameter">align</span>
+            <span class="types">optional <span class="type">string</span></span>
+         "left" (default), "center" or "right"
+        </li>
+        <li><span class="parameter">font_family</span>
+            <span class="types">optional <span class="type">string</span></span>
+
+        </li>
+        <li><span class="parameter">font_size</span>
+            <span class="types">optional <span class="type">number</span></span>
+
+        </li>
+        <li><span class="parameter">color</span>
+            <span class="types">optional <span class="type">{number,number,number,number}</span></span>
+
+        </li>
+        </li></ul>
+    </ul>
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "TextLine:set_text"></a>
+    <strong>TextLine:set_text(text)</strong>
+    </dt>
+    <dd>
+    Update the text line to be displayed.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">text</span>
+            <span class="types"><span class="type">string</span></span>
+
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
+</dl>
+    <h2 class="section-header has-description"><a name="Class_Bar"></a>Class Bar </h2>
+
+          <div class="section-description">
+          Progress-bar like box, similar to conky's bar.
+ Can have small and big ticks for visual clarity,
+ and a unit (static, up to 3 characters) written behind the end.
+          </div>
+    <dl class="function">
+    <dt>
+    <a name = "Bar:init"></a>
+    <strong>Bar:init(args)</strong>
+    </dt>
+    <dd>
+
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">args</span> table of options
+        <ul>
+        <li><span class="parameter">ticks</span>
+            <span class="types">optional <span class="type">{number,...}</span></span>
+         relative offsets (between 0 and 1) of ticks
+        </li>
+        <li><span class="parameter">big_ticks</span>
+            <span class="types">optional <span class="type">{int,...}</span></span>
+         indexes of ticks to be drawn longer
+        </li>
+        <li><span class="parameter">thickness</span>
+            <span class="types">optional <span class="type">int</span></span>
+         vertical size of the bar
+        </li>
+        <li><span class="parameter">unit</span>
+            <span class="types">optional <span class="type">string</span></span>
+         to be drawn behind the bar - 3 characters will fit
+        </li>
+        <li><span class="parameter">color</span>
+            <span class="types">optional <span class="type">{number,number,number,number}</span></span>
+
+        </li>
+        </li></ul>
+    </ul>
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "Bar:set_fill"></a>
+    <strong>Bar:set_fill(fraction)</strong>
+    </dt>
+    <dd>
+    Set the fill-ratio of the bar
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">fraction</span>
+            <span class="types"><span class="type">number</span></span>
+         between 0 and 1
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
+</dl>
+    <h2 class="section-header has-description"><a name="Class_MemoryBar"></a>Class MemoryBar </h2>
+
+          <div class="section-description">
+          Specialized unit-based Bar.
+          </div>
+    <dl class="function">
+    <dt>
+    <a name = "MemoryBar:init"></a>
+    <strong>MemoryBar:init(args)</strong>
+    </dt>
+    <dd>
+
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">args</span> table of options
+        <ul>
+        <li><span class="parameter">total</span>
+            <span class="types"><span class="type">number</span></span>
+         Total amount of memory to be represented by this bar
+        </li>
+        <li><span class="parameter">unit</span>
+            <span class="types">optional <span class="type">string</span></span>
+         (default: "GiB")
+        </li>
+        <li><span class="parameter">color</span>
+            <span class="types">optional <span class="type">{number,number,number,number}</span></span>
+
+        </li>
+        </li></ul>
+    </ul>
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "MemoryBar:set_used"></a>
+    <strong>MemoryBar:set_used(used)</strong>
+    </dt>
+    <dd>
+    Set the amount of used memory as an absolute value.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">used</span>
+            <span class="types"><span class="type">number</span></span>
+         should be between 0 and args.total
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
+</dl>
+    <h2 class="section-header has-description"><a name="Class_Graph"></a>Class Graph </h2>
+
+          <div class="section-description">
+          Track changing data; similar to conky's graphs.
+          </div>
+    <dl class="function">
+    <dt>
+    <a name = "Graph:init"></a>
+    <strong>Graph:init(args)</strong>
+    </dt>
+    <dd>
+
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">args</span> table of options
+        <ul>
+        <li><span class="parameter">max</span>
+            <span class="types"><span class="type">number</span></span>
+         maximum expected value to be represented;
+                         may be expanded automatically as need arises
+        </li>
+        <li><span class="parameter">data_points</span>
+            <span class="types">optional <span class="type">int</span></span>
+         how many values to store (default: 90)
+        </li>
+        <li><span class="parameter">height</span>
+            <span class="types">optional <span class="type">int</span></span>
+         (default: 20)
+        </li>
+        <li><span class="parameter">upside_down</span>
+            <span class="types">optional <span class="type">bool</span></span>
+         draw graph from top to bottom
+        </li>
+        <li><span class="parameter">color</span>
+            <span class="types">optional <span class="type">{number,number,number,number}</span></span>
+
+        </li>
+        </li></ul>
+    </ul>
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "Graph:add_value"></a>
+    <strong>Graph:add_value(value)</strong>
+    </dt>
+    <dd>
+    Append the latest value to be shown - this will displace the oldest value
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">value</span>
+            <span class="types"><span class="type">number</span></span>
+         if value > args.max then the graphs vertical scale will be
+               adjusted, causing it to get squished
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
+</dl>
+    <h2 class="section-header has-description"><a name="Class_Cpu"></a>Class Cpu </h2>
+
+          <div class="section-description">
+          Polygon-style CPU usage & temperature tracking.
+ Looks best for CPUs with 4 to 8 cores but also works for higher numbers
+          </div>
+    <dl class="function">
+    <dt>
+    <a name = "Cpu:init"></a>
+    <strong>Cpu:init(args)</strong>
+    </dt>
+    <dd>
+
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">args</span> table of options
+        <ul>
+        <li><span class="parameter">cores</span>
+            <span class="types"><span class="type">int</span></span>
+         How many cores does your CPU have?
+        </li>
+        <li><span class="parameter">scale</span>
+            <span class="types"><span class="type">int</span></span>
+         radius of central polygon
+        </li>
+        <li><span class="parameter">gap</span>
+            <span class="types"><span class="type">int</span></span>
+         space between central polygon and outer segments
+        </li>
+        <li><span class="parameter">segment_size</span>
+            <span class="types"><span class="type">int</span></span>
+         radial thickness of outer segments
+        </li>
+        </li></ul>
+    </ul>
+
+
+
+
+
+</dd>
+</dl>
+    <h2 class="section-header has-description"><a name="Class_CpuFrequencies"></a>Class CpuFrequencies </h2>
+
+          <div class="section-description">
+          Visualize cpu-frequencies in a style reminiscent of stacked progress bars.
+          </div>
+    <dl class="function">
+    <dt>
+    <a name = "CpuFrequencies:init"></a>
+    <strong>CpuFrequencies:init(args)</strong>
+    </dt>
+    <dd>
+
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">args</span> table of options
+        <ul>
+        <li><span class="parameter">cores</span>
+            <span class="types"><span class="type">int</span></span>
+         How many cores does your CPU have?
+        </li>
+        <li><span class="parameter">min_freq</span>
+            <span class="types"><span class="type">number</span></span>
+         What is your CPU's maximum frequency?
+        </li>
+        <li><span class="parameter">min_freq</span>
+            <span class="types"><span class="type">number</span></span>
+         What is your CPU's maximum frequency?
+        </li>
+        <li><span class="parameter">height</span>
+            <span class="types">optional <span class="type">int</span></span>
+         Maximum pixel height of the drawn shape (default: 16)
+        </li>
+        </li></ul>
+    </ul>
+
+
+
+
+
+</dd>
+</dl>
+    <h2 class="section-header has-description"><a name="Class_MemoryGrid"></a>Class MemoryGrid </h2>
+
+          <div class="section-description">
+          Visualize memory usage in a randomized grid.
+ Does not represent actual distribution of used memory.
+ Also shows buffere/cache memory at reduced brightness.
+          </div>
+    <dl class="function">
+    <dt>
+    <a name = "MemoryGrid:init"></a>
+    <strong>MemoryGrid:init(args)</strong>
+    </dt>
+    <dd>
+
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">args</span> table of options
+        <ul>
+        <li><span class="parameter">rows</span>
+            <span class="types"><span class="type">int</span></span>
+         number of rows to draw
+        </li>
+        <li><span class="parameter">columns</span>
+            <span class="types"><span class="type">int</span></span>
+         number of columns to draw
+        </li>
+        <li><span class="parameter">point_size</span>
+            <span class="types">optional <span class="type">int</span></span>
+         edge length of individual squares
+        </li>
+        <li><span class="parameter">gap</span>
+            <span class="types">optional <span class="type">int</span></span>
+         space between squares
+        </li>
+        <li><span class="parameter">shuffle</span>
+            <span class="types">optional <span class="type">bool</span></span>
+         randomize? (default: true)
+        </li>
+        </li></ul>
+    </ul>
+
+
+
+
+
+</dd>
+</dl>
+    <h2 class="section-header has-description"><a name="Class_Gpu"></a>Class Gpu </h2>
+
+          <div class="section-description">
+          Compound widget to display GPU and VRAM usage.
+          </div>
+    <dl class="function">
+    <dt>
+    <a name = "Gpu:init"></a>
+    <strong>Gpu:init()</strong>
+    </dt>
+    <dd>
+    no options
+
+
+
+
+
+
+
+</dd>
+</dl>
+    <h2 class="section-header has-description"><a name="Class_GpuTop"></a>Class GpuTop </h2>
+
+          <div class="section-description">
+          Table of processes for the GPU, sorted by VRAM usage
+          </div>
+    <dl class="function">
+    <dt>
+    <a name = "GpuTop:init"></a>
+    <strong>GpuTop:init(args)</strong>
+    </dt>
+    <dd>
+
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">args</span> table of options
+        <ul>
+        <li><span class="parameter">lines</span>
+            <span class="types">optional <span class="type">int</span></span>
+         how many processes to display
+        </li>
+        <li><span class="parameter">font_family</span>
+            <span class="types">optional <span class="type">string</span></span>
+
+        </li>
+        <li><span class="parameter">font_size</span>
+            <span class="types">optional <span class="type">number</span></span>
+
+        </li>
+        <li><span class="parameter">color</span>
+            <span class="types">optional <span class="type">{number,number,number,number}</span></span>
+
+        </li>
+        </li></ul>
+    </ul>
+
+
+
+
+
+</dd>
+</dl>
+    <h2 class="section-header has-description"><a name="Class_Network"></a>Class Network </h2>
+
+          <div class="section-description">
+          Graphs for up- and download speed.
+ This widget assumes that your conky.text adds some text between the graphs.
+          </div>
+    <dl class="function">
+    <dt>
+    <a name = "Network:init"></a>
+    <strong>Network:init(args)</strong>
+    </dt>
+    <dd>
+
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">args</span> table of options
+        <ul>
+        <li><span class="parameter">interface</span>
+            <span class="types"><span class="type">string</span></span>
+         e.g. "eth0"
+        </li>
+        <li><span class="parameter">graph_height</span>
+            <span class="types">optional <span class="type">int</span></span>
+         passed to Graph:init
+        </li>
+        <li><span class="parameter">downspeed</span>
+            <span class="types">optional <span class="type">number</span></span>
+         passed as args.max to download speed graph
+        </li>
+        <li><span class="parameter">upspeed</span>
+            <span class="types">optional <span class="type">number</span></span>
+         passed as args.max to upload speed graph
+        </li>
+        </li></ul>
+    </ul>
+
+
+
+
+
+</dd>
+</dl>
+    <h2 class="section-header has-description"><a name="Class_Drive"></a>Class Drive </h2>
+
+          <div class="section-description">
+          Visualize drive usage and temperature in a colorized Bar.
+ Also writes temperature as text.
+ This widget is exptected to be combined with some special conky.text.
+          </div>
+    <dl class="function">
+    <dt>
+    <a name = "Drive:init"></a>
+    <strong>Drive:init(path, device_name)</strong>
+    </dt>
+    <dd>
+
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">path</span>
+            <span class="types"><span class="type">string</span></span>
+         e.g. "/home"
+        </li>
+        <li><span class="parameter">device_name</span>
+            <span class="types"><span class="type">string</span></span>
+         e.g. "/dev/sda1"
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
+</dl>
+
+
+</div> <!-- id="content" -->
+</div> <!-- id="main" -->
+<div id="about">
+<i>generated by <a href="http://github.com/stevedonovan/LDoc">LDoc 1.4.6</a></i>
+<i style="float:right;">Last updated 2019-11-01 17:58:10 </i>
+</div> <!-- id="about" -->
+</div> <!-- id="container" -->
+</body>
+</html>

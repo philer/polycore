@@ -1,0 +1,553 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+<head>
+    <title>Reference</title>
+    <link rel="stylesheet" href="../ldoc.css" type="text/css" />
+</head>
+<body>
+
+<div id="container">
+
+<div id="product">
+	<div id="product_logo"></div>
+	<div id="product_name"><big><b></b></big></div>
+	<div id="product_description"></div>
+</div> <!-- id="product" -->
+
+
+<div id="main">
+
+
+<!-- Menu -->
+
+<div id="navigation">
+<br/>
+<h1>polycore</h1>
+
+<ul>
+  <li><a href="../index.html">Index</a></li>
+</ul>
+
+<h2>Contents</h2>
+<ul>
+<li><a href="#Class_creation">Class creation </a></li>
+<li><a href="#Memoization">Memoization </a></li>
+<li><a href="#Class_CycleQueue">Class CycleQueue </a></li>
+<li><a href="#General_utility_functions">General utility functions </a></li>
+</ul>
+
+
+<h2>Modules</h2>
+<ul class="nowrap">
+  <li><a href="../modules/widget.html">widget</a></li>
+  <li><a href="../modules/data.html">data</a></li>
+  <li><a href="../modules/cairo_helpers.html">cairo_helpers</a></li>
+  <li><strong>util</strong></li>
+</ul>
+
+</div>
+
+<div id="content">
+
+<h1>Module <code>util</code></h1>
+<p>Various helper functions</p>
+<p></p>
+
+
+<h2><a href="#Class_creation">Class creation </a></h2>
+<table class="function_list">
+	<tr>
+	<td class="name" nowrap><a href="#class">class(parent)</a></td>
+	<td class="summary">simple class creation helper</td>
+	</tr>
+</table>
+<h2><a href="#Memoization">Memoization </a></h2>
+<table class="function_list">
+	<tr>
+	<td class="name" nowrap><a href="#memoize">memoize([delay], fn)</a></td>
+	<td class="summary">Wrap a function to store its results for fast access via identical arguments.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#reset_data">reset_data(update_count)</a></td>
+	<td class="summary">Clear outdated data gathered via <a href="../modules/util.html#memoize">util.memoize</a>.</td>
+	</tr>
+</table>
+<h2><a href="#Class_CycleQueue">Class CycleQueue </a></h2>
+<table class="function_list">
+	<tr>
+	<td class="name" nowrap><a href="#CycleQueue:init">CycleQueue:init(length)</a></td>
+	<td class="summary"></td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#CycleQueue:head">CycleQueue:head()</a></td>
+	<td class="summary">Get the oldest value.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#CycleQueue:put">CycleQueue:put(item)</a></td>
+	<td class="summary">Add a value, causing the oldest value to disappear.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#CycleQueue:each">CycleQueue:each(fn)</a></td>
+	<td class="summary">Apply a function to each item in order from oldest to newest.</td>
+	</tr>
+</table>
+<h2><a href="#General_utility_functions">General utility functions </a></h2>
+<table class="function_list">
+	<tr>
+	<td class="name" nowrap><a href="#pack">pack(...)</a></td>
+	<td class="summary">Opposite of unpack/table.unpack
+ DEPRECATED; use {...} instead</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#clamp">clamp(min, max, val)</a></td>
+	<td class="summary">Clamp a value between a minimum and a maximum</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#map">map(fn, iter)</a></td>
+	<td class="summary">Call a function on each item of an iterator.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#filter">filter(fn, arr)</a></td>
+	<td class="summary">Filter a table.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#reduce">reduce(fn, init, arr)</a></td>
+	<td class="summary">Turn a table of values into one value.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#range">range(start, stop, step)</a></td>
+	<td class="summary">Generate a table of numbers from start to stop with step size step,
+ like for i = start, stop, step do ...</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#avg">avg(arr)</a></td>
+	<td class="summary">Calculate the average of a table of numbers.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#shuffle">shuffle(array)</a></td>
+	<td class="summary">Shuffle a table in-place using Fisher-Yates shuffle.</td>
+	</tr>
+</table>
+
+<br/>
+<br/>
+
+
+    <h2 class="section-header "><a name="Class_creation"></a>Class creation </h2>
+
+    <dl class="function">
+    <dt>
+    <a name = "class"></a>
+    <strong>class(parent)</strong>
+    </dt>
+    <dd>
+    simple class creation helper
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">parent</span>
+         parent class
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
+</dl>
+    <h2 class="section-header "><a name="Memoization"></a>Memoization </h2>
+
+    <dl class="function">
+    <dt>
+    <a name = "memoize"></a>
+    <strong>memoize([delay], fn)</strong>
+    </dt>
+    <dd>
+    Wrap a function to store its results for fast access via identical arguments.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">delay</span>
+            <span class="types"><span class="type">int</span></span>
+         number of updates that should pass before
+                    data is cleared; use 0/false/nil to never clear
+         (<em>optional</em>)
+        </li>
+        <li><span class="parameter">fn</span>
+            <span class="types"><span class="type">func</span></span>
+         function to be memoized; should only take stringable
+                     arguments and return a non-nil value
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "reset_data"></a>
+    <strong>reset_data(update_count)</strong>
+    </dt>
+    <dd>
+    Clear outdated data gathered via <a href="../modules/util.html#memoize">util.memoize</a>.
+ Call this once per update cycle.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">update_count</span>
+            <span class="types"><span class="type">int</span></span>
+         conky's $update_count
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
+</dl>
+    <h2 class="section-header has-description"><a name="Class_CycleQueue"></a>Class CycleQueue </h2>
+
+          <div class="section-description">
+          Circular queue implementation.
+ Adding new values causes old values to disappear.
+          </div>
+    <dl class="function">
+    <dt>
+    <a name = "CycleQueue:init"></a>
+    <strong>CycleQueue:init(length)</strong>
+    </dt>
+    <dd>
+
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">length</span>
+            <span class="types"><span class="type">int</span></span>
+         fixed number of items to be stored
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "CycleQueue:head"></a>
+    <strong>CycleQueue:head()</strong>
+    </dt>
+    <dd>
+    Get the oldest value.
+
+
+
+    <h3>Returns:</h3>
+    <ol>
+
+        oldest value
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "CycleQueue:put"></a>
+    <strong>CycleQueue:put(item)</strong>
+    </dt>
+    <dd>
+    Add a value, causing the oldest value to disappear.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">item</span>
+         value to add
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "CycleQueue:each"></a>
+    <strong>CycleQueue:each(fn)</strong>
+    </dt>
+    <dd>
+    Apply a function to each item in order from oldest to newest.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">fn</span>
+            <span class="types"><span class="type">func</span></span>
+
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
+</dl>
+    <h2 class="section-header "><a name="General_utility_functions"></a>General utility functions </h2>
+
+    <dl class="function">
+    <dt>
+    <a name = "pack"></a>
+    <strong>pack(...)</strong>
+    </dt>
+    <dd>
+    Opposite of unpack/table.unpack
+ DEPRECATED; use {...} instead
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">...</span>
+
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "clamp"></a>
+    <strong>clamp(min, max, val)</strong>
+    </dt>
+    <dd>
+    Clamp a value between a minimum and a maximum
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">min</span>
+            <span class="types"><span class="type">number</span></span>
+         minimum value returned
+        </li>
+        <li><span class="parameter">max</span>
+            <span class="types"><span class="type">number</span></span>
+         maximum value returned
+        </li>
+        <li><span class="parameter">val</span>
+            <span class="types"><span class="type">number</span></span>
+         target value
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><span class="type">number</span></span>
+
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "map"></a>
+    <strong>map(fn, iter)</strong>
+    </dt>
+    <dd>
+    Call a function on each item of an iterator.  Collect the results in a table.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">fn</span>
+            <span class="types"><span class="type">func</span></span>
+         should take one argument and return one result
+        </li>
+        <li><span class="parameter">iter</span>
+         iterator
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><span class="type">table</span></span>
+        list of results
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "filter"></a>
+    <strong>filter(fn, arr)</strong>
+    </dt>
+    <dd>
+    Filter a table.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">fn</span>
+            <span class="types"><span class="type">func</span></span>
+         should take one argument and return bool
+        </li>
+        <li><span class="parameter">arr</span>
+            <span class="types"><span class="type">tab</span></span>
+
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><span class="type">table</span></span>
+        list of remaining entries
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "reduce"></a>
+    <strong>reduce(fn, init, arr)</strong>
+    </dt>
+    <dd>
+    Turn a table of values into one value.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">fn</span>
+            <span class="types"><span class="type">func</span></span>
+         should take two arguments and return one
+        </li>
+        <li><span class="parameter">init</span>
+         starting value
+        </li>
+        <li><span class="parameter">arr</span>
+            <span class="types"><span class="type">tab</span></span>
+         values
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+        result
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "range"></a>
+    <strong>range(start, stop, step)</strong>
+    </dt>
+    <dd>
+    Generate a table of numbers from start to stop with step size step,
+ like for i = start, stop, step do ...
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">start</span>
+            <span class="types"><span class="type">number</span></span>
+
+        </li>
+        <li><span class="parameter">stop</span>
+            <span class="types"><span class="type">number</span></span>
+
+        </li>
+        <li><span class="parameter">step</span>
+            <span class="types">optional <span class="type">number</span></span>
+         (default: 1)
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><span class="type">{number,...}</span></span>
+
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "avg"></a>
+    <strong>avg(arr)</strong>
+    </dt>
+    <dd>
+    Calculate the average of a table of numbers.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">arr</span>
+            <span class="types"><span class="type">{number,...}</span></span>
+
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><span class="type">number</span></span>
+
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "shuffle"></a>
+    <strong>shuffle(array)</strong>
+    </dt>
+    <dd>
+    Shuffle a table in-place using Fisher-Yates shuffle.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">array</span>
+            <span class="types"><span class="type">tab</span></span>
+
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
+</dl>
+
+
+</div> <!-- id="content" -->
+</div> <!-- id="main" -->
+<div id="about">
+<i>generated by <a href="http://github.com/stevedonovan/LDoc">LDoc 1.4.6</a></i>
+<i style="float:right;">Last updated 2019-11-01 17:58:10 </i>
+</div> <!-- id="about" -->
+</div> <!-- id="container" -->
+</body>
+</html>

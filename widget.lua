@@ -1,12 +1,22 @@
+--- A collection of Widget classes
+-- @module widget
+
 local data = require 'data'
 local util = require 'util'
 local ch = require 'cairo_helpers'
 
-
--- Root widget wrapper
+--- Root widget wrapper
 -- Takes care of managing layout reflows and background caching.
+-- @type WidgetRenderer
 local WidgetRenderer = util.class()
 
+---
+-- @tparam table args table of options
+-- @tparam Widget args.root The Widget subclass that should be rendered,
+--                          usually a WidgetGroup
+-- @int args.width Width of the surface that should be covered
+-- @int args.height Height of the surface that should be covered
+-- @int args.padding Distance to be left clear on all sides of the surface
 function WidgetRenderer:init(args)
     self.root = args.root
     self.width = args.width
@@ -17,6 +27,9 @@ function WidgetRenderer:init(args)
                                                           args.height)
 end
 
+--- Layout all Widgets and cache their backgrounds.
+-- Call this once to create the initial layout.
+-- Will be called again automatically each time the layout changes.
 function WidgetRenderer:layout()
     print("layout reflow…")
     self.root:layout(self.width - 2 * self.padding)
@@ -43,10 +56,13 @@ function WidgetRenderer:layout()
     cairo_destroy(cr)
 end
 
+--- Update all Widgets
 function WidgetRenderer:update()
     if self.root:update() then self:layout() end
 end
 
+--- Render to the given context
+-- @tparam cairo_t cr
 function WidgetRenderer:render(cr)
     cairo_set_source_surface(cr, self._background_surface, 0, 0)
     cairo_paint(cr)
@@ -55,33 +71,43 @@ function WidgetRenderer:render(cr)
 end
 
 
--- Base Widget class
+--- Base Widget class.
+-- @type Widget
 local Widget = util.class()
 
--- Every widget needs a height used by the layout engine to correctly position
--- each widget
+--- Every widget needs a height used by the layout engine to correctly position
+-- the widget.
 Widget.height = 0
 
--- Called at least once to inform the widget of its width
+--- Called at least once to inform the widget of its width.
+-- @tparam int width
 function Widget:layout(width) end
 
--- Called at least once to allow the widget to draw static content
+--- Called at least once to allow the widget to draw static content.
+-- @tparam cairo_t cr Cairo context for background rendering
+--                    (to be cached by the `WidgetRenderer`)
 function Widget:render_background(cr) end
 
--- Called before each call to :render(cr).
+--- Called before each call to `Widget:render`.
 -- If this function returns a true-ish value, a reflow will be triggered.
 -- Since this involves calls to all widgets' :layout functions,
 -- reflows should be used sparingly.
+-- @treturn ?bool true(-ish) if a layout reflow should be triggered
 function Widget:update() return false end
 
--- Called once per update to do draw dynamic content
+--- Called once per update to do draw dynamic content.
+-- @tparam cairo_t cr
 function Widget:render(cr) end
 
 
--- Basic combination of widgets. Grouped widgets are drawn in a vertical stack,
+--- Basic collection of widgets.
+-- Grouped widgets are drawn in a vertical stack,
 -- starting at the top of the drawble surface.
+-- @type WidgetGroup
 local WidgetGroup = util.class(Widget)
 
+---
+-- @tparam {Widget,...} widgets
 function WidgetGroup:init(widgets)
     self._widgets = widgets
     self.height = 0
@@ -136,19 +162,23 @@ function WidgetGroup:render(cr)
 end
 
 
--- Leave some space between widgets
+--- Leave some space between widgets.
+-- @type Gap
 local Gap = util.class(Widget)
 
+--- @int height Amount of vertical space in pixels
 function Gap:init(height)
     self.height = height
 end
 
 
--- Draw a border on the right side of the described area.
--- Arguments:
---   x_offset, height: described area
+--- Draw a border on the right side of the described area.
+-- @type BorderRight
 local BorderRight = util.class(Widget)
 
+--- @tparam table args table of options
+-- @int args.x Horizontal offset of the border (=width of the framed area)
+-- @int args.height Height of the framed area
 function BorderRight:init(args)
     self._x = args.x
     self._height = args.height
@@ -167,10 +197,16 @@ function BorderRight:render_background(cr)
 end
 
 
--- Draw a single line changeable of text.
+--- Draw a single line changeable of text.
 -- Use this widget for text that will be updated on each cycle.
+-- @type TextLine
 local TextLine = util.class(Widget)
 
+--- @tparam table args table of options
+-- @tparam ?string args.align "left" (default), "center" or "right"
+-- @tparam ?string args.font_family
+-- @tparam ?number args.font_size
+-- @tparam ?{number,number,number,number} args.color
 function TextLine:init(args)
     self.align = args.align or "left"
     self.font_family = args.font_family or default_font_family
@@ -189,6 +225,8 @@ function TextLine:init(args)
     self._baseline_offset = extents.ascent + 0.5 * line_spacing + 1
 end
 
+--- Update the text line to be displayed.
+-- @string text
 function TextLine:set_text(text)
     self.text = text
 end
@@ -212,10 +250,18 @@ function TextLine:render(cr)
 end
 
 
--- Progress-bar like box. Can have small and big ticks for visual clarity,
+--- Progress-bar like box, similar to conky's bar.
+-- Can have small and big ticks for visual clarity,
 -- and a unit (static, up to 3 characters) written behind the end.
+-- @type Bar
 local Bar = util.class(Widget)
 
+--- @tparam table args table of options
+-- @tparam ?{number,...} args.ticks relative offsets (between 0 and 1) of ticks
+-- @tparam ?{int,...} args.big_ticks indexes of ticks to be drawn longer
+-- @tparam ?int args.thickness vertical size of the bar
+-- @tparam ?string args.unit to be drawn behind the bar - 3 characters will fit
+-- @tparam ?{number,number,number,number} args.color
 function Bar:init(args)
     self.ticks = args.ticks
     self.big_ticks = args.big_ticks
@@ -261,6 +307,8 @@ function Bar:render_background(cr)
     end
 end
 
+--- Set the fill-ratio of the bar
+-- @number fraction between 0 and 1
 function Bar:set_fill(fraction)
     self.fraction = fraction
 end
@@ -301,9 +349,14 @@ function Bar:render(cr)
 end
 
 
--- Specialized unit-based Bar
+--- Specialized unit-based Bar.
+-- @type MemoryBar
 local MemoryBar = util.class(Bar)
 
+--- @tparam table args table of options
+-- @tparam number args.total Total amount of memory to be represented by this bar
+-- @tparam ?string args.unit (default: "GiB")
+-- @tparam ?{number,number,number,number} args.color
 function MemoryBar:init(args)
     local total = args.total
     local ticks = util.range(1 / total, math.floor(total) / total, 1 / total)
@@ -319,17 +372,27 @@ function MemoryBar:init(args)
     end
 end
 
+--- Set the amount of used memory as an absolute value.
+-- @number used should be between 0 and args.total
 function MemoryBar:set_used(used)
     Bar:set_fill(used / self.total)
 end
 
 
--- Track changing data
+--- Track changing data; similar to conky's graphs.
+-- @type Graph
 local Graph = util.class(Widget)
 
+--- @tparam table args table of options
+-- @tparam number args.max maximum expected value to be represented;
+--                         may be expanded automatically as need arises
+-- @tparam ?int args.data_points how many values to store (default: 90)
+-- @tparam ?int args.height (default: 20)
+-- @tparam ?bool args.upside_down draw graph from top to bottom
+-- @tparam ?{number,number,number,number} args.color
 function Graph:init(args)
-    self.height = args.height or 20
     self.max = args.max
+    self.height = args.height or 20
     self.upside_down = args.upside_down
     self.data = util.CycleQueue(args.data_points or 90)
     self.color = args.color or default_graph_color
@@ -371,6 +434,9 @@ function Graph:render_background(cr)
     cairo_stroke(cr)
 end
 
+--- Append the latest value to be shown - this will displace the oldest value
+-- @number value if value > args.max then the graphs vertical scale will be
+--               adjusted, causing it to get squished
 function Graph:add_value(value)
     self.data:put(value)
     if value > self.max then
@@ -402,9 +468,16 @@ function Graph:render(cr)
 end
 
 
--- Polygon-style CPU usage & temperature tracking
+--- Polygon-style CPU usage & temperature tracking.
+-- Looks best for CPUs with 4 to 8 cores but also works for higher numbers
+-- @type Cpu
 local Cpu = util.class(Widget)
 
+--- @tparam table args table of options
+-- @int args.cores How many cores does your CPU have?
+-- @int args.scale radius of central polygon
+-- @int args.gap space between central polygon and outer segments
+-- @int args.segment_size radial thickness of outer segments
 function Cpu:init(args)
     self.cores = args.cores
     self.scale = args.scale
@@ -503,9 +576,15 @@ function Cpu:render(cr)
 end
 
 
--- Visualize cpu-frequencies in a style reminiscent of stacked progress bars.
+--- Visualize cpu-frequencies in a style reminiscent of stacked progress bars.
+-- @type CpuFrequencies
 local CpuFrequencies = util.class(Widget)
 
+--- @tparam table args table of options
+-- @int args.cores How many cores does your CPU have?
+-- @number args.min_freq What is your CPU's minimum frequency?
+-- @number args.min_freq What is your CPU's maximum frequency?
+-- @tparam ?int args.height Maximum pixel height of the drawn shape (default: 16)
 function CpuFrequencies:init(args)
     self.cores = args.cores
     self.min_freq = args.min_freq
@@ -543,7 +622,7 @@ function CpuFrequencies:render_background(cr)
     cairo_set_source_rgba(cr, unpack(default_text_color))
     ch.write_left(cr, self._width + 5, 0.5 * self._height + 3, "GHz")
 
-    --- shadow outline
+    -- shadow outline
     ch.polygon(cr, {
         self._polygon_coordinates[1] - 1, self._polygon_coordinates[2] - 1,
         self._polygon_coordinates[3] + 1, self._polygon_coordinates[4] - 1,
@@ -603,11 +682,18 @@ function CpuFrequencies:render(cr)
 end
 
 
--- Visualize memory usage in a randomized grid. Does not represent actual
--- distribution of used memory.
+--- Visualize memory usage in a randomized grid.
+-- Does not represent actual distribution of used memory.
 -- Also shows buffere/cache memory at reduced brightness.
+-- @type MemoryGrid
 local MemoryGrid = util.class(Widget)
 
+--- @tparam table args table of options
+-- @int args.rows number of rows to draw
+-- @int args.columns number of columns to draw
+-- @tparam ?int args.point_size edge length of individual squares
+-- @tparam ?int args.gap space between squares
+-- @tparam ?bool args.shuffle randomize? (default: true)
 function MemoryGrid:init(args)
     self.rows = args.rows
     self.columns = args.columns
@@ -669,9 +755,11 @@ function MemoryGrid:render(cr)
 end
 
 
--- Compound widget to display GPU and VRAM usage.
+--- Compound widget to display GPU and VRAM usage.
+-- @type Gpu
 local Gpu = util.class(WidgetGroup)
 
+--- no options
 function Gpu:init()
     self.usebar = Bar{ticks={.25, .5, .75}, unit="%"}
     local _, mem_total = data.gpu_memory()
@@ -690,9 +778,15 @@ function Gpu:update()
     self.membar.color = color
 end
 
-
+--- Table of processes for the GPU, sorted by VRAM usage
+-- @type GpuTop
 local GpuTop = util.class(Widget)
 
+--- @tparam table args table of options
+-- @tparam ?int args.lines how many processes to display
+-- @tparam ?string args.font_family
+-- @tparam ?number args.font_size
+-- @tparam ?{number,number,number,number} args.color
 function GpuTop:init(args)
     self._lines = args.lines or 5
     self._font_family = args.font_family or default_font_family
@@ -731,9 +825,16 @@ function GpuTop:render(cr)
     end
 end
 
-
+--- Graphs for up- and download speed.
+-- This widget assumes that your conky.text adds some text between the graphs.
+-- @type Network
 local Network = util.class(WidgetGroup)
 
+--- @tparam table args table of options
+-- @string args.interface e.g. "eth0"
+-- @tparam ?int args.graph_height passed to Graph:init
+-- @tparam ?number args.downspeed passed as args.max to download speed graph
+-- @tparam ?number args.upspeed passed as args.max to upload speed graph
 function Network:init(args)
     self.interface = args.interface
     self.downspeed_graph = Graph{height=args.graph_height, max=args.downspeed or 1024}
@@ -747,11 +848,15 @@ function Network:update()
     self.upspeed_graph:add_value(up)
 end
 
--- Visualize drive usage and temperature in a colorized Bar.
+--- Visualize drive usage and temperature in a colorized Bar.
 -- Also writes temperature as text.
 -- This widget is exptected to be combined with some special conky.text.
+-- @type Drive
 local Drive = util.class(WidgetGroup)
 
+---
+-- @string path e.g. "/home"
+-- @string device_name e.g. "/dev/sda1"
 function Drive:init(path, device_name)
     self.path = path
     self.device_name = device_name

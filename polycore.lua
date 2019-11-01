@@ -7,7 +7,7 @@ if unpack == nil then unpack = table.unpack end
 
 require 'cairo'
 
--- lua's import system is confusing.
+-- Conky does not change PWD to this directory, so we have to add it manually
 package.path = os.getenv("HOME") .. "/.config/conky/polycore/?.lua;" .. package.path
 local data = require 'data'
 local util = require 'util'

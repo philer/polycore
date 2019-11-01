@@ -2,9 +2,11 @@
 
 **A conky config and library of Lua widgets**
 
-![screenshot](https://raw.githubusercontent.com/philer/polycore/master/screenshots.png)
+![screenshot](screenshots.png)
 
 ## Widgets
+
+**See [doc/modules/widget.html](doc/modules/widget.html) for API reference.**
 
 The `widget` module provides a number of basic and specialized modules
 as well as grouping and rendering facilities. Their basic usage is best

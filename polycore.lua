@@ -71,7 +71,7 @@ local function setup()
         widget.Gap(12),
         widget.CpuFrequencies{cores=6, min_freq=0.75, max_freq=4.3},
         widget.Gap(138),
-        widget.MemoryGrid{rows=5, columns=40},
+        widget.MemoryGrid{rows=5},
         widget.Gap(84),
         widget.Gpu(),
         widget.Gap(2),

@@ -690,13 +690,11 @@ local MemoryGrid = util.class(Widget)
 
 --- @tparam table args table of options
 -- @int args.rows number of rows to draw
--- @int args.columns number of columns to draw
 -- @tparam ?int args.point_size edge length of individual squares
 -- @tparam ?int args.gap space between squares
 -- @tparam ?bool args.shuffle randomize? (default: true)
 function MemoryGrid:init(args)
     self.rows = args.rows
-    self.columns = args.columns
     self.point_size = args.point_size or 2
     self.gap = args.gap or 1
     self.shuffle = args.shuffle == nil and true or args.shuffle
@@ -704,11 +702,13 @@ function MemoryGrid:init(args)
 end
 
 function MemoryGrid:layout(width)
-    self.coordinates = {}
     local point_plus_gap = self.point_size + self.gap
-    for col = 0, self.columns - 1, 1 do
-        for row = 0, self.rows - 1, 1 do
-            table.insert(self.coordinates, {col * point_plus_gap,
+    local columns = math.floor(width / point_plus_gap)
+    local left = 0.5 * (width - columns * point_plus_gap + self.gap)
+    self.coordinates = {}
+    for col = 0, columns - 1 do
+        for row = 0, self.rows - 1 do
+            table.insert(self.coordinates, {col * point_plus_gap + left,
                                             row * point_plus_gap,
                                             self.point_size, self.point_size})
         end

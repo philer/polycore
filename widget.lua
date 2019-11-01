@@ -773,7 +773,7 @@ function Gpu:update()
     local mem_used, _ = data.gpu_memory()
     self.membar:set_used(mem_used / 1024)
 
-    local color = util.pack(temp_color(data.gpu_temperature(), 30, 80))
+    local color = {temp_color(data.gpu_temperature(), 30, 80)}
     self.usebar.color = color
     self.membar.color = color
 end

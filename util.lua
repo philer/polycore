@@ -80,12 +80,6 @@ function CycleQueue:init(length)
     end
 end
 
---- Get the oldest value.
--- @return oldest value
-function CycleQueue:head()
-    return self[self.latest % self.length + 1]
-end
-
 --- Add a value, causing the oldest value to disappear.
 -- @param item value to add
 function CycleQueue:put(item)
@@ -107,12 +101,6 @@ end
 
 --- General utility functions
 -- @section general
-
---- Opposite of unpack/table.unpack
--- DEPRECATED; use {...} instead
-function util.pack(...)
-    return {...}
-end
 
 --- Clamp a value between a minimum and a maximum
 -- @number min minimum value returned
@@ -137,34 +125,6 @@ function util.map(fn, iter)
         i = i + 1
     end
     return arr
-end
-
---- Filter a table.
--- @func fn should take one argument and return bool
--- @tab arr
--- @treturn table list of remaining entries
-function util.filter(fn, arr)
-    local result = {}
-    local k = 1
-    for i = 1, #arr do
-        if fn(arr[i]) then
-            result[k] = arr[i]
-            k = k + 1
-        end
-    end
-    return result
-end
-
---- Turn a table of values into one value.
--- @func fn should take two arguments and return one
--- @param init starting value
--- @tab arr values
--- @return result
-function util.reduce(fn, init, arr)
-    for i = 1, #arr do
-        init = fn(init, arr[i])
-    end
-    return init
 end
 
 --- Generate a table of numbers from start to stop with step size step,

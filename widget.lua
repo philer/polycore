@@ -30,6 +30,14 @@ function WidgetRenderer:layout()
     cairo_paint(cr)
     cairo_restore(cr)
 
+    if DEBUG then
+        cairo_set_source_rgba(cr, 1, 0, 0, 1)
+        cairo_select_font_face(cr, "Ubuntu", CAIRO_FONT_SLANT_NORMAL,
+                                             CAIRO_FONT_WEIGHT_NORMAL)
+        cairo_set_font_size(cr, 8)
+        ch.write_left(cr, 0, 8, table.concat{"conky ", conky_version, " ", _VERSION})
+    end
+
     cairo_translate(cr, self.padding, self.padding)
     self.root:render_background(cr)
     cairo_destroy(cr)

@@ -736,8 +736,8 @@ local Network = util.class(WidgetGroup)
 
 function Network:init(args)
     self.interface = args.interface
-    self.downspeed_graph = Graph{height=args.graph_height, max=downspeed or 1024}
-    self.upspeed_graph = Graph{height=args.graph_height, max=upspeed or 1024}
+    self.downspeed_graph = Graph{height=args.graph_height, max=args.downspeed or 1024}
+    self.upspeed_graph = Graph{height=args.graph_height, max=args.upspeed or 1024}
     WidgetGroup.init(self, {self.downspeed_graph, Gap(33), self.upspeed_graph})
 end
 

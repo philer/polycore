@@ -4,6 +4,7 @@
 project = "polycore"
 description = "A conky config and library of Lua widgets"
 file = {"widget.lua", "data.lua", "cairo_helpers.lua", "util.lua"}
+dir = "docs"
 all = true
 no_lua_ref = true
 backtick_references = true

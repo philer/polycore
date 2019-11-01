@@ -1,5 +1,10 @@
 -- This is a lua script for use in conky --
 
+print(table.concat{"conky ", conky_version, " ", _VERSION})
+-- lua 5.1 to 5.3 compatibility
+if unpack == nil then unpack = table.unpack end
+
+
 require 'cairo'
 
 -- lua's import system is confusing.
@@ -46,8 +51,8 @@ local renderer
 local function setup()
     local fan_rpm_text = widget.TextLine{align="center", color=secondary_text_color}
     fan_rpm_text.update = function(self)
-        local fan1, fan2 = unpack(data.fan_rpm())
-        self:set_text(fan1 .. " rpm   ·   " .. fan2 .. " rpm")
+        local fans = data.fan_rpm()
+        self:set_text(table.concat{fans[1], " rpm   ·   ", fans[2], " rpm"})
     end
 
     local cpu_temps_text = widget.TextLine{align="center", color=secondary_text_color}

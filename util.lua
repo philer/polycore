@@ -23,9 +23,9 @@ function util.memoize(delay, fn)
         end})
     end
     return function(...)
-        local key = table.concat(arg, ":")
+        local key = table.concat({...}, ":")
         if results[key] == nil then
-            results[key] = fn(unpack(arg))
+            results[key] = fn(...)
         end
         return results[key]
     end

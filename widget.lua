@@ -465,7 +465,7 @@ function Cpu:render(cr)
                                                     CAIRO_FONT_WEIGHT_BOLD)
     cairo_set_font_size(cr, 16)
     cairo_set_source_rgba(cr, r, g, b, .4)
-    ch.write_middle(cr, self.mx + 1, self.my, string.format("%d°", avg_temperature))
+    ch.write_middle(cr, self.mx + 1, self.my, string.format("%.0f°", avg_temperature))
 
     for core = 1, self.cores do
         ch.polygon(cr, self.segment_coordinates[core])

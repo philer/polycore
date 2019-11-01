@@ -530,7 +530,7 @@ function CpuFrequencies:layout(width)
         local x = self._width * (freq - self.min_freq) / df
         local big = math.floor(freq) == freq
         if big then
-            table.insert(self._tick_labels, {x, self._height + 10.5, freq})
+            table.insert(self._tick_labels, {x, self._height + 10.5, ("%.0f"):format(freq)})
         end
         table.insert(self._ticks, {math.floor(x) + .5,
                                    self._height + 1.5,
@@ -759,9 +759,9 @@ function Drive:init(path, device_name)
     self._temperature_text = TextLine{align="right"}
     self._bar = Bar{}
     WidgetGroup.init(self, {self._temperature_text,
-                            Gap(3),
+                            Gap(4),
                             self._bar,
-                            Gap(28)})
+                            Gap(26)})
     self._height = self.height
     self.is_mounted = data.is_mounted(self.path)
     if not self.is_mounted then

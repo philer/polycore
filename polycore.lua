@@ -78,7 +78,7 @@ local function setup()
         widget.GpuTop{lines=5, color=secondary_text_color},
         widget.Gap(62),
         widget.Network{interface="enp0s31f6", downspeed=5 * 1024, upspeed=1024},
-        widget.Gap(37),
+        widget.Gap(36),
         widget.Drive("/", "/dev/nvme0"),
         widget.Drive("/home", "/dev/nvme0"),
         widget.Drive("/mnt/blackstor", "WDC WD2002FAEX-007BA0"),

@@ -6,7 +6,7 @@
 
 ## Widgets
 
-**See [doc/modules/widget.html](doc/modules/widget.html) for API reference.**
+**See [philer.github.io/polycore](https://philer.github.io/polycore) for a full API reference.**
 
 The `widget` module provides a number of basic and specialized modules
 as well as grouping and rendering facilities. Their basic usage is best

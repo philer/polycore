@@ -56,8 +56,8 @@ end
 -- @tparam cairo_t cr
 -- @tparam string font_family
 -- @tparam int font_size
--- @param[opt=CAIRO_FONT_SLANT_NORMAL] font_slant
--- @param[opt=CAIRO_FONT_WEIGHT_NORMAL] font_weight
+-- @tparam[opt] ?cairo_font_slant_t font_slant (default: CAIRO_FONT_SLANT_NORMAL)
+-- @tparam[opt] ?cairo_font_weight_t font_weight (default: CAIRO_FONT_WEIGHT_NORMAL)
 function ch.set_font(cr, font_family, font_size, font_slant, font_weight)
     cairo_select_font_face(cr, font_family,
                                font_slant or CAIRO_FONT_SLANT_NORMAL,
@@ -69,10 +69,10 @@ end
 -- Use this, for example, to determine line-height.
 -- see https://cairographics.org/manual/cairo-cairo-scaled-font-t.html#cairo-font-extents-t
 -- @function ch.font_extents
--- @string font_family
--- @string font_size
--- @param[opt=CAIRO_FONT_SLANT_NORMAL] font_slant
--- @param[opt=CAIRO_FONT_WEIGHT_NORMAL] font_weight
+-- @tparam string font_family
+-- @tparam int font_size
+-- @tparam[opt] ?cairo_font_slant_t font_slant (default: CAIRO_FONT_SLANT_NORMAL)
+-- @tparam[opt] ?cairo_font_weight_t font_weight (default: CAIRO_FONT_WEIGHT_NORMAL)
 -- @treturn cairo_font_extents_t
 ch.font_extents = util.memoize(function(font_family, font_size, font_slant, font_weight)
     local tmp_surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, 100, 100)

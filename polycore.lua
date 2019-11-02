@@ -1,4 +1,5 @@
--- This is a lua script for use in conky --
+--- Conky entry point script
+-- @module polycore
 
 print(table.concat{"conky ", conky_version, " ", _VERSION})
 -- lua 5.1 to 5.3 compatibility
@@ -13,41 +14,14 @@ local data = require 'data'
 local util = require 'util'
 local widget = require 'widget'
 
--- global defaults
-
-DEBUG = false
-
-default_font_family = "Ubuntu"
-default_font_size = 10
-default_text_color = {.94, .94, .94, 1}  -- ~fafafa
-local secondary_text_color = {.72, .72, .71, 1}  -- ~b9b9b7
-
-temperature_colors = {
-    {.4,  1,  1},
-    {.5,  1, .8},
-    {.7, .9, .6},
-    {1,  .9, .4},
-    {1,  .6, .2},
-    {1,  .2, .2},
-}
-default_graph_color = temperature_colors[1]
-function temp_color(temp, low, high)
-    local idx = (temp - low) / (high - low) * (#temperature_colors - 1) + 1
-    local weight = idx - math.floor(idx)
-    local cool = temperature_colors[util.clamp(1, #temperature_colors, math.floor(idx))]
-    local hot = temperature_colors[util.clamp(1, #temperature_colors, math.ceil(idx))]
-    return cool[1] + weight * (hot[1] - cool[1]),
-           cool[2] + weight * (hot[2] - cool[2]),
-           cool[3] + weight * (hot[3] - cool[3])
-end
-
 
 os.setlocale("C")  -- decimal dot
 
+local secondary_text_color = {.72, .72, .71, 1}  -- ~b9b9b7
 local win_width, win_height = 140, 1080 - 28
 local renderer
 
--- Called once on startup to initialize widgets etc.
+--- Called once on startup to initialize widgets etc.
 local function setup()
     local fan_rpm_text = widget.TextLine{align="center", color=secondary_text_color}
     fan_rpm_text.update = function(self)
@@ -90,7 +64,9 @@ local function setup()
     renderer:layout()
 end
 
--- Called once per update cycle to (re-)draw the entire surface.
+--- Called once per update cycle to (re-)draw the entire surface.
+-- @tparam cairo_t cr
+-- @int update_count conky's $update_count
 local function update(cr, update_count)
     renderer:update()
     renderer:render(cr)
@@ -99,13 +75,14 @@ local function update(cr, update_count)
 end
 
 
--- Simple error handler to show a stacktrace.
--- Stacktrace will also include conky_main and this error_handler.
+--- Simple error handler to show a stacktrace.
+-- The printed stacktrace will also include this `error_handler` itself.
+-- @param err the error to handle
 local function error_handler(err)
     print(debug.traceback("\027[31m" .. err .. "\027[0m"))
 end
 
--- Global update cycle entry point, called by conky as per conkyrc.lua
+--- Global update cycle entry point, called by conky as per conkyrc.lua.
 -- Takes care of managing the primary cairo drawing context plus some
 -- error handling on calling the update function.
 function conky_main()

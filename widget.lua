@@ -5,6 +5,50 @@ local data = require 'data'
 local util = require 'util'
 local ch = require 'cairo_helpers'
 
+--- Defaults
+-- @section defaults
+
+--- Font used by most widgets if no other is specified.
+-- @string default_font_family
+local default_font_family = "Ubuntu"
+
+--- Font size used by most widgets if no other is specified.
+-- @int default_font_size
+local default_font_size = 10
+
+--- Text color used by most widgets if no other is specified.
+-- @tfield {number,number,number,number} default_text_color
+local default_text_color = ({.94, .94, .94, 1})  -- ~fafafa
+
+local temperature_colors = {
+    {.4,  1,  1},
+    {.5,  1, .8},
+    {.7, .9, .6},
+    {1,  .9, .4},
+    {1,  .6, .2},
+    {1,  .2, .2},
+}
+
+--- Color used to draw some widgets if no other is specified.
+-- @tfield {number,number,number,number} default_graph_color
+local default_graph_color = temperature_colors[1]
+
+--- Generate a temperature based color.
+-- Colors are chosen based on float offset in a pre-defined color gradient.
+-- @number temp current temperature (or any other type of numeric value)
+-- @number low threshold for lowest temperature / coolest color
+-- @number high threshold for highest temperature / hottest color
+local function temp_color(temp, low, high)
+    local idx = (temp - low) / (high - low) * (#temperature_colors - 1) + 1
+    local weight = idx - math.floor(idx)
+    local cool = temperature_colors[util.clamp(1, #temperature_colors, math.floor(idx))]
+    local hot = temperature_colors[util.clamp(1, #temperature_colors, math.ceil(idx))]
+    return cool[1] + weight * (hot[1] - cool[1]),
+           cool[2] + weight * (hot[2] - cool[2]),
+           cool[3] + weight * (hot[3] - cool[3])
+end
+
+
 --- Root widget wrapper
 -- Takes care of managing layout reflows and background caching.
 -- @type WidgetRenderer
@@ -324,8 +368,8 @@ end
 
 function Bar:render_background(cr)
     if self._unit then
-        ch.font_normal(cr)
         cairo_set_source_rgba(cr, unpack(default_text_color))
+        ch.set_font(cr, default_font_family, default_font_size)
         ch.write_left(cr, self._width + 5, 6, self._unit)
     end
     -- fake shadow border
@@ -579,10 +623,8 @@ function Cpu:render(cr)
     cairo_set_source_rgba(cr, r, g, b, .18)
     cairo_fill(cr)
 
-    cairo_select_font_face(cr, default_font_family, CAIRO_FONT_SLANT_NORMAL,
-                                                    CAIRO_FONT_WEIGHT_BOLD)
-    cairo_set_font_size(cr, 16)
     cairo_set_source_rgba(cr, r, g, b, .4)
+    ch.set_font(cr, default_font_family, 16, nil, CAIRO_FONT_WEIGHT_BOLD)
     ch.write_middle(cr, self.mx + 1, self.my, string.format("%.0f°", avg_temperature))
 
     for core = 1, self.cores do
@@ -655,8 +697,8 @@ function CpuFrequencies:layout(width)
 end
 
 function CpuFrequencies:render_background(cr)
-    ch.font_normal(cr)
     cairo_set_source_rgba(cr, unpack(default_text_color))
+    ch.set_font(cr, default_font_family, default_font_size)
     ch.write_left(cr, self._width + 5, 0.5 * self._height + 3, "GHz")
 
     -- shadow outline
@@ -688,7 +730,7 @@ function CpuFrequencies:render(cr)
         cairo_rel_line_to(cr, 0, tick[3])
     end
     cairo_stroke(cr)
-    ch.font_normal(cr)
+    ch.set_font(cr, default_font_family, default_font_size)
     for _, label in ipairs(self._tick_labels) do
         ch.write_centered(cr, label[1], label[2], label[3])
     end

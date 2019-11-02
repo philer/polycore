@@ -52,12 +52,17 @@ function ch.alpha_gradient(cr, x1, y1, x2, y2, r, g, b, stops)
     cairo_pattern_destroy(gradient)
 end
 
---- Reset font settings to defaults on given cairo drawing context
+--- Select font settings for given cairo drawing context
 -- @tparam cairo_t cr
-function ch.font_normal(cr)
-    cairo_select_font_face(cr, default_font_family, CAIRO_FONT_SLANT_NORMAL,
-                                                    CAIRO_FONT_WEIGHT_NORMAL)
-    cairo_set_font_size(cr, default_font_size)
+-- @tparam string font_family
+-- @tparam int font_size
+-- @param[opt=CAIRO_FONT_SLANT_NORMAL] font_slant
+-- @param[opt=CAIRO_FONT_WEIGHT_NORMAL] font_weight
+function ch.set_font(cr, font_family, font_size, font_slant, font_weight)
+    cairo_select_font_face(cr, font_family,
+                               font_slant or CAIRO_FONT_SLANT_NORMAL,
+                               font_weight or CAIRO_FONT_WEIGHT_NORMAL)
+    cairo_set_font_size(cr, font_size)
 end
 
 --- Get cairo_font_extents_t for a given font with size.
@@ -66,14 +71,14 @@ end
 -- @function ch.font_extents
 -- @string font_family
 -- @string font_size
+-- @param[opt=CAIRO_FONT_SLANT_NORMAL] font_slant
+-- @param[opt=CAIRO_FONT_WEIGHT_NORMAL] font_weight
 -- @treturn cairo_font_extents_t
-ch.font_extents = util.memoize(function(font_family, font_size)
+ch.font_extents = util.memoize(function(font_family, font_size, font_slant, font_weight)
     local tmp_surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, 100, 100)
     local tmp_cr = cairo_create(tmp_surface)
     cairo_surface_destroy(tmp_surface)
-    cairo_select_font_face(tmp_cr, font_family, CAIRO_FONT_SLANT_NORMAL,
-                                                CAIRO_FONT_WEIGHT_NORMAL)
-    cairo_set_font_size(tmp_cr, font_size)
+    ch.set_font(tmp_cr, font_family, font_size, font_slant, font_weight)
     local extents = cairo_font_extents_t:create()
     tolua.takeownership(extents)
     cairo_font_extents(tmp_cr, extents)

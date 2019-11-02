@@ -36,7 +36,7 @@
 <li><a href="#Class_Widget">Class Widget </a></li>
 <li><a href="#Class_WidgetGroup">Class WidgetGroup </a></li>
 <li><a href="#Class_Gap">Class Gap </a></li>
-<li><a href="#Class_BorderRight">Class BorderRight </a></li>
+<li><a href="#Class_Border">Class Border </a></li>
 <li><a href="#Class_TextLine">Class TextLine </a></li>
 <li><a href="#Class_Bar">Class Bar </a></li>
 <li><a href="#Class_MemoryBar">Class MemoryBar </a></li>
@@ -125,10 +125,10 @@
 	<td class="summary"></td>
 	</tr>
 </table>
-<h2><a href="#Class_BorderRight">Class BorderRight </a></h2>
+<h2><a href="#Class_Border">Class Border </a></h2>
 <table class="function_list">
 	<tr>
-	<td class="name" nowrap><a href="#BorderRight:init">BorderRight:init(args)</a></td>
+	<td class="name" nowrap><a href="#Border:init">Border:init(args)</a></td>
 	<td class="summary"></td>
 	</tr>
 </table>
@@ -493,15 +493,15 @@
 
 </dd>
 </dl>
-    <h2 class="section-header has-description"><a name="Class_BorderRight"></a>Class BorderRight </h2>
+    <h2 class="section-header has-description"><a name="Class_Border"></a>Class Border </h2>
 
           <div class="section-description">
-          Draw a border on the right side of the described area.
+          Draw a border around the window (inside).
           </div>
     <dl class="function">
     <dt>
-    <a name = "BorderRight:init"></a>
-    <strong>BorderRight:init(args)</strong>
+    <a name = "Border:init"></a>
+    <strong>Border:init(args)</strong>
     </dt>
     <dd>
 
@@ -511,13 +511,20 @@
     <ul>
         <li><span class="parameter">args</span> table of options
         <ul>
-        <li><span class="parameter">x</span>
-            <span class="types"><span class="type">int</span></span>
-         Horizontal offset of the border (=width of the framed area)
+        <li><span class="parameter">color</span>
+            <span class="types"><span class="type">{number,number,number,number}</span></span>
+
         </li>
-        <li><span class="parameter">height</span>
+        <li><span class="parameter">width</span>
             <span class="types"><span class="type">int</span></span>
-         Height of the framed area
+         border line width
+         (<em>default</em> 1)
+        </li>
+        <li><span class="parameter">sides</span>
+            <span class="types">optional <span class="type">{string,...}</span></span>
+         any combination of
+                                 "top", "right", "bottom" and/or "left"
+                                  (default: all)
         </li>
         </li></ul>
     </ul>
@@ -613,6 +620,15 @@
     <ul>
         <li><span class="parameter">args</span> table of options
         <ul>
+        <li><span class="parameter">thickness</span>
+            <span class="types"><span class="type">int</span></span>
+         vertical size of the bar
+         (<em>default</em> 6)
+        </li>
+        <li><span class="parameter">unit</span>
+            <span class="types">optional <span class="type">string</span></span>
+         to be drawn behind the bar - 3 characters will fit
+        </li>
         <li><span class="parameter">ticks</span>
             <span class="types">optional <span class="type">{number,...}</span></span>
          relative offsets (between 0 and 1) of ticks
@@ -620,14 +636,6 @@
         <li><span class="parameter">big_ticks</span>
             <span class="types">optional <span class="type">int</span></span>
          multiple of ticks to be drawn longer
-        </li>
-        <li><span class="parameter">thickness</span>
-            <span class="types">optional <span class="type">int</span></span>
-         vertical size of the bar
-        </li>
-        <li><span class="parameter">unit</span>
-            <span class="types">optional <span class="type">string</span></span>
-         to be drawn behind the bar - 3 characters will fit
         </li>
         <li><span class="parameter">color</span>
             <span class="types">optional <span class="type">{number,number,number,number}</span></span>
@@ -683,15 +691,23 @@
         <ul>
         <li><span class="parameter">total</span>
             <span class="types">optional <span class="type">number</span></span>
-         Total amount of memory to be represented by this bar
+         Total amount of memory to be represented
+                            by this bar. If greater than 8, ticks will be
+                            drawn. If omitted, total RAM will be used,
+                            however no ticks can be drawn.
         </li>
         <li><span class="parameter">unit</span>
-            <span class="types">optional <span class="type">string</span></span>
-         (default: "GiB")
+            <span class="types"><span class="type">string</span></span>
+         passed to <a href="../modules/widget.html#Bar:init">Bar:init</a>
+         (<em>default</em> "GiB")
+        </li>
+        <li><span class="parameter">thickness</span>
+            <span class="types">optional <span class="type">int</span></span>
+         passed to <a href="../modules/widget.html#Bar:init">Bar:init</a>
         </li>
         <li><span class="parameter">color</span>
             <span class="types">optional <span class="type">{number,number,number,number}</span></span>
-
+         passed to <a href="../modules/widget.html#Bar:init">Bar:init</a>
         </li>
         </li></ul>
     </ul>
@@ -747,16 +763,19 @@
                          may be expanded automatically as need arises
         </li>
         <li><span class="parameter">data_points</span>
-            <span class="types">optional <span class="type">int</span></span>
-         how many values to store (default: 90)
+            <span class="types"><span class="type">int</span></span>
+         how many values to store
+         (<em>default</em> 90)
         </li>
         <li><span class="parameter">height</span>
-            <span class="types">optional <span class="type">int</span></span>
-         (default: 20)
+            <span class="types"><span class="type">int</span></span>
+         includes fake shadow border
+         (<em>default</em> 22)
         </li>
         <li><span class="parameter">upside_down</span>
-            <span class="types">optional <span class="type">bool</span></span>
+            <span class="types"><span class="type">bool</span></span>
          draw graph from top to bottom
+         (<em>default</em> false)
         </li>
         <li><span class="parameter">color</span>
             <span class="types">optional <span class="type">{number,number,number,number}</span></span>
@@ -868,8 +887,9 @@
          What is your CPU's maximum frequency?
         </li>
         <li><span class="parameter">height</span>
-            <span class="types">optional <span class="type">int</span></span>
-         Maximum pixel height of the drawn shape (default: 16)
+            <span class="types"><span class="type">int</span></span>
+         Maximum pixel height of the drawn shape
+         (<em>default</em> 16)
         </li>
         </li></ul>
     </ul>
@@ -903,18 +923,22 @@
         <li><span class="parameter">rows</span>
             <span class="types"><span class="type">int</span></span>
          number of rows to draw
+         (<em>default</em> 5)
         </li>
         <li><span class="parameter">point_size</span>
-            <span class="types">optional <span class="type">int</span></span>
+            <span class="types"><span class="type">int</span></span>
          edge length of individual squares
+         (<em>default</em> 2)
         </li>
         <li><span class="parameter">gap</span>
-            <span class="types">optional <span class="type">int</span></span>
+            <span class="types"><span class="type">int</span></span>
          space between squares
+         (<em>default</em> 1)
         </li>
         <li><span class="parameter">shuffle</span>
-            <span class="types">optional <span class="type">bool</span></span>
-         randomize? (default: true)
+            <span class="types"><span class="type">bool</span></span>
+         randomize?
+         (<em>default</em> true)
         </li>
         </li></ul>
     </ul>
@@ -965,8 +989,9 @@
         <li><span class="parameter">args</span> table of options
         <ul>
         <li><span class="parameter">lines</span>
-            <span class="types">optional <span class="type">int</span></span>
+            <span class="types"><span class="type">int</span></span>
          how many processes to display
+         (<em>default</em> 5)
         </li>
         <li><span class="parameter">font_family</span>
             <span class="types">optional <span class="type">string</span></span>
@@ -1014,15 +1039,17 @@
         </li>
         <li><span class="parameter">graph_height</span>
             <span class="types">optional <span class="type">int</span></span>
-         passed to Graph:init
+         passed to <a href="../modules/widget.html#Graph:init">Graph:init</a>
         </li>
         <li><span class="parameter">downspeed</span>
-            <span class="types">optional <span class="type">number</span></span>
+            <span class="types"><span class="type">number</span></span>
          passed as args.max to download speed graph
+         (<em>default</em> 1024)
         </li>
         <li><span class="parameter">upspeed</span>
-            <span class="types">optional <span class="type">number</span></span>
+            <span class="types"><span class="type">number</span></span>
          passed as args.max to upload speed graph
+         (<em>default</em> 1024)
         </li>
         </li></ul>
     </ul>
@@ -1073,7 +1100,7 @@
 </div> <!-- id="main" -->
 <div id="about">
 <i>generated by <a href="http://github.com/stevedonovan/LDoc">LDoc 1.4.6</a></i>
-<i style="float:right;">Last updated 2019-11-02 13:18:31 </i>
+<i style="float:right;">Last updated 2019-11-02 15:20:15 </i>
 </div> <!-- id="about" -->
 </div> <!-- id="container" -->
 </body>

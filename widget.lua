@@ -172,26 +172,50 @@ function Gap:init(height)
 end
 
 
---- Draw a border on the right side of the described area.
--- @type BorderRight
-local BorderRight = util.class(Widget)
+--- Draw a border around the window (inside).
+-- @type Border
+local Border = util.class(Widget)
 
 --- @tparam table args table of options
--- @int args.x Horizontal offset of the border (=width of the framed area)
--- @int args.height Height of the framed area
-function BorderRight:init(args)
-    self._x = args.x
-    self._height = args.height
+-- @tparam {number,number,number,number} args.color
+-- @int[opt=1] args.width border line width
+-- @tparam ?{string,...} args.sides any combination of
+--                                 "top", "right", "bottom" and/or "left"
+--                                  (default: all)
+function Border:init(args)
+    self._color = args.color
+    self._width = args.width or 1
+
+    if args.sides then
+        self._line_ops = {top=cairo_move_to, right=cairo_move_to,
+                          bottom=cairo_move_to, left=cairo_move_to}
+        for _, side in ipairs(args.sides) do
+            self._line_ops[side] = cairo_line_to
+        end
+    else
+        self._line_ops = {top=cairo_line_to, right=cairo_line_to,
+                          bottom=cairo_line_to, left=cairo_line_to}
+    end
 end
 
-function BorderRight:render_background(cr)
+function Border:render_background(cr)
     cairo_save(cr)
     cairo_identity_matrix(cr)
+    cairo_reset_clip(cr)
+    local x1, y1, x2, y2 = cairo_clip_extents(cr)
+    x1 = x1 + 0.5 * self._width
+    y1 = y1 + 0.5 * self._width
+    x2 = x2 - 0.5 * self._width
+    y2 = y2 - 0.5 * self._width
+    cairo_set_line_width(cr, self._width)
+    cairo_set_source_rgba(cr, unpack(self._color))
     cairo_set_antialias(cr, CAIRO_ANTIALIAS_NONE)
-    cairo_set_line_width(cr, 1)
-    cairo_set_source_rgba(cr, 0.8, 1, 1, 0.05)
-    cairo_move_to(cr, self._x - 0.5, 0)
-    cairo_line_to(cr, self._x - 0.5, self._height)
+    cairo_set_line_cap(cr, CAIRO_LINE_CAP_SQUARE)
+    cairo_move_to(cr, x1, y1)
+    self._line_ops.top(cr, x2, y1)
+    self._line_ops.right(cr, x2, y2)
+    self._line_ops.bottom(cr, x1, y2)
+    self._line_ops.left(cr, x1, y1)
     cairo_stroke(cr)
     cairo_restore(cr)
 end
@@ -908,7 +932,7 @@ end
 
 return {
     Bar = Bar,
-    BorderRight = BorderRight,
+    Border = Border,
     Cpu = Cpu,
     CpuFrequencies = CpuFrequencies,
     Drive = Drive,

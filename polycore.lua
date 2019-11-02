@@ -62,7 +62,7 @@ local function setup()
     end
 
     local root = widget.WidgetGroup({
-        widget.BorderRight{x=win_width, height=win_height},
+        widget.Border{color={0.8, 1, 1, 0.05}, sides={"right"}},
         widget.Gap(98),
         fan_rpm_text,
         cpu_temps_text,

@@ -258,89 +258,90 @@ local Bar = util.class(Widget)
 
 --- @tparam table args table of options
 -- @tparam ?{number,...} args.ticks relative offsets (between 0 and 1) of ticks
--- @tparam ?{int,...} args.big_ticks indexes of ticks to be drawn longer
+-- @tparam ?int args.big_ticks multiple of ticks to be drawn longer
 -- @tparam ?int args.thickness vertical size of the bar
 -- @tparam ?string args.unit to be drawn behind the bar - 3 characters will fit
 -- @tparam ?{number,number,number,number} args.color
 function Bar:init(args)
-    self.ticks = args.ticks
-    self.big_ticks = args.big_ticks
-    self.unit = args.unit
-    self.thickness = args.thickness or 5
+    self._ticks = args.ticks
+    self._big_ticks = args.big_ticks
+    self._unit = args.unit
+    self.height = (args.thickness or 6)
+    self._height = self.height - 2
     self.color = args.color or default_graph_color
 
-    self.height = self.thickness
-    if self.ticks then
-        self.height = self.height + (self.big_ticks and 5 or 4)
+    if self._ticks then
+        self.height = self.height + (self._big_ticks and 3 or 2)
     end
-    if self.unit then
+    if self._unit then
         self.height = math.max(self.height, 8)  -- line_height
     end
 end
 
 function Bar:layout(width)
-    self._width = width - (self.unit and 20 or 0)
-
-    self._ticks = {}
-    if self.ticks then
+    self._width = width - (self._unit and 20 or 0) - 2
+    self._tick_coordinates = {}
+    if self._ticks then
         local x, tick_length
-        for i, frac in ipairs(self.ticks) do
-            x = math.floor(frac * self._width) + 0.5
+        for i, frac in ipairs(self._ticks) do
+            x = math.floor(frac * self._width)
             tick_length = 3
-            if self.big_ticks then
-                if self.big_ticks[i] then
-                    tick_length = 4
+            if self._big_ticks then
+                if i % self._big_ticks == 0 then
+                    tick_length = 3
                 else
                     tick_length = 2
                 end
             end
-            table.insert(self._ticks, {x, self.thickness + 0.5, tick_length})
+            table.insert(self._tick_coordinates, {x, self._height + 1, tick_length})
         end
     end
 end
 
 function Bar:render_background(cr)
-    if self.unit then
+    if self._unit then
         ch.font_normal(cr)
         cairo_set_source_rgba(cr, unpack(default_text_color))
-        ch.write_left(cr, self._width + 5, 6, self.unit)
+        ch.write_left(cr, self._width + 5, 6, self._unit)
     end
+    -- fake shadow border
+    cairo_set_antialias(cr, CAIRO_ANTIALIAS_NONE)
+    cairo_set_line_width(cr, 1)
+    cairo_rectangle(cr, 0, 0, self._width + 1, self._height + 1)
+    cairo_set_source_rgba(cr, 0, 0, 0, .66)
+    cairo_stroke(cr)
 end
 
 --- Set the fill-ratio of the bar
 -- @number fraction between 0 and 1
 function Bar:set_fill(fraction)
-    self.fraction = fraction
+    self._fraction = fraction
 end
 
 function Bar:render(cr)
     local r, g, b = unpack(self.color)
     cairo_set_antialias(cr, CAIRO_ANTIALIAS_NONE)
-    cairo_rectangle(cr, 0, 0, self._width, self.thickness)
-    ch.alpha_gradient(cr, 0, 0, self._width, 0, r, g, b, {
-        self.fraction - 0.33, 0.33,
-        self.fraction - 0.08, 0.66,
-        self.fraction - 0.01, 0.75,
-        self.fraction, 1,
-        self.fraction + 0.01,  0.2,
-        self.fraction + 0.1,  0.1,
-        1, 0.15,
-    })
-    cairo_fill_preserve(cr)
-
     cairo_set_line_width(cr, 1)
 
-    --- fake shadow border ---
-    cairo_set_source_rgba(cr, 0, 0, 0, .66)
-    cairo_stroke(cr)
+    cairo_rectangle(cr, 0, 0, self._width, self._height)
+    ch.alpha_gradient(cr, 0, 0, self._width, 0, r, g, b, {
+        self._fraction - 0.33, 0.33,
+        self._fraction - 0.08, 0.66,
+        self._fraction - 0.01, 0.75,
+        self._fraction, 1,
+        self._fraction + 0.01,  0.2,
+        self._fraction + 0.1,  0.1,
+        1, 0.15,
+    })
+    cairo_fill(cr)
 
-    --- border ---
-    cairo_rectangle(cr, 1, 1, self._width - 2, self.thickness - 2)
+    -- border
+    cairo_rectangle(cr, 1, 1, self._width - 1, self._height - 1)
     cairo_set_source_rgba(cr, r, g, b, .2)
     cairo_stroke(cr)
 
-    --- ticks ---
-    for _, tick in ipairs(self._ticks) do
+    -- ticks
+    for _, tick in ipairs(self._tick_coordinates) do
         cairo_move_to(cr, tick[1], tick[2])
         cairo_rel_line_to(cr, 0, tick[3])
     end
@@ -354,28 +355,30 @@ end
 local MemoryBar = util.class(Bar)
 
 --- @tparam table args table of options
--- @tparam number args.total Total amount of memory to be represented by this bar
+-- @tparam ?number args.total Total amount of memory to be represented by this bar
 -- @tparam ?string args.unit (default: "GiB")
 -- @tparam ?{number,number,number,number} args.color
 function MemoryBar:init(args)
-    local total = args.total
-    local ticks = util.range(1 / total, math.floor(total) / total, 1 / total)
-    -- ticks = util.range(1/16, 15/16, 1/16)
-    Bar.init(self, {ticks=ticks, unit=args.unit or "GiB", color=args.color})
-
-    self.total = math.ceil(total)
-    if self.total > 8 then
-        self.big_ticks = {}
-        for offset = 4, self.total, 4 do
-            self.big_ticks[offset] = offset
-        end
+    self.total = args.total
+    local ticks, big_ticks
+    if self.total then
+        local max_tick = math.floor(self.total)
+        ticks = util.range(1 / self.total, max_tick / self.total, 1 / self.total)
+        big_ticks = max_tick > 8 and 4 or nil
     end
+    Bar.init(self, {ticks=ticks, big_ticks=big_ticks,
+                    unit=args.unit or "GiB", color=args.color})
 end
 
 --- Set the amount of used memory as an absolute value.
 -- @number used should be between 0 and args.total
 function MemoryBar:set_used(used)
-    Bar:set_fill(used / self.total)
+    self:set_fill(used / self.total)
+end
+
+function MemoryBar:update()
+    local used, _, _, total = data.memory()
+    self:set_fill(used / total)
 end
 
 
@@ -391,46 +394,50 @@ local Graph = util.class(Widget)
 -- @tparam ?bool args.upside_down draw graph from top to bottom
 -- @tparam ?{number,number,number,number} args.color
 function Graph:init(args)
-    self.max = args.max
-    self.height = args.height or 20
-    self.upside_down = args.upside_down
-    self.data = util.CycleQueue(args.data_points or 90)
+    self._max = args.max
+    self.height = args.height or 22
+    self._height = self.height - 2
+    self._upside_down = args.upside_down
+    self._data = util.CycleQueue(args.data_points or 90)
     self.color = args.color or default_graph_color
 end
 
 function Graph:layout(width)
-    self.width = width
-    self.x_scale = 1 / self.data.length * width
-    self.y_scale = 1 / self.max * self.height
-    if self.upside_down then
-        self.y_scale = -self.y_scale
-        self.y_start = -0.5
+    self._width = width - 2
+    self._x_scale = 1 / self._data.length * (self._width - 1)
+    self._y_scale = 1 / self._max * (self._height - 1)
+    if self._upside_down then
+        self._y_scale = -self._y_scale
+        self._y = -0.5
     else
-        self.y_start = self.height - 0.5
+        self._y = self._height - 0.5
     end
 end
 
 function Graph:render_background(cr)
     local r, g, b = unpack(self.color)
     cairo_set_antialias(cr, CAIRO_ANTIALIAS_NONE)
-    cairo_set_line_width(cr, 1)
 
-    --- background shadow ---
-    cairo_rectangle(cr, -1, -1, self.width + 2, self.height + 2)
-    cairo_set_source_rgba(cr, 0, 0, 0, .33)
-    cairo_stroke(cr)
-
-    --- background ---
-    cairo_rectangle(cr, 0, 0, self.width, self.height)
-    ch.alpha_gradient(cr, 0, 0, 0, self.height, r, g, b, {
+    -- background
+    cairo_rectangle(cr, 0, 0, self._width, self._height)
+    ch.alpha_gradient(cr, 0, 0, 0, self._height, r, g, b, {
         .1, .14, .1, .06, .2, .06, .2, .14,
         .3, .14, .3, .06, .4, .06, .4, .14,
         .5, .14, .5, .06, .6, .06, .6, .14,
         .7, .14, .7, .06, .8, .06, .8, .14,
         .9, .14, .9, .06,
     })
-    cairo_fill_preserve(cr)
+    cairo_fill(cr)
+
+    -- border
+    cairo_set_line_width(cr, 1)
+    cairo_rectangle(cr, 1, 1, self._width - 1, self._height - 1)
     cairo_set_source_rgba(cr, r, g, b, .2)
+    cairo_stroke(cr)
+
+    -- fake shadow border
+    cairo_rectangle(cr, 0, 0, self._width + 1, self._height + 1)
+    cairo_set_source_rgba(cr, 0, 0, 0, .33)
     cairo_stroke(cr)
 end
 
@@ -438,10 +445,10 @@ end
 -- @number value if value > args.max then the graphs vertical scale will be
 --               adjusted, causing it to get squished
 function Graph:add_value(value)
-    self.data:put(value)
-    if value > self.max then
-        self.max = value
-        self:layout(self.width)
+    self._data:put(value)
+    if value > self._max then
+        self._max = value
+        self:layout(self._width + 2)
     end
 end
 
@@ -449,21 +456,20 @@ function Graph:render(cr)
     local r, g, b = unpack(self.color)
     cairo_set_antialias(cr, CAIRO_ANTIALIAS_DEFAULT)
 
-    cairo_move_to(cr, 0, self.y_start)
+    cairo_move_to(cr, 0, self._y)
     local current_max = 0
-    self.data:each(function(val, idx)
-        cairo_line_to(cr, (idx - 1) * self.x_scale, self.y_start - val * self.y_scale)
+    self._data:each(function(val, idx)
+        cairo_line_to(cr, 0.5 + (idx - 1) * self._x_scale, self._y - val * self._y_scale)
         if val > current_max then current_max = val end
     end)
-    cairo_line_to(cr, self.width, self.y_start)
+    cairo_line_to(cr, self._width, self._y)
     cairo_set_source_rgba(cr, r, g, b, 1)
     cairo_set_line_width(cr, .5)
     cairo_stroke_preserve(cr)
 
-    --- fill under graph ---
-    ch.alpha_gradient(cr, 0, self.y_start - current_max * self.y_scale,
-                       0, self.y_start,
-                       r, g, b, {0, .66, .5, .33, 1, .25})
+    -- fill under graph
+    ch.alpha_gradient(cr, 0, self._y - current_max * self._y_scale, 0, self._y,
+                      r, g, b, {0, .66, .5, .33, 1, .25})
     cairo_fill(cr)
 end
 
@@ -590,7 +596,7 @@ function CpuFrequencies:init(args)
     self.min_freq = args.min_freq
     self.max_freq = args.max_freq
     self._height = args.height or 16
-    self.height = self._height + 10
+    self.height = self._height + 13
 end
 
 function CpuFrequencies:layout(width)
@@ -609,10 +615,10 @@ function CpuFrequencies:layout(width)
         local x = self._width * (freq - self.min_freq) / df
         local big = math.floor(freq) == freq
         if big then
-            table.insert(self._tick_labels, {x, self._height + 10.5, ("%.0f"):format(freq)})
+            table.insert(self._tick_labels, {x, self._height + 11.5, ("%.0f"):format(freq)})
         end
         table.insert(self._ticks, {math.floor(x) + .5,
-                                   self._height + 1.5,
+                                   self._height + 2,
                                    big and 3 or 2})
     end
 end
@@ -831,7 +837,7 @@ function Network:init(args)
     self.interface = args.interface
     self.downspeed_graph = Graph{height=args.graph_height, max=args.downspeed or 1024}
     self.upspeed_graph = Graph{height=args.graph_height, max=args.upspeed or 1024}
-    WidgetGroup.init(self, {self.downspeed_graph, Gap(33), self.upspeed_graph})
+    WidgetGroup.init(self, {self.downspeed_graph, Gap(31), self.upspeed_graph})
 end
 
 function Network:update()
@@ -858,7 +864,7 @@ function Drive:init(path, device_name)
     WidgetGroup.init(self, {self._temperature_text,
                             Gap(4),
                             self._bar,
-                            Gap(26)})
+                            Gap(25)})
     self._height = self.height
     self.is_mounted = data.is_mounted(self.path)
     if not self.is_mounted then

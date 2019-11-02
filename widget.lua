@@ -281,17 +281,17 @@ end
 local Bar = util.class(Widget)
 
 --- @tparam table args table of options
+-- @tparam[opt=6] int args.thickness vertical size of the bar
+-- @tparam ?string args.unit to be drawn behind the bar - 3 characters will fit
 -- @tparam ?{number,...} args.ticks relative offsets (between 0 and 1) of ticks
 -- @tparam ?int args.big_ticks multiple of ticks to be drawn longer
--- @tparam ?int args.thickness vertical size of the bar
--- @tparam ?string args.unit to be drawn behind the bar - 3 characters will fit
 -- @tparam ?{number,number,number,number} args.color
 function Bar:init(args)
     self._ticks = args.ticks
     self._big_ticks = args.big_ticks
     self._unit = args.unit
-    self.height = (args.thickness or 6)
-    self._height = self.height - 2
+    self._height = args.thickness or 4
+    self.height = self.height + 2
     self.color = args.color or default_graph_color
 
     if self._ticks then
@@ -379,9 +379,13 @@ end
 local MemoryBar = util.class(Bar)
 
 --- @tparam table args table of options
--- @tparam ?number args.total Total amount of memory to be represented by this bar
--- @tparam ?string args.unit (default: "GiB")
--- @tparam ?{number,number,number,number} args.color
+-- @tparam ?number args.total Total amount of memory to be represented
+--                            by this bar. If greater than 8, ticks will be
+--                            drawn. If omitted, total RAM will be used,
+--                            however no ticks can be drawn.
+-- @tparam[opt="GiB"] string args.unit passed to `Bar:init`
+-- @tparam ?int args.thickness passed to `Bar:init`
+-- @tparam ?{number,number,number,number} args.color passed to `Bar:init`
 function MemoryBar:init(args)
     self.total = args.total
     local ticks, big_ticks
@@ -390,8 +394,11 @@ function MemoryBar:init(args)
         ticks = util.range(1 / self.total, max_tick / self.total, 1 / self.total)
         big_ticks = max_tick > 8 and 4 or nil
     end
-    Bar.init(self, {ticks=ticks, big_ticks=big_ticks,
-                    unit=args.unit or "GiB", color=args.color})
+    Bar.init(self, {ticks=ticks,
+                    big_ticks=big_ticks,
+                    unit=args.unit or "GiB",
+                    thickness=args.thickness,
+                    color=args.color})
 end
 
 --- Set the amount of used memory as an absolute value.
@@ -413,9 +420,9 @@ local Graph = util.class(Widget)
 --- @tparam table args table of options
 -- @tparam number args.max maximum expected value to be represented;
 --                         may be expanded automatically as need arises
--- @tparam ?int args.data_points how many values to store (default: 90)
--- @tparam ?int args.height (default: 20)
--- @tparam ?bool args.upside_down draw graph from top to bottom
+-- @int[opt=90] args.data_points how many values to store
+-- @int[opt=22] args.height includes fake shadow border
+-- @bool[opt=false] args.upside_down draw graph from top to bottom
 -- @tparam ?{number,number,number,number} args.color
 function Graph:init(args)
     self._max = args.max
@@ -614,7 +621,7 @@ local CpuFrequencies = util.class(Widget)
 -- @int args.cores How many cores does your CPU have?
 -- @number args.min_freq What is your CPU's minimum frequency?
 -- @number args.min_freq What is your CPU's maximum frequency?
--- @tparam ?int args.height Maximum pixel height of the drawn shape (default: 16)
+-- @int[opt=16] args.height Maximum pixel height of the drawn shape
 function CpuFrequencies:init(args)
     self.cores = args.cores
     self.min_freq = args.min_freq
@@ -719,12 +726,12 @@ end
 local MemoryGrid = util.class(Widget)
 
 --- @tparam table args table of options
--- @int args.rows number of rows to draw
--- @tparam ?int args.point_size edge length of individual squares
--- @tparam ?int args.gap space between squares
--- @tparam ?bool args.shuffle randomize? (default: true)
+-- @int[opt=5] args.rows number of rows to draw
+-- @int[opt=2] args.point_size edge length of individual squares
+-- @int[opt=1] args.gap space between squares
+-- @bool[opt=true] args.shuffle randomize?
 function MemoryGrid:init(args)
-    self.rows = args.rows
+    self.rows = args.rows or 5
     self.point_size = args.point_size or 2
     self.gap = args.gap or 1
     self.shuffle = args.shuffle == nil and true or args.shuffle
@@ -805,7 +812,7 @@ end
 local GpuTop = util.class(Widget)
 
 --- @tparam table args table of options
--- @tparam ?int args.lines how many processes to display
+-- @int[opt=5] args.lines how many processes to display
 -- @tparam ?string args.font_family
 -- @tparam ?number args.font_size
 -- @tparam ?{number,number,number,number} args.color
@@ -854,9 +861,9 @@ local Network = util.class(WidgetGroup)
 
 --- @tparam table args table of options
 -- @string args.interface e.g. "eth0"
--- @tparam ?int args.graph_height passed to Graph:init
--- @tparam ?number args.downspeed passed as args.max to download speed graph
--- @tparam ?number args.upspeed passed as args.max to upload speed graph
+-- @tparam ?int args.graph_height passed to `Graph:init`
+-- @number[opt=1024] args.downspeed passed as args.max to download speed graph
+-- @number[opt=1024] args.upspeed passed as args.max to upload speed graph
 function Network:init(args)
     self.interface = args.interface
     self.downspeed_graph = Graph{height=args.graph_height, max=args.downspeed or 1024}

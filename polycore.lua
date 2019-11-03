@@ -14,6 +14,9 @@ local data = require 'data'
 local util = require 'util'
 local widget = require 'widget'
 
+--- Draw debug information
+-- @bool DEBUG
+DEBUG = false
 
 os.setlocale("C")  -- decimal dot
 

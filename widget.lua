@@ -937,7 +937,7 @@ function Drive:init(path, device_name)
     WidgetGroup.init(self, {self._temperature_text,
                             Gap(4),
                             self._bar,
-                            Gap(25)})
+                            Gap(29)})
     self._height = self.height
     self.is_mounted = data.is_mounted(self.path)
     if not self.is_mounted then

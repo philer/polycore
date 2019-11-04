@@ -118,14 +118,14 @@ end
 --- Base Widget class.
 -- @type Widget
 local Widget = util.class()
-
---- Every widget needs a height used by the layout engine to correctly position
--- the widget.
-Widget.height = 0
+Widget._height = 0
 
 --- Called at least once to inform the widget of its width.
+-- Must return the Widget's height.
+-- The default implementation returns `self._height` as a convenience.
 -- @tparam int width
-function Widget:layout(width) end
+-- @treturn int height
+function Widget:layout(width) return self._height end
 
 --- Called at least once to allow the widget to draw static content.
 -- @tparam cairo_t cr Cairo context for background rendering
@@ -136,7 +136,9 @@ function Widget:render_background(cr) end
 -- If this function returns a true-ish value, a reflow will be triggered.
 -- Since this involves calls to all widgets' :layout functions,
 -- reflows should be used sparingly.
--- @treturn ?bool true(-ish) if a layout reflow should be triggered
+-- @treturn ?bool true(-ish) if a layout reflow should be triggered, causing
+--                all `Widget:layout` and `Widget:render_background` methods
+--                to be called again
 function Widget:update() return false end
 
 --- Called once per update to do draw dynamic content.
@@ -154,25 +156,27 @@ local WidgetGroup = util.class(Widget)
 -- @tparam {Widget,...} widgets
 function WidgetGroup:init(widgets)
     self._widgets = widgets
-    self.height = 0
-    for _, w in ipairs(widgets) do
-        self.height = self.height + w.height
-    end
 end
 
 function WidgetGroup:layout(width)
     self._width = width  -- used to draw debug lines
-    for _, w in ipairs(self._widgets) do
-        w:layout(width)
+    local widget_height, total_height, heights = 0, 0, {}
+    for i, w in ipairs(self._widgets) do
+        widget_height = w:layout(width)
+        heights[i] = widget_height
+        total_height = total_height + widget_height
     end
+    self._widget_heights = heights
+    self._height = total_height
+    return total_height
 end
 
 function WidgetGroup:render_background(cr)
     if DEBUG then
         local y_offset = 0
-        for _, w in ipairs(self._widgets) do
-            cairo_rectangle(cr, 0, y_offset, self._width, w.height)
-            y_offset = y_offset + w.height
+        for _, h in ipairs(self._widget_heights) do
+            cairo_rectangle(cr, 0, y_offset, self._width, h)
+            y_offset = y_offset + h
         end
         cairo_set_line_width(cr, 1)
         cairo_set_antialias(cr, CAIRO_ANTIALIAS_NONE)
@@ -181,26 +185,26 @@ function WidgetGroup:render_background(cr)
     end
 
     cairo_save(cr)
-    for _, w in ipairs(self._widgets) do
-        w:render_background(cr)
-        cairo_translate(cr, 0, w.height)
+    for i = 1, #self._widgets do
+        self._widgets[i]:render_background(cr)
+        cairo_translate(cr, 0, self._widget_heights[i])
     end
     cairo_restore(cr)
 end
 
 function WidgetGroup:update()
     local reflow = false
-    for _, w in ipairs(self._widgets) do
-        reflow = w:update() or reflow
+    for i, w in ipairs(self._widgets) do
+        reflow = reflow or w:update()
     end
     return reflow
 end
 
 function WidgetGroup:render(cr)
     cairo_save(cr)
-    for _, w in ipairs(self._widgets) do
-        w:render(cr)
-        cairo_translate(cr, 0, w.height)
+    for i = 1, #self._widgets do
+        self._widgets[i]:render(cr)
+        cairo_translate(cr, 0, self._widget_heights[i])
     end
     cairo_restore(cr)
 end
@@ -212,7 +216,7 @@ local Gap = util.class(Widget)
 
 --- @int height Amount of vertical space in pixels
 function Gap:init(height)
-    self.height = height
+    self._height = height
 end
 
 
@@ -309,22 +313,24 @@ function Frame:init(widget, args)
                        + (self._border_sides.top and self._border_width or 0)
     self._offset_left = self._padding.left
                        + (self._border_sides.left and self._border_width or 0)
-    self.height = self._widget.height + self._offset_top + self._padding.bottom
-                  + (self._border_sides.bottom and self._border_width or 0)
 end
 
 function Frame:layout(width)
     self._width = width
     local inner_width = width - self._offset_left - self._padding.left
                         - (self._border_sides.right and self._border_width or 0)
-    self._widget:layout(inner_width)
+    local inner_height = self._widget:layout(inner_width)
+
+    self._height = inner_height + self._offset_top + self._padding.bottom
+                  + (self._border_sides.bottom and self._border_width or 0)
+    return self._height
 end
 
 function Frame:render_background(cr)
     cairo_save(cr)
 
     if self._has_background then
-        cairo_rectangle(cr, 0, 0, self._width, self.height)
+        cairo_rectangle(cr, 0, 0, self._width, self._height)
         cairo_set_source_rgba(cr, unpack(self._background_color))
         cairo_fill(cr)
     end
@@ -336,7 +342,7 @@ function Frame:render_background(cr)
         cairo_set_line_width(cr, self._border_width)
         local offset = 0.5 * self._border_width
         local x_max = self._width - offset
-        local y_max = self.height - offset
+        local y_max = self._height - offset
         local side, line, move = self._border_sides, cairo_line_to, cairo_move_to
         cairo_move_to(cr, offset, offset);
         (side.top and line or move)(cr, x_max, offset);
@@ -389,7 +395,7 @@ function TextLine:init(args)
     self._write_fn = write_fns[self.align]
 
     local extents = ch.font_extents(self.font_family, self.font_size)
-    self.height = extents.height + 1
+    self._height = extents.height + 1
     local line_spacing = extents.height - (extents.ascent + extents.descent)
     -- try to match conky's line spacing:
     self._baseline_offset = extents.ascent + 0.5 * line_spacing + 1
@@ -409,6 +415,7 @@ function TextLine:layout(width)
     else  -- self.align == "right"
         self._x = width
     end
+    return self._height
 end
 
 function TextLine:render(cr)
@@ -436,15 +443,15 @@ function Bar:init(args)
     self._ticks = args.ticks
     self._big_ticks = args.big_ticks
     self._unit = args.unit
-    self._height = args.thickness or 4
-    self.height = self.height + 2
+    self._thickness = (args.thickness or 4)
+    self._height = self._thickness + 2
     self.color = args.color or default_graph_color
 
     if self._ticks then
-        self.height = self.height + (self._big_ticks and 3 or 2)
+        self._height = self._height + (self._big_ticks and 3 or 2)
     end
     if self._unit then
-        self.height = math.max(self.height, 8)  -- line_height
+        self._height = math.max(self._height, 8)  -- line_height
     end
 end
 
@@ -463,9 +470,10 @@ function Bar:layout(width)
                     tick_length = 2
                 end
             end
-            table.insert(self._tick_coordinates, {x, self._height + 1, tick_length})
+            table.insert(self._tick_coordinates, {x, self._thickness + 1, tick_length})
         end
     end
+    return self._height
 end
 
 function Bar:render_background(cr)
@@ -477,7 +485,7 @@ function Bar:render_background(cr)
     -- fake shadow border
     cairo_set_antialias(cr, CAIRO_ANTIALIAS_NONE)
     cairo_set_line_width(cr, 1)
-    cairo_rectangle(cr, 0, 0, self._width + 1, self._height + 1)
+    cairo_rectangle(cr, 0, 0, self._width + 1, self._thickness + 1)
     cairo_set_source_rgba(cr, 0, 0, 0, .66)
     cairo_stroke(cr)
 end
@@ -493,7 +501,7 @@ function Bar:render(cr)
     cairo_set_antialias(cr, CAIRO_ANTIALIAS_NONE)
     cairo_set_line_width(cr, 1)
 
-    cairo_rectangle(cr, 0, 0, self._width, self._height)
+    cairo_rectangle(cr, 0, 0, self._width, self._thickness)
     ch.alpha_gradient(cr, 0, 0, self._width, 0, r, g, b, {
         self._fraction - 0.33, 0.33,
         self._fraction - 0.08, 0.66,
@@ -506,7 +514,7 @@ function Bar:render(cr)
     cairo_fill(cr)
 
     -- border
-    cairo_rectangle(cr, 1, 1, self._width - 1, self._height - 1)
+    cairo_rectangle(cr, 1, 1, self._width - 1, self._thickness - 1)
     cairo_set_source_rgba(cr, r, g, b, .2)
     cairo_stroke(cr)
 
@@ -572,8 +580,8 @@ local Graph = util.class(Widget)
 -- @tparam ?{number,number,number,number} args.color
 function Graph:init(args)
     self._max = args.max
-    self.height = args.height or 22
-    self._height = self.height - 2
+    self._height = args.height or 22
+    self._inner_height = self._height - 2
     self._upside_down = args.upside_down
     self._data = util.CycleQueue(args.data_points or 90)
     self.color = args.color or default_graph_color
@@ -582,13 +590,14 @@ end
 function Graph:layout(width)
     self._width = width - 2
     self._x_scale = 1 / self._data.length * (self._width - 1)
-    self._y_scale = 1 / self._max * (self._height - 1)
+    self._y_scale = 1 / self._max * (self._inner_height - 1)
     if self._upside_down then
         self._y_scale = -self._y_scale
         self._y = -0.5
     else
-        self._y = self._height - 0.5
+        self._y = self._inner_height - 0.5
     end
+    return self._height
 end
 
 function Graph:render_background(cr)
@@ -596,8 +605,8 @@ function Graph:render_background(cr)
     cairo_set_antialias(cr, CAIRO_ANTIALIAS_NONE)
 
     -- background
-    cairo_rectangle(cr, 0, 0, self._width, self._height)
-    ch.alpha_gradient(cr, 0, 0, 0, self._height, r, g, b, {
+    cairo_rectangle(cr, 0, 0, self._width, self._inner_height)
+    ch.alpha_gradient(cr, 0, 0, 0, self._inner_height, r, g, b, {
         .1, .14, .1, .06, .2, .06, .2, .14,
         .3, .14, .3, .06, .4, .06, .4, .14,
         .5, .14, .5, .06, .6, .06, .6, .14,
@@ -608,12 +617,12 @@ function Graph:render_background(cr)
 
     -- border
     cairo_set_line_width(cr, 1)
-    cairo_rectangle(cr, 1, 1, self._width - 1, self._height - 1)
+    cairo_rectangle(cr, 1, 1, self._width - 1, self._inner_height - 1)
     cairo_set_source_rgba(cr, r, g, b, .2)
     cairo_stroke(cr)
 
     -- fake shadow border
-    cairo_rectangle(cr, 0, 0, self._width + 1, self._height + 1)
+    cairo_rectangle(cr, 0, 0, self._width + 1, self._inner_height + 1)
     cairo_set_source_rgba(cr, 0, 0, 0, .33)
     cairo_stroke(cr)
 end
@@ -704,6 +713,7 @@ function Cpu:layout(width)
         self.gradient_coordinates[core] = {(x1 + x4) / 2, (y1 + y4) / 2,
                                            (x2 + x3) / 2, (y2 + y3) / 2}
     end
+    return self.height
 end
 
 function Cpu:update()
@@ -796,6 +806,7 @@ function CpuFrequencies:layout(width)
                                    self._height + 2,
                                    big and 3 or 2})
     end
+    return self.height
 end
 
 function CpuFrequencies:render_background(cr)
@@ -897,6 +908,7 @@ function MemoryGrid:layout(width)
     if shuffle == nil or shuffle then
         util.shuffle(self.coordinates)
     end
+    return self.height
 end
 
 function MemoryGrid:update()
@@ -968,7 +980,7 @@ function GpuTop:init(args)
 
     local extents = ch.font_extents(self._font_family, self._font_size)
     self._line_height = extents.height
-    self.height = self._lines * self._line_height
+    self._height = self._lines * self._line_height
     local line_spacing = extents.height - (extents.ascent + extents.descent)
     -- try to match conky's line spacing:
     self._baseline_offset = extents.ascent + 0.5 * line_spacing + 1
@@ -976,6 +988,7 @@ end
 
 function GpuTop:layout(width)
     self._width = width
+    return self._height
 end
 
 function GpuTop:update()
@@ -1039,35 +1052,35 @@ function Drive:init(path, device_name)
     WidgetGroup.init(self, {self._temperature_text,
                             Gap(4),
                             self._bar,
-                            Gap(29)})
-    self._height = self.height
-    self.is_mounted = data.is_mounted(self.path)
-    if not self.is_mounted then
-        self.height = 0
+                            Gap(25)})
+    self._is_mounted = data.is_mounted(self.path)
+end
+
+function Drive:layout(width)
+    if self._is_mounted then
+        return WidgetGroup.layout(self, width)
     end
+    return 0
 end
 
 function Drive:render_background(cr)
-    if self.is_mounted then
+    if self._is_mounted then
         WidgetGroup.render_background(self, cr)
     end
 end
 
 function Drive:update()
-    local was_mounted = self.is_mounted
-    self.is_mounted = data.is_mounted(self.path)
-    if self.is_mounted then
+    local was_mounted = self._is_mounted
+    self._is_mounted = data.is_mounted(self.path)
+    if self._is_mounted then
         self._bar:set_fill(data.drive_percentage(self.path) / 100)
         self.temperature = data.hddtemp()[self.device_name]
-        self.height = self._height
-    else
-        self.height = 0
     end
-    return self.is_mounted ~= was_mounted
+    return self._is_mounted ~= was_mounted
 end
 
 function Drive:render(cr)
-    if not self.is_mounted then
+    if not self._is_mounted then
         return
     end
     if self.temperature then

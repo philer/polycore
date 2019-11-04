@@ -265,6 +265,79 @@ function Border:render_background(cr)
 end
 
 
+--- Draw a border and/or background around/behind another widget.
+-- @type Frame
+local Frame = util.class(Widget)
+
+--- @tparam Widget widget Widget to be wrapped
+-- @tparam table args table of options
+-- @tparam ?int padding leave some space around the inside of the frame
+-- @tparam ?{number,number,number,number} args.background_color
+-- @tparam ?{number,number,number,number} args.border_color
+-- @tparam ?int args.border_width border line width
+function Frame:init(widget, args)
+    self._widget = widget
+    self._padding = args.padding or 0
+    self._background_color = args.background_color or nil
+    self._border_color = args.border_color or {0, 0, 0, 0}
+    self._border_width = args.border_width or 0
+
+    self._inner_offset = self._padding + self._border_width
+    self.height = self._widget.height + 2 * self._inner_offset
+
+    self._has_border = self._border_width > 0
+    self._has_background = self._background_color and self._background_color[4] > 0
+
+end
+
+function Frame:layout(width)
+    self._width = width
+    self._widget:layout(width - 2 * self._inner_offset)
+end
+
+function Frame:render_background(cr)
+    if self._has_background then
+        cairo_rectangle(cr, 0, 0, self._width, self.height)
+        cairo_set_source_rgba(cr, unpack(self._background_color))
+        cairo_fill(cr)
+    end
+
+    if self._has_border then
+        cairo_rectangle(cr, 0.5 * self._border_width,
+                            0.5 * self._border_width,
+                            self._width - self._border_width,
+                            self.height - self._border_width)
+        cairo_set_line_width(cr, self._border_width)
+        cairo_set_source_rgba(cr, unpack(self._border_color))
+        cairo_stroke(cr, self._background_color)
+    end
+
+    if self._inner_offset > 0 then
+        cairo_save(cr)
+        cairo_translate(cr, self._inner_offset, self._inner_offset)
+        self._widget:render_background(cr)
+        cairo_restore(cr)
+    else
+        self._widget:render_background(cr)
+    end
+end
+
+function Frame:update()
+    return self._widget:update()
+end
+
+function Frame:render(cr)
+    if self._inner_offset > 0 then
+        cairo_save(cr)
+        cairo_translate(cr, self._inner_offset, self._inner_offset)
+        self._widget:render(cr)
+        cairo_restore(cr)
+    else
+        self._widget:render(cr)
+    end
+end
+
+
 --- Draw a single line changeable of text.
 -- Use this widget for text that will be updated on each cycle.
 -- @type TextLine
@@ -805,7 +878,7 @@ function MemoryGrid:render(cr)
     local total_points = #self.coordinates
     local used_points = math.floor(total_points * self.used / self.total + 0.5)
     local cache_points = math.floor(total_points * (self.easyfree - self.free) / self.total + 0.5)
-    local r, g, b = temp_color(self.used / self.total, 0.5, 0.9)
+    local r, g, b = temp_color(self.used / self.total, 0.6, 0.9)
 
     cairo_set_antialias(cr, CAIRO_ANTIALIAS_NONE)
     for i = 1, used_points do
@@ -985,6 +1058,7 @@ return {
     Cpu = Cpu,
     CpuFrequencies = CpuFrequencies,
     Drive = Drive,
+    Frame = Frame,
     Gap = Gap,
     Gpu = Gpu,
     GpuTop = GpuTop,

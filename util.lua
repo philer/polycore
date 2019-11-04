@@ -131,7 +131,7 @@ end
 -- like for i = start, stop, step do ...
 -- @number start
 -- @number stop
--- @tparam ?number step (default: 1)
+-- @number[opt=1] step
 -- @treturn {number,...}
 function util.range(start, stop, step)
     local arr = {}

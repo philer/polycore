@@ -102,6 +102,19 @@ end
 --- General utility functions
 -- @section general
 
+
+--- Turn a array style table into a {[value] = true} mapping table
+-- @tab entries list of keys
+-- @treturn table {key = true} mapping
+function util.set(entries)
+    local set = {}
+    for i = 1, #entries do
+        set[entries[i]] = true
+    end
+    return set
+end
+
+
 --- Clamp a value between a minimum and a maximum
 -- @number min minimum value returned
 -- @number max maximum value returned

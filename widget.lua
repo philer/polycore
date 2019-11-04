@@ -264,38 +264,65 @@ function Border:render_background(cr)
     cairo_restore(cr)
 end
 
-
---- Draw a border and/or background around/behind another widget.
+--- Draw a static border and/or background around/behind another widget.
 -- @type Frame
 local Frame = util.class(Widget)
 
 --- @tparam Widget widget Widget to be wrapped
 -- @tparam table args table of options
--- @tparam ?int padding leave some space around the inside of the frame
+-- @tparam ?number|{number,...} args.padding Leave some space around the inside
+--  of the frame.<br>
+--  - number: same padding all around.<br>
+--  - table of two numbers: {top & bottom, left & right}<br>
+--  - table of three numbers: {top, left & right, bottom}<br>
+--  - table of four numbers: {top, right, bottom, left}
 -- @tparam ?{number,number,number,number} args.background_color
 -- @tparam ?{number,number,number,number} args.border_color
--- @tparam ?int args.border_width border line width
+-- @tparam ?number args.border_width border line width
+-- @tparam ?{string,...} args.border_sides any combination of
+--                                         "top", "right", "bottom" and/or "left"
+--                                         (default: all sides)
 function Frame:init(widget, args)
     self._widget = widget
-    self._padding = args.padding or 0
     self._background_color = args.background_color or nil
     self._border_color = args.border_color or {0, 0, 0, 0}
     self._border_width = args.border_width or 0
 
-    self._inner_offset = self._padding + self._border_width
-    self.height = self._widget.height + 2 * self._inner_offset
+    local pad = args.padding or 0
+    if type(pad) == "number" then
+        self._padding = {top=pad, right=pad, bottom=pad, left=pad}
+    elseif #pad == 2 then
+        self._padding = {top=pad[1], right=pad[2], bottom=pad[1], left=pad[2]}
+    elseif #pad == 3 then
+        self._padding = {top=pad[1], right=pad[2], bottom=pad[3], left=pad[2]}
+    elseif #pad == 4 then
+        self._padding = {top=pad[1], right=pad[2], bottom=pad[3], left=pad[4]}
+    end
 
     self._has_border = self._border_width > 0
+                       and (not args.border_sides or #args.border_sides > 0)
     self._has_background = self._background_color and self._background_color[4] > 0
 
+    self._border_sides = util.set(args.border_sides or {"top", "right", "bottom", "left"})
+
+    self._offset_top = self._padding.top
+                       + (self._border_sides.top and self._border_width or 0)
+    self._offset_left = self._padding.left
+                       + (self._border_sides.left and self._border_width or 0)
+    self.height = self._widget.height + self._offset_top + self._padding.bottom
+                  + (self._border_sides.bottom and self._border_width or 0)
 end
 
 function Frame:layout(width)
     self._width = width
-    self._widget:layout(width - 2 * self._inner_offset)
+    local inner_width = width - self._offset_left - self._padding.left
+                        - (self._border_sides.right and self._border_width or 0)
+    self._widget:layout(inner_width)
 end
 
 function Frame:render_background(cr)
+    cairo_save(cr)
+
     if self._has_background then
         cairo_rectangle(cr, 0, 0, self._width, self.height)
         cairo_set_source_rgba(cr, unpack(self._background_color))
@@ -303,23 +330,25 @@ function Frame:render_background(cr)
     end
 
     if self._has_border then
-        cairo_rectangle(cr, 0.5 * self._border_width,
-                            0.5 * self._border_width,
-                            self._width - self._border_width,
-                            self.height - self._border_width)
-        cairo_set_line_width(cr, self._border_width)
+        cairo_set_antialias(cr, CAIRO_ANTIALIAS_NONE)
+        cairo_set_line_cap(cr, CAIRO_LINE_CAP_SQUARE)
         cairo_set_source_rgba(cr, unpack(self._border_color))
+        cairo_set_line_width(cr, self._border_width)
+        local offset = 0.5 * self._border_width
+        local x_max = self._width - offset
+        local y_max = self.height - offset
+        local side, line, move = self._border_sides, cairo_line_to, cairo_move_to
+        cairo_move_to(cr, offset, offset);
+        (side.top and line or move)(cr, x_max, offset);
+        (side.right and line or move)(cr, x_max, y_max);
+        (side.bottom and line or move)(cr, offset, y_max);
+        (side.left and line or move)(cr, offset, offset);
         cairo_stroke(cr, self._background_color)
     end
 
-    if self._inner_offset > 0 then
-        cairo_save(cr)
-        cairo_translate(cr, self._inner_offset, self._inner_offset)
-        self._widget:render_background(cr)
-        cairo_restore(cr)
-    else
-        self._widget:render_background(cr)
-    end
+    cairo_translate(cr, self._offset_left, self._offset_top)
+    self._widget:render_background(cr)
+    cairo_restore(cr)
 end
 
 function Frame:update()
@@ -327,9 +356,9 @@ function Frame:update()
 end
 
 function Frame:render(cr)
-    if self._inner_offset > 0 then
+    if self._offset_top > 0 or self._offset_left > 0 then
         cairo_save(cr)
-        cairo_translate(cr, self._inner_offset, self._inner_offset)
+        cairo_translate(cr, self._offset_left, self._offset_top)
         self._widget:render(cr)
         cairo_restore(cr)
     else

@@ -33,11 +33,12 @@
 <h2>Contents</h2>
 <ul>
 <li><a href="#Defaults">Defaults </a></li>
-<li><a href="#Class_WidgetRenderer">Class WidgetRenderer </a></li>
+<li><a href="#Class_Renderer">Class Renderer </a></li>
 <li><a href="#Class_Widget">Class Widget </a></li>
-<li><a href="#Class_WidgetGroup">Class WidgetGroup </a></li>
+<li><a href="#Class_Group">Class Group </a></li>
+<li><a href="#Class_Filler">Class Filler </a></li>
 <li><a href="#Class_Gap">Class Gap </a></li>
-<li><a href="#Class_Border">Class Border </a></li>
+<li><a href="#Class_Frame">Class Frame </a></li>
 <li><a href="#Class_TextLine">Class TextLine </a></li>
 <li><a href="#Class_Bar">Class Bar </a></li>
 <li><a href="#Class_MemoryBar">Class MemoryBar </a></li>
@@ -93,32 +94,27 @@
 	<td class="summary">Generate a temperature based color.</td>
 	</tr>
 </table>
-<h2><a href="#Class_WidgetRenderer">Class WidgetRenderer </a></h2>
+<h2><a href="#Class_Renderer">Class Renderer </a></h2>
 <table class="function_list">
 	<tr>
-	<td class="name" nowrap><a href="#WidgetRenderer:init">WidgetRenderer:init(args)</a></td>
+	<td class="name" nowrap><a href="#Renderer:init">Renderer:init(args)</a></td>
 	<td class="summary"></td>
 	</tr>
 	<tr>
-	<td class="name" nowrap><a href="#WidgetRenderer:layout">WidgetRenderer:layout()</a></td>
+	<td class="name" nowrap><a href="#Renderer:layout">Renderer:layout()</a></td>
 	<td class="summary">Layout all Widgets and cache their backgrounds.</td>
 	</tr>
 	<tr>
-	<td class="name" nowrap><a href="#WidgetRenderer:update">WidgetRenderer:update()</a></td>
+	<td class="name" nowrap><a href="#Renderer:update">Renderer:update()</a></td>
 	<td class="summary">Update all Widgets</td>
 	</tr>
 	<tr>
-	<td class="name" nowrap><a href="#WidgetRenderer:render">WidgetRenderer:render(cr)</a></td>
+	<td class="name" nowrap><a href="#Renderer:render">Renderer:render(cr)</a></td>
 	<td class="summary">Render to the given context</td>
 	</tr>
 </table>
 <h2><a href="#Class_Widget">Class Widget </a></h2>
 <table class="function_list">
-	<tr>
-	<td class="name" nowrap><a href="#Widget.height">Widget.height</a></td>
-	<td class="summary">Every widget needs a height used by the layout engine to correctly position
- the widget.</td>
-	</tr>
 	<tr>
 	<td class="name" nowrap><a href="#Widget:layout">Widget:layout(width)</a></td>
 	<td class="summary">Called at least once to inform the widget of its width.</td>
@@ -136,11 +132,18 @@
 	<td class="summary">Called once per update to do draw dynamic content.</td>
 	</tr>
 </table>
-<h2><a href="#Class_WidgetGroup">Class WidgetGroup </a></h2>
+<h2><a href="#Class_Group">Class Group </a></h2>
 <table class="function_list">
 	<tr>
-	<td class="name" nowrap><a href="#WidgetGroup:init">WidgetGroup:init(widgets)</a></td>
+	<td class="name" nowrap><a href="#Group:init">Group:init(widgets)</a></td>
 	<td class="summary"></td>
+	</tr>
+</table>
+<h2><a href="#Class_Filler">Class Filler </a></h2>
+<table class="function_list">
+	<tr>
+	<td class="name" nowrap><a href="#Filler:init">Filler:init()</a></td>
+	<td class="summary">no options</td>
 	</tr>
 </table>
 <h2><a href="#Class_Gap">Class Gap </a></h2>
@@ -150,10 +153,10 @@
 	<td class="summary"></td>
 	</tr>
 </table>
-<h2><a href="#Class_Border">Class Border </a></h2>
+<h2><a href="#Class_Frame">Class Frame </a></h2>
 <table class="function_list">
 	<tr>
-	<td class="name" nowrap><a href="#Border:init">Border:init(args)</a></td>
+	<td class="name" nowrap><a href="#Frame:init">Frame:init(widget, args)</a></td>
 	<td class="summary"></td>
 	</tr>
 </table>
@@ -369,7 +372,7 @@
 
 </dd>
 </dl>
-    <h2 class="section-header has-description"><a name="Class_WidgetRenderer"></a>Class WidgetRenderer </h2>
+    <h2 class="section-header has-description"><a name="Class_Renderer"></a>Class Renderer </h2>
 
           <div class="section-description">
           Root widget wrapper
@@ -377,8 +380,8 @@
           </div>
     <dl class="function">
     <dt>
-    <a name = "WidgetRenderer:init"></a>
-    <strong>WidgetRenderer:init(args)</strong>
+    <a name = "Renderer:init"></a>
+    <strong>Renderer:init(args)</strong>
     </dt>
     <dd>
 
@@ -391,7 +394,7 @@
         <li><span class="parameter">root</span>
             <span class="types"><a class="type" href="../modules/widget.html#Widget">Widget</a></span>
          The Widget subclass that should be rendered,
-                          usually a WidgetGroup
+                          usually a Group
         </li>
         <li><span class="parameter">width</span>
             <span class="types"><span class="type">int</span></span>
@@ -400,10 +403,6 @@
         <li><span class="parameter">height</span>
             <span class="types"><span class="type">int</span></span>
          Height of the surface that should be covered
-        </li>
-        <li><span class="parameter">padding</span>
-            <span class="types"><span class="type">int</span></span>
-         Distance to be left clear on all sides of the surface
         </li>
         </li></ul>
     </ul>
@@ -414,8 +413,8 @@
 
 </dd>
     <dt>
-    <a name = "WidgetRenderer:layout"></a>
-    <strong>WidgetRenderer:layout()</strong>
+    <a name = "Renderer:layout"></a>
+    <strong>Renderer:layout()</strong>
     </dt>
     <dd>
     Layout all Widgets and cache their backgrounds.
@@ -430,8 +429,8 @@
 
 </dd>
     <dt>
-    <a name = "WidgetRenderer:update"></a>
-    <strong>WidgetRenderer:update()</strong>
+    <a name = "Renderer:update"></a>
+    <strong>Renderer:update()</strong>
     </dt>
     <dd>
     Update all Widgets
@@ -444,8 +443,8 @@
 
 </dd>
     <dt>
-    <a name = "WidgetRenderer:render"></a>
-    <strong>WidgetRenderer:render(cr)</strong>
+    <a name = "Renderer:render"></a>
+    <strong>Renderer:render(cr)</strong>
     </dt>
     <dd>
     Render to the given context
@@ -472,26 +471,13 @@
           </div>
     <dl class="function">
     <dt>
-    <a name = "Widget.height"></a>
-    <strong>Widget.height</strong>
-    </dt>
-    <dd>
-    Every widget needs a height used by the layout engine to correctly position
- the widget.
-
-
-
-
-
-
-
-</dd>
-    <dt>
     <a name = "Widget:layout"></a>
     <strong>Widget:layout(width)</strong>
     </dt>
     <dd>
     Called at least once to inform the widget of its width.
+ Must return the Widget's height.
+ The default implementation returns <code>self._height</code> as a convenience.
 
 
     <h3>Parameters:</h3>
@@ -502,6 +488,12 @@
         </li>
     </ul>
 
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><span class="type">int</span></span>
+        height
+    </ol>
 
 
 
@@ -520,7 +512,7 @@
         <li><span class="parameter">cr</span>
             <span class="types"><span class="type">cairo_t</span></span>
          Cairo context for background rendering
-                    (to be cached by the <a href="../modules/widget.html#WidgetRenderer">WidgetRenderer</a>)
+                    (to be cached by the <a href="../modules/widget.html#Renderer">Renderer</a>)
         </li>
     </ul>
 
@@ -545,7 +537,9 @@
     <ol>
 
            <span class="types">optional <span class="type">bool</span></span>
-        true(-ish) if a layout reflow should be triggered
+         true(-ish) if a layout reflow should be triggered, causing
+                all <a href="../modules/widget.html#Widget:layout">Widget:layout</a> and <a href="../modules/widget.html#Widget:render_background">Widget:render_background</a> methods
+                to be called again
     </ol>
 
 
@@ -574,7 +568,7 @@
 
 </dd>
 </dl>
-    <h2 class="section-header has-description"><a name="Class_WidgetGroup"></a>Class WidgetGroup </h2>
+    <h2 class="section-header has-description"><a name="Class_Group"></a>Class Group </h2>
 
           <div class="section-description">
           Basic collection of widgets.
@@ -583,8 +577,8 @@
           </div>
     <dl class="function">
     <dt>
-    <a name = "WidgetGroup:init"></a>
-    <strong>WidgetGroup:init(widgets)</strong>
+    <a name = "Group:init"></a>
+    <strong>Group:init(widgets)</strong>
     </dt>
     <dd>
 
@@ -604,10 +598,33 @@
 
 </dd>
 </dl>
+    <h2 class="section-header has-description"><a name="Class_Filler"></a>Class Filler </h2>
+
+          <div class="section-description">
+          Leave enough vertical space between widgets to eventually fill the entire
+ height of the drawable surface.  Available space will be distributed evenly
+ between all Filler Widgets.
+          </div>
+    <dl class="function">
+    <dt>
+    <a name = "Filler:init"></a>
+    <strong>Filler:init()</strong>
+    </dt>
+    <dd>
+    no options
+
+
+
+
+
+
+
+</dd>
+</dl>
     <h2 class="section-header has-description"><a name="Class_Gap"></a>Class Gap </h2>
 
           <div class="section-description">
-          Leave some space between widgets.
+          Leave a fixed amount of space between widgets.
           </div>
     <dl class="function">
     <dt>
@@ -632,15 +649,15 @@
 
 </dd>
 </dl>
-    <h2 class="section-header has-description"><a name="Class_Border"></a>Class Border </h2>
+    <h2 class="section-header has-description"><a name="Class_Frame"></a>Class Frame </h2>
 
           <div class="section-description">
-          Draw a border around the window (inside).
+          Draw a static border and/or background around/behind another widget.
           </div>
     <dl class="function">
     <dt>
-    <a name = "Border:init"></a>
-    <strong>Border:init(args)</strong>
+    <a name = "Frame:init"></a>
+    <strong>Frame:init(widget, args)</strong>
     </dt>
     <dd>
 
@@ -648,22 +665,38 @@
 
     <h3>Parameters:</h3>
     <ul>
+        <li><span class="parameter">widget</span>
+            <span class="types"><a class="type" href="../modules/widget.html#Widget">Widget</a></span>
+         Widget to be wrapped
+        </li>
         <li><span class="parameter">args</span> table of options
         <ul>
-        <li><span class="parameter">color</span>
-            <span class="types"><span class="type">{number,number,number,number}</span></span>
+        <li><span class="parameter">padding</span>
+            <span class="types"><span class="type">number</span> or <span class="type">{number,...}</span></span>
+         Leave some space around the inside
+  of the frame.<br>
+  - number: same padding all around.<br>
+  - table of two numbers: {top & bottom, left & right}<br>
+  - table of three numbers: {top, left & right, bottom}<br>
+  - table of four numbers: {top, right, bottom, left}
+        </li>
+        <li><span class="parameter">background_color</span>
+            <span class="types">optional <span class="type">{number,number,number,number}</span></span>
 
         </li>
-        <li><span class="parameter">width</span>
-            <span class="types"><span class="type">int</span></span>
-         border line width
-         (<em>default</em> 1)
+        <li><span class="parameter">border_color</span>
+            <span class="types">optional <span class="type">{number,number,number,number}</span></span>
+
         </li>
-        <li><span class="parameter">sides</span>
+        <li><span class="parameter">border_width</span>
+            <span class="types">optional <span class="type">number</span></span>
+         border line width
+        </li>
+        <li><span class="parameter">border_sides</span>
             <span class="types">optional <span class="type">{string,...}</span></span>
          any combination of
-                                 "top", "right", "bottom" and/or "left"
-                                  (default: all)
+                                         "top", "right", "bottom" and/or "left"
+                                         (default: all sides)
         </li>
         </li></ul>
     </ul>
@@ -1239,7 +1272,7 @@
 </div> <!-- id="main" -->
 <div id="about">
 <i>generated by <a href="http://github.com/stevedonovan/LDoc">LDoc 1.4.6</a></i>
-<i style="float:right;">Last updated 2019-11-02 18:12:59 </i>
+<i style="float:right;">Last updated 2019-11-05 01:58:38 </i>
 </div> <!-- id="about" -->
 </div> <!-- id="container" -->
 </body>

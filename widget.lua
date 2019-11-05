@@ -147,34 +147,9 @@ function Widget:update() return false end
 -- @tparam cairo_t cr
 function Widget:render(cr) end
 
--- Helper function for counting all fillers
+-- endpoint methods for recursive Filler interaction
 function Widget:_count_fillers() return 0 end
-
--- Helper function for spreading unused space evenly.
--- @int height
--- @treturn int
 function Widget:_adjust_filler_height(height) return 0 end
-
-
---- Leave enough vertical space between widgets to eventually fill the entire
--- height of the drawable surface. Available space will be distributed evenly
--- between all Filler Widgets.
--- @type Gap
-local Filler = util.class(Widget)
-
-function Filler:_count_fillers() return 1 end
-
-function Filler:_adjust_filler_height(height) return height end
-
-
---- Leave some space between widgets.
--- @type Gap
-local Gap = util.class(Widget)
-
---- @int height Amount of vertical space in pixels
-function Gap:init(height)
-    self._height = height
-end
 
 
 --- Basic collection of widgets.
@@ -257,6 +232,30 @@ function Group:render(cr)
         cairo_translate(cr, 0, self._widget_heights[i])
     end
     cairo_restore(cr)
+end
+
+
+--- Leave enough vertical space between widgets to eventually fill the entire
+-- height of the drawable surface. Available space will be distributed evenly
+-- between all Filler Widgets.
+-- @type Filler
+local Filler = util.class(Widget)
+
+--- no options
+-- @function Filler:init
+
+-- endpoint methods for recursive Filler interaction
+function Filler:_count_fillers() return 1 end
+function Filler:_adjust_filler_height(height) return height end
+
+
+--- Leave a fixed amount of space between widgets.
+-- @type Gap
+local Gap = util.class(Widget)
+
+--- @int height Amount of vertical space in pixels
+function Gap:init(height)
+    self._height = height
 end
 
 

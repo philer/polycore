@@ -147,7 +147,7 @@ ${voffset 3}#
 ${template9}${color1}Down$color${template8}${downspeed enp0s31f6}
 ${template9}${color1}Total$color${template8}${totaldown enp0s31f6}
 ${voffset 29}#
-${template9}${color1}Up$color${template8}${upspeed enp0s31f6}${color}
+${template9}${color1}Up$color${template8}${upspeed enp0s31f6}
 ${template9}${color1}Total$color${template8}${totalup enp0s31f6}
 
 

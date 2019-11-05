@@ -318,7 +318,7 @@ end
 
 function Frame:layout(width)
     self._width = width
-    local inner_width = width - self._offset_left - self._padding.left
+    local inner_width = width - self._offset_left - self._padding.right
                         - (self._border_sides.right and self._border_width or 0)
     local inner_height = self._widget:layout(inner_width)
 

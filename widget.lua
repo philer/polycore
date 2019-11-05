@@ -76,7 +76,13 @@ end
 -- Will be called again automatically each time the layout changes.
 function WidgetRenderer:layout()
     print("layout reflow…")
-    self.root:layout(self.width - 2 * self.padding)
+    local content_height = self.root:layout(self.width - 2 * self.padding)
+    local fillers = self.root:_count_fillers()
+    if fillers > 0 then
+        local filler_height = (self.height - content_height) / fillers
+        local added_height = self.root:_adjust_filler_height(filler_height)
+        assert(content_height + added_height == self.height)
+    end
 
     local cr = cairo_create(self._background_surface)
 
@@ -145,6 +151,25 @@ function Widget:update() return false end
 -- @tparam cairo_t cr
 function Widget:render(cr) end
 
+-- Helper function for counting all fillers
+function Widget:_count_fillers() return 0 end
+
+-- Helper function for spreading unused space evenly.
+-- @int height
+-- @treturn int
+function Widget:_adjust_filler_height(height) return 0 end
+
+
+--- Leave enough vertical space between widgets to eventually fill the entire
+-- height of the drawable surface. Available space will be distributed evenly
+-- between all Filler Widgets.
+-- @type Gap
+local Filler = util.class(Widget)
+
+function Filler:_count_fillers() return 1 end
+
+function Filler:_adjust_filler_height(height) return height end
+
 
 --- Basic collection of widgets.
 -- Grouped widgets are drawn in a vertical stack,
@@ -171,7 +196,26 @@ function WidgetGroup:layout(width)
     return total_height
 end
 
+function WidgetGroup:_count_fillers()
+    local count = 0
+    for i = 1, #self._widgets do
+        count = count + self._widgets[i]:_count_fillers()
+    end
+    return count
+end
+
+function WidgetGroup:_adjust_filler_height(height)
+    local total_add_height = 0
+    for i = 1, #self._widgets do
+        local add_height = self._widgets[i]:_adjust_filler_height(height)
+        self._widget_heights[i] = self._widget_heights[i] + add_height
+        total_add_height = total_add_height + add_height
+    end
+    return total_add_height
+end
+
 function WidgetGroup:render_background(cr)
+
     if DEBUG then
         local y_offset = 0
         for _, h in ipairs(self._widget_heights) do
@@ -315,6 +359,16 @@ function Frame:init(widget, args)
                        + (self._border_sides.left and self._border_width or 0)
 end
 
+function Frame:_count_fillers()
+    return self._widget:_count_fillers()
+end
+
+function Frame:_adjust_filler_height(height)
+    local add_height = self._widget:_adjust_filler_height(height)
+    self._height = self._height + add_height
+    return add_height
+end
+
 function Frame:layout(width)
     self._width = width
     local inner_width = width - self._offset_left - self._padding.left
@@ -322,7 +376,7 @@ function Frame:layout(width)
     local inner_height = self._widget:layout(inner_width)
 
     self._height = inner_height + self._offset_top + self._padding.bottom
-                  + (self._border_sides.bottom and self._border_width or 0)
+                   + (self._border_sides.bottom and self._border_width or 0)
     return self._height
 end
 
@@ -1057,10 +1111,8 @@ function Drive:init(path, device_name)
 end
 
 function Drive:layout(width)
-    if self._is_mounted then
-        return WidgetGroup.layout(self, width)
-    end
-    return 0
+    local height = WidgetGroup.layout(self, width)
+    return self._is_mounted and height or 0
 end
 
 function Drive:render_background(cr)
@@ -1100,6 +1152,7 @@ return {
     Cpu = Cpu,
     CpuFrequencies = CpuFrequencies,
     Drive = Drive,
+    Filler = Filler,
     Frame = Frame,
     Gap = Gap,
     Gpu = Gpu,

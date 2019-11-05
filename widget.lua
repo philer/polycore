@@ -60,12 +60,10 @@ local WidgetRenderer = util.class()
 --                          usually a WidgetGroup
 -- @int args.width Width of the surface that should be covered
 -- @int args.height Height of the surface that should be covered
--- @int args.padding Distance to be left clear on all sides of the surface
 function WidgetRenderer:init(args)
-    self.root = args.root
-    self.width = args.width
-    self.height = args.height
-    self.padding = args.padding
+    self._root = args.root
+    self._width = args.width
+    self._height = args.height
     self._background_surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32,
                                                           args.width,
                                                           args.height)
@@ -76,22 +74,21 @@ end
 -- Will be called again automatically each time the layout changes.
 function WidgetRenderer:layout()
     print("layout reflow…")
-    local content_height = self.root:layout(self.width - 2 * self.padding)
-    local fillers = self.root:_count_fillers()
+    local content_height = self._root:layout(self._width)
+    local fillers = self._root:_count_fillers()
     if fillers > 0 then
-        local filler_height = (self.height - content_height) / fillers
-        local added_height = self.root:_adjust_filler_height(filler_height)
-        assert(content_height + added_height == self.height)
+        local filler_height = (self._height - content_height) / fillers
+        local added_height = self._root:_adjust_filler_height(filler_height)
+        assert(content_height + added_height == self._height)
     end
 
     local cr = cairo_create(self._background_surface)
 
     -- clear surface
-    cairo_save (cr)
+    cairo_save(cr)
     cairo_set_source_rgba(cr, 0, 0, 0, 0)
     cairo_set_operator(cr, CAIRO_OPERATOR_SOURCE)
     cairo_paint(cr)
-    cairo_restore(cr)
 
     if DEBUG then
         cairo_set_source_rgba(cr, 1, 0, 0, 1)
@@ -100,15 +97,15 @@ function WidgetRenderer:layout()
         cairo_set_font_size(cr, 8)
         ch.write_left(cr, 0, 8, table.concat{"conky ", conky_version, " ", _VERSION})
     end
+    cairo_restore(cr)
 
-    cairo_translate(cr, self.padding, self.padding)
-    self.root:render_background(cr)
+    self._root:render_background(cr)
     cairo_destroy(cr)
 end
 
 --- Update all Widgets
 function WidgetRenderer:update()
-    if self.root:update() then self:layout() end
+    if self._root:update() then self:layout() end
 end
 
 --- Render to the given context
@@ -116,8 +113,7 @@ end
 function WidgetRenderer:render(cr)
     cairo_set_source_surface(cr, self._background_surface, 0, 0)
     cairo_paint(cr)
-    cairo_translate(cr, self.padding, self.padding)
-    self.root:render(cr)
+    self._root:render(cr)
 end
 
 
@@ -263,54 +259,6 @@ function Gap:init(height)
     self._height = height
 end
 
-
---- Draw a border around the window (inside).
--- @type Border
-local Border = util.class(Widget)
-
---- @tparam table args table of options
--- @tparam {number,number,number,number} args.color
--- @int[opt=1] args.width border line width
--- @tparam ?{string,...} args.sides any combination of
---                                 "top", "right", "bottom" and/or "left"
---                                  (default: all)
-function Border:init(args)
-    self._color = args.color
-    self._width = args.width or 1
-
-    if args.sides then
-        self._line_ops = {top=cairo_move_to, right=cairo_move_to,
-                          bottom=cairo_move_to, left=cairo_move_to}
-        for _, side in ipairs(args.sides) do
-            self._line_ops[side] = cairo_line_to
-        end
-    else
-        self._line_ops = {top=cairo_line_to, right=cairo_line_to,
-                          bottom=cairo_line_to, left=cairo_line_to}
-    end
-end
-
-function Border:render_background(cr)
-    cairo_save(cr)
-    cairo_identity_matrix(cr)
-    cairo_reset_clip(cr)
-    local x1, y1, x2, y2 = cairo_clip_extents(cr)
-    x1 = x1 + 0.5 * self._width
-    y1 = y1 + 0.5 * self._width
-    x2 = x2 - 0.5 * self._width
-    y2 = y2 - 0.5 * self._width
-    cairo_set_line_width(cr, self._width)
-    cairo_set_source_rgba(cr, unpack(self._color))
-    cairo_set_antialias(cr, CAIRO_ANTIALIAS_NONE)
-    cairo_set_line_cap(cr, CAIRO_LINE_CAP_SQUARE)
-    cairo_move_to(cr, x1, y1)
-    self._line_ops.top(cr, x2, y1)
-    self._line_ops.right(cr, x2, y2)
-    self._line_ops.bottom(cr, x1, y2)
-    self._line_ops.left(cr, x1, y1)
-    cairo_stroke(cr)
-    cairo_restore(cr)
-end
 
 --- Draw a static border and/or background around/behind another widget.
 -- @type Frame

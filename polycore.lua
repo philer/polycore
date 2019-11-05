@@ -38,9 +38,7 @@ local function setup()
         self:set_text(table.concat(cpu_temps, " · ") .. " °C")
     end
 
-    local root = widget.WidgetGroup({
-        widget.Border{color={0.8, 1, 1, 0.05}, sides={"right"}},
-        widget.Gap(98),
+    local widgets = {
         fan_rpm_text,
         cpu_temps_text,
         widget.Gap(8),
@@ -61,9 +59,15 @@ local function setup()
         widget.Drive("/mnt/blackstor", "WDC WD2002FAEX-007BA0"),
         widget.Drive("/mnt/bluestor", "WDC WD20EZRZ-00Z5HB0"),
         widget.Drive("/mnt/cryptstor", "/dev/disk/by-uuid/9e340509-be93-42b5-9dcc-99bdbd428e22"),
+        widget.Filler(),
+    }
+    local root = widget.Frame(widget.WidgetGroup(widgets), {
+        padding={108, 9, 10, 10},
+        border_color={0.8, 1, 1, 0.05},
+        border_width = 1,
+        border_sides = {"right"},
     })
-    renderer = widget.WidgetRenderer{root=root, width=win_width,
-                                     height=win_height, padding=10}
+    renderer = widget.WidgetRenderer{root=root, width=win_width, height=win_height}
     renderer:layout()
 end
 

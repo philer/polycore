@@ -61,13 +61,13 @@ local function setup()
         widget.Drive("/mnt/cryptstor", "/dev/disk/by-uuid/9e340509-be93-42b5-9dcc-99bdbd428e22"),
         widget.Filler(),
     }
-    local root = widget.Frame(widget.WidgetGroup(widgets), {
+    local root = widget.Frame(widget.Group(widgets), {
         padding={108, 9, 10, 10},
         border_color={0.8, 1, 1, 0.05},
         border_width = 1,
         border_sides = {"right"},
     })
-    renderer = widget.WidgetRenderer{root=root, width=win_width, height=win_height}
+    renderer = widget.Renderer{root=root, width=win_width, height=win_height}
     renderer:layout()
 end
 

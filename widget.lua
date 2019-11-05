@@ -51,16 +51,16 @@ end
 
 --- Root widget wrapper
 -- Takes care of managing layout reflows and background caching.
--- @type WidgetRenderer
-local WidgetRenderer = util.class()
+-- @type Renderer
+local Renderer = util.class()
 
 ---
 -- @tparam table args table of options
 -- @tparam Widget args.root The Widget subclass that should be rendered,
---                          usually a WidgetGroup
+--                          usually a Group
 -- @int args.width Width of the surface that should be covered
 -- @int args.height Height of the surface that should be covered
-function WidgetRenderer:init(args)
+function Renderer:init(args)
     self._root = args.root
     self._width = args.width
     self._height = args.height
@@ -72,7 +72,7 @@ end
 --- Layout all Widgets and cache their backgrounds.
 -- Call this once to create the initial layout.
 -- Will be called again automatically each time the layout changes.
-function WidgetRenderer:layout()
+function Renderer:layout()
     print("layout reflow…")
     local content_height = self._root:layout(self._width)
     local fillers = self._root:_count_fillers()
@@ -104,13 +104,13 @@ function WidgetRenderer:layout()
 end
 
 --- Update all Widgets
-function WidgetRenderer:update()
+function Renderer:update()
     if self._root:update() then self:layout() end
 end
 
 --- Render to the given context
 -- @tparam cairo_t cr
-function WidgetRenderer:render(cr)
+function Renderer:render(cr)
     cairo_set_source_surface(cr, self._background_surface, 0, 0)
     cairo_paint(cr)
     self._root:render(cr)
@@ -131,7 +131,7 @@ function Widget:layout(width) return self._height end
 
 --- Called at least once to allow the widget to draw static content.
 -- @tparam cairo_t cr Cairo context for background rendering
---                    (to be cached by the `WidgetRenderer`)
+--                    (to be cached by the `Renderer`)
 function Widget:render_background(cr) end
 
 --- Called before each call to `Widget:render`.
@@ -167,19 +167,29 @@ function Filler:_count_fillers() return 1 end
 function Filler:_adjust_filler_height(height) return height end
 
 
+--- Leave some space between widgets.
+-- @type Gap
+local Gap = util.class(Widget)
+
+--- @int height Amount of vertical space in pixels
+function Gap:init(height)
+    self._height = height
+end
+
+
 --- Basic collection of widgets.
 -- Grouped widgets are drawn in a vertical stack,
 -- starting at the top of the drawble surface.
--- @type WidgetGroup
-local WidgetGroup = util.class(Widget)
+-- @type Group
+local Group = util.class(Widget)
 
 ---
 -- @tparam {Widget,...} widgets
-function WidgetGroup:init(widgets)
+function Group:init(widgets)
     self._widgets = widgets
 end
 
-function WidgetGroup:layout(width)
+function Group:layout(width)
     self._width = width  -- used to draw debug lines
     local widget_height, total_height, heights = 0, 0, {}
     for i, w in ipairs(self._widgets) do
@@ -192,7 +202,7 @@ function WidgetGroup:layout(width)
     return total_height
 end
 
-function WidgetGroup:_count_fillers()
+function Group:_count_fillers()
     local count = 0
     for i = 1, #self._widgets do
         count = count + self._widgets[i]:_count_fillers()
@@ -200,7 +210,7 @@ function WidgetGroup:_count_fillers()
     return count
 end
 
-function WidgetGroup:_adjust_filler_height(height)
+function Group:_adjust_filler_height(height)
     local total_add_height = 0
     for i = 1, #self._widgets do
         local add_height = self._widgets[i]:_adjust_filler_height(height)
@@ -210,7 +220,7 @@ function WidgetGroup:_adjust_filler_height(height)
     return total_add_height
 end
 
-function WidgetGroup:render_background(cr)
+function Group:render_background(cr)
 
     if DEBUG then
         local y_offset = 0
@@ -232,7 +242,7 @@ function WidgetGroup:render_background(cr)
     cairo_restore(cr)
 end
 
-function WidgetGroup:update()
+function Group:update()
     local reflow = false
     for i, w in ipairs(self._widgets) do
         reflow = reflow or w:update()
@@ -240,23 +250,13 @@ function WidgetGroup:update()
     return reflow
 end
 
-function WidgetGroup:render(cr)
+function Group:render(cr)
     cairo_save(cr)
     for i = 1, #self._widgets do
         self._widgets[i]:render(cr)
         cairo_translate(cr, 0, self._widget_heights[i])
     end
     cairo_restore(cr)
-end
-
-
---- Leave some space between widgets.
--- @type Gap
-local Gap = util.class(Widget)
-
---- @int height Amount of vertical space in pixels
-function Gap:init(height)
-    self._height = height
 end
 
 
@@ -944,14 +944,14 @@ end
 
 --- Compound widget to display GPU and VRAM usage.
 -- @type Gpu
-local Gpu = util.class(WidgetGroup)
+local Gpu = util.class(Group)
 
 --- no options
 function Gpu:init()
     self.usebar = Bar{ticks={.25, .5, .75}, unit="%"}
     local _, mem_total = data.gpu_memory()
     self.membar = MemoryBar{total=mem_total / 1024}
-    WidgetGroup.init(self, {self.usebar, Gap(4), self.membar})
+    Group.init(self, {self.usebar, Gap(4), self.membar})
 end
 
 function Gpu:update()
@@ -1016,7 +1016,7 @@ end
 --- Graphs for up- and download speed.
 -- This widget assumes that your conky.text adds some text between the graphs.
 -- @type Network
-local Network = util.class(WidgetGroup)
+local Network = util.class(Group)
 
 --- @tparam table args table of options
 -- @string args.interface e.g. "eth0"
@@ -1027,7 +1027,7 @@ function Network:init(args)
     self.interface = args.interface
     self.downspeed_graph = Graph{height=args.graph_height, max=args.downspeed or 1024}
     self.upspeed_graph = Graph{height=args.graph_height, max=args.upspeed or 1024}
-    WidgetGroup.init(self, {self.downspeed_graph, Gap(31), self.upspeed_graph})
+    Group.init(self, {self.downspeed_graph, Gap(31), self.upspeed_graph})
 end
 
 function Network:update()
@@ -1040,7 +1040,7 @@ end
 -- Also writes temperature as text.
 -- This widget is exptected to be combined with some special conky.text.
 -- @type Drive
-local Drive = util.class(WidgetGroup)
+local Drive = util.class(Group)
 
 ---
 -- @string path e.g. "/home"
@@ -1051,7 +1051,7 @@ function Drive:init(path, device_name)
 
     self._temperature_text = TextLine{align="right"}
     self._bar = Bar{}
-    WidgetGroup.init(self, {self._temperature_text,
+    Group.init(self, {self._temperature_text,
                             Gap(4),
                             self._bar,
                             Gap(25)})
@@ -1059,13 +1059,13 @@ function Drive:init(path, device_name)
 end
 
 function Drive:layout(width)
-    local height = WidgetGroup.layout(self, width)
+    local height = Group.layout(self, width)
     return self._is_mounted and height or 0
 end
 
 function Drive:render_background(cr)
     if self._is_mounted then
-        WidgetGroup.render_background(self, cr)
+        Group.render_background(self, cr)
     end
 end
 
@@ -1090,7 +1090,7 @@ function Drive:render(cr)
         self._bar.color = {0.8, 0.8, 0.8}
         self._temperature_text:set_text("––––")
     end
-    WidgetGroup.render(self, cr)
+    Group.render(self, cr)
 end
 
 
@@ -1111,6 +1111,6 @@ return {
     Network = Network,
     TextLine = TextLine,
     Widget = Widget,
-    WidgetGroup = WidgetGroup,
-    WidgetRenderer = WidgetRenderer,
+    Group = Group,
+    Renderer = Renderer,
 }

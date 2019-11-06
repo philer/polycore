@@ -158,17 +158,16 @@ function Widget:_adjust_filler_height(height) return 0 end
 -- @type Group
 local Group = util.class(Widget)
 
----
--- @tparam {Widget,...} widgets
+--- @tparam {Widget,...} widgets
 function Group:init(widgets)
     self._widgets = widgets
 end
 
 function Group:layout(width)
     self._width = width  -- used to draw debug lines
-    local widget_height, total_height, heights = 0, 0, {}
+    local heights, total_height = {}, 0
     for i, w in ipairs(self._widgets) do
-        widget_height = w:layout(width)
+        local widget_height = w:layout(width)
         heights[i] = widget_height
         total_height = total_height + widget_height
     end
@@ -196,7 +195,6 @@ function Group:_adjust_filler_height(height)
 end
 
 function Group:render_background(cr)
-
     if DEBUG then
         local y_offset = 0
         for _, h in ipairs(self._widget_heights) do
@@ -230,6 +228,70 @@ function Group:render(cr)
     for i = 1, #self._widgets do
         self._widgets[i]:render(cr)
         cairo_translate(cr, 0, self._widget_heights[i])
+    end
+    cairo_restore(cr)
+end
+
+
+--- Display Widgets side by side
+-- @type Columns
+local Columns = util.class(Group)
+
+--- @function Columns:init
+-- @tparam {Widget,...} widgets
+
+function Columns:layout(width)
+    -- TODO remove self._widget_heights ?
+    self.widget_width = width / #self._widgets
+    local heights, max_height = {}, 0
+    for i, w in ipairs(self._widgets) do
+        local widget_height = w:layout(self.widget_width)
+        heights[i] = widget_height
+        if widget_height > max_height then max_height = widget_height end
+    end
+    self._widget_heights = heights
+    self._height = max_height
+    return max_height
+end
+
+-- function Group:_adjust_filler_height(height)
+--     local total_add_height = 0
+--     for i = 1, #self._widgets do
+--         local add_height = self._widgets[i]:_adjust_filler_height(height)
+--         local new_height = self._widget_heights[i] + add_height
+--         self._widget_heights[i] = new_height
+--         if new_height > self._height then
+--             self._height = new_height
+--         end
+--     end
+--     return self._height
+-- end
+
+function Columns:render_background(cr)
+    if DEBUG then
+        for i = 0, #self._widgets - 1 do
+            cairo_move_to(cr, i * self._widget_width, 0)
+            cairo_rel_line_to(cr, 0, self._height)
+        end
+        cairo_set_line_width(cr, 1)
+        cairo_set_antialias(cr, CAIRO_ANTIALIAS_NONE)
+        cairo_set_source_rgba(cr, 1, 0, 0, 0.33)
+        cairo_stroke(cr)
+    end
+
+    cairo_save(cr)
+    for i = 1, #self._widgets do
+        self._widgets[i]:render_background(cr)
+        cairo_translate(cr, self.widget_width, 0)
+    end
+    cairo_restore(cr)
+end
+
+function Columns:render(cr)
+    cairo_save(cr)
+    for i = 1, #self._widgets do
+        self._widgets[i]:render(cr)
+        cairo_translate(cr, self.widget_width, 0)
     end
     cairo_restore(cr)
 end
@@ -1096,6 +1158,7 @@ end
 return {
     Bar = Bar,
     Border = Border,
+    Columns = Columns,
     Cpu = Cpu,
     CpuFrequencies = CpuFrequencies,
     Drive = Drive,
@@ -1105,11 +1168,11 @@ return {
     Gpu = Gpu,
     GpuTop = GpuTop,
     Graph = Graph,
+    Group = Group,
     MemoryBar = MemoryBar,
     MemoryGrid = MemoryGrid,
     Network = Network,
+    Renderer = Renderer,
     TextLine = TextLine,
     Widget = Widget,
-    Group = Group,
-    Renderer = Renderer,
 }

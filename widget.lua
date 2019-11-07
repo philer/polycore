@@ -78,8 +78,7 @@ function Renderer:layout()
     local fillers = self._root:_count_fillers()
     if fillers > 0 then
         local filler_height = (self._height - content_height) / fillers
-        local added_height = self._root:_adjust_filler_height(filler_height)
-        assert(content_height + added_height == self._height)
+        self._root:_adjust_filler_height(filler_height)
     end
 
     local cr = cairo_create(self._background_surface)
@@ -235,37 +234,36 @@ end
 
 --- Display Widgets side by side
 -- @type Columns
-local Columns = util.class(Group)
+local Columns = util.class(Widget)
+
+-- reuse an identical function
 
 --- @function Columns:init
 -- @tparam {Widget,...} widgets
+Columns.init = Group.init
+
+Columns.update = Group.update
 
 function Columns:layout(width)
-    -- TODO remove self._widget_heights ?
-    self.widget_width = width / #self._widgets
+    self._widget_width = width / #self._widgets
     local heights, max_height = {}, 0
     for i, w in ipairs(self._widgets) do
-        local widget_height = w:layout(self.widget_width)
+        local widget_height = w:layout(self._widget_width)
         heights[i] = widget_height
         if widget_height > max_height then max_height = widget_height end
     end
-    self._widget_heights = heights
-    self._height = max_height
+    self._height = max_height  -- used to draw debug lines
+
+    for i, w in ipairs(self._widgets) do
+        local fillers = w:_count_fillers()
+        if fillers > 0 then
+            local filler_height = (max_height - heights[i]) / fillers
+            w:_adjust_filler_height(filler_height)
+        end
+    end
+
     return max_height
 end
-
--- function Group:_adjust_filler_height(height)
---     local total_add_height = 0
---     for i = 1, #self._widgets do
---         local add_height = self._widgets[i]:_adjust_filler_height(height)
---         local new_height = self._widget_heights[i] + add_height
---         self._widget_heights[i] = new_height
---         if new_height > self._height then
---             self._height = new_height
---         end
---     end
---     return self._height
--- end
 
 function Columns:render_background(cr)
     if DEBUG then
@@ -282,7 +280,7 @@ function Columns:render_background(cr)
     cairo_save(cr)
     for i = 1, #self._widgets do
         self._widgets[i]:render_background(cr)
-        cairo_translate(cr, self.widget_width, 0)
+        cairo_translate(cr, self._widget_width, 0)
     end
     cairo_restore(cr)
 end
@@ -291,7 +289,7 @@ function Columns:render(cr)
     cairo_save(cr)
     for i = 1, #self._widgets do
         self._widgets[i]:render(cr)
-        cairo_translate(cr, self.widget_width, 0)
+        cairo_translate(cr, self._widget_width, 0)
     end
     cairo_restore(cr)
 end
@@ -516,6 +514,8 @@ function Bar:init(args)
     if self._unit then
         self._height = math.max(self._height, 8)  -- line_height
     end
+
+    self._fraction = 0
 end
 
 function Bar:layout(width)

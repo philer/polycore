@@ -82,14 +82,16 @@ function Renderer:layout()
     self._update_widgets = {}
     self._render_widgets = {}
     for _, w in ipairs(widgets) do
+        local matrix = cairo_matrix_t:create()
+        cairo_matrix_init_translate(matrix, w[2], w[3])
         if w[1].render_background then
-            table.insert(background_widgets, w)
-        end
-        if w[1].update then
-            table.insert(self._update_widgets, w)
+            background_widgets[w[1]] = matrix
         end
         if w[1].render then
-            table.insert(self._render_widgets, w)
+            self._render_widgets[w[1]] = matrix
+        end
+        if w[1].update then
+            table.insert(self._update_widgets, w[1])
         end
     end
 
@@ -116,11 +118,9 @@ function Renderer:layout()
     end
     cairo_restore(cr)
 
-    for _, w in ipairs(background_widgets) do
-        cairo_save(cr)
-        cairo_translate(cr, w[2], w[3])
-        w[1]:render_background(cr)
-        cairo_restore(cr)
+    for widget, matrix in pairs(background_widgets) do
+        cairo_set_matrix(cr, matrix)
+        widget:render_background(cr)
     end
     cairo_destroy(cr)
 end
@@ -128,8 +128,8 @@ end
 --- Update all Widgets
 function Renderer:update()
     local reflow = false
-    for _, w in ipairs(self._update_widgets) do
-        reflow = w[1]:update(cr) or reflow
+    for _, widget in ipairs(self._update_widgets) do
+        reflow = widget:update(cr) or reflow
     end
     if reflow then
         self:layout()
@@ -141,11 +141,9 @@ end
 function Renderer:render(cr)
     cairo_set_source_surface(cr, self._background_surface, 0, 0)
     cairo_paint(cr)
-    for _, w in ipairs(self._render_widgets) do
-        cairo_save(cr)
-        cairo_translate(cr, w[2], w[3])
-        w[1]:render(cr)
-        cairo_restore(cr)
+    for widget, matrix in pairs(self._render_widgets) do
+        cairo_set_matrix(cr, matrix)
+        widget:render(cr)
     end
 end
 

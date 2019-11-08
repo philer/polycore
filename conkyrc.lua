@@ -1,3 +1,5 @@
+local script_dir = debug.getinfo(1, 'S').source:match("^@(.*/)")
+
 conky.config = {
     update_interval = 1,
     total_run_times = 0,
@@ -64,7 +66,7 @@ conky.config = {
     color1 = 'b9b9b7', -- secondary text color
 
     --- lua ---
-    lua_load = os.getenv("HOME") .. "/.config/conky/polycore/polycore.lua",
+    lua_load = script_dir .. "polycore.lua",
     -- lua_startup_hook = "init",
     lua_draw_hook_post = "main",
 

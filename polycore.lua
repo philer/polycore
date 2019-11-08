@@ -8,8 +8,9 @@ if unpack == nil then unpack = table.unpack end
 
 require 'cairo'
 
--- Conky does not change PWD to this directory, so we have to add it manually
-package.path = os.getenv("HOME") .. "/.config/conky/polycore/?.lua;" .. package.path
+-- Conky does not add this script dir to lua's PATH, so we have to find it manually
+local script_dir = debug.getinfo(1, 'S').source:match("^@(.*/)")
+package.path = script_dir .. "?.lua;" .. package.path
 local data = require 'data'
 local util = require 'util'
 local widget = require 'widget'

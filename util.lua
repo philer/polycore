@@ -11,7 +11,7 @@ local util = {}
 function util.class(parent)
     local cls = setmetatable({}, {
         __index = parent,
-        __call = function (cls, ...)
+        __call = function(cls, ...)
             local instance = setmetatable({}, cls)
             if cls.init then
                 instance:init(...)

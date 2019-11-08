@@ -74,15 +74,12 @@ end
 -- Will be called again automatically each time the layout changes.
 function Renderer:layout()
     print("layout reflow…")
-    local content_height = self._root:layout(self._width)
-    local fillers = self._root:_count_fillers()
-    if fillers > 0 then
-        local filler_height = (self._height - content_height) / fillers
-        self._root:_adjust_filler_height(filler_height)
+    self._render_widgets = self._root:layout(self._width, self._height)
+    if not self._render_widgets then
+        self._render_widgets = {self._root, 0, 0}
     end
 
     local cr = cairo_create(self._background_surface)
-
     -- clear surface
     cairo_save(cr)
     cairo_set_source_rgba(cr, 0, 0, 0, 0)
@@ -91,20 +88,36 @@ function Renderer:layout()
 
     if DEBUG then
         cairo_set_source_rgba(cr, 1, 0, 0, 1)
-        cairo_select_font_face(cr, "Ubuntu", CAIRO_FONT_SLANT_NORMAL,
-                                             CAIRO_FONT_WEIGHT_NORMAL)
-        cairo_set_font_size(cr, 8)
+        ch.set_font(cr, "Ubuntu", 8)
         ch.write_left(cr, 0, 8, table.concat{"conky ", conky_version, " ", _VERSION})
+        for _, w in ipairs(self._render_widgets) do
+            cairo_rectangle(cr, unpack(w, 2))
+        end
+        cairo_set_line_width(cr, 1)
+        cairo_set_antialias(cr, CAIRO_ANTIALIAS_NONE)
+        cairo_set_source_rgba(cr, 1, 0, 0, 0.33)
+        cairo_stroke(cr)
     end
     cairo_restore(cr)
 
-    self._root:render_background(cr)
+    for _, w in ipairs(self._render_widgets) do
+        cairo_save(cr)
+        cairo_translate(cr, w[2], w[3])
+        w[1]:render_background(cr)
+        cairo_restore(cr)
+    end
     cairo_destroy(cr)
 end
 
 --- Update all Widgets
 function Renderer:update()
-    if self._root:update() then self:layout() end
+    local reflow = false
+    for _, w in ipairs(self._render_widgets) do
+        reflow = w[1]:update(cr) or reflow
+    end
+    if reflow then
+        self:layout()
+    end
 end
 
 --- Render to the given context
@@ -112,21 +125,22 @@ end
 function Renderer:render(cr)
     cairo_set_source_surface(cr, self._background_surface, 0, 0)
     cairo_paint(cr)
-    self._root:render(cr)
+    for _, w in ipairs(self._render_widgets) do
+        cairo_save(cr)
+        cairo_translate(cr, w[2], w[3])
+        w[1]:render(cr)
+        cairo_restore(cr)
+    end
 end
 
 
 --- Base Widget class.
 -- @type Widget
 local Widget = util.class()
-Widget._height = 0
 
---- Called at least once to inform the widget of its width.
--- Must return the Widget's height.
--- The default implementation returns `self._height` as a convenience.
+--- Called at least once to inform the widget of its width and height.
 -- @tparam int width
--- @treturn int height
-function Widget:layout(width) return self._height end
+function Widget:layout(width, height) end
 
 --- Called at least once to allow the widget to draw static content.
 -- @tparam cairo_t cr Cairo context for background rendering
@@ -146,10 +160,6 @@ function Widget:update() return false end
 -- @tparam cairo_t cr
 function Widget:render(cr) end
 
--- endpoint methods for recursive Filler interaction
-function Widget:_count_fillers() return 0 end
-function Widget:_adjust_filler_height(height) return 0 end
-
 
 --- Basic collection of widgets.
 -- Grouped widgets are drawn in a vertical stack,
@@ -160,75 +170,48 @@ local Group = util.class(Widget)
 --- @tparam {Widget,...} widgets
 function Group:init(widgets)
     self._widgets = widgets
-end
-
-function Group:layout(width)
-    self._width = width  -- used to draw debug lines
-    local heights, total_height = {}, 0
-    for i, w in ipairs(self._widgets) do
-        local widget_height = w:layout(width)
-        heights[i] = widget_height
-        total_height = total_height + widget_height
-    end
-    self._widget_heights = heights
-    self._height = total_height
-    return total_height
-end
-
-function Group:_count_fillers()
-    local count = 0
-    for i = 1, #self._widgets do
-        count = count + self._widgets[i]:_count_fillers()
-    end
-    return count
-end
-
-function Group:_adjust_filler_height(height)
-    local total_add_height = 0
-    for i = 1, #self._widgets do
-        local add_height = self._widgets[i]:_adjust_filler_height(height)
-        self._widget_heights[i] = self._widget_heights[i] + add_height
-        total_add_height = total_add_height + add_height
-    end
-    return total_add_height
-end
-
-function Group:render_background(cr)
-    if DEBUG then
-        local y_offset = 0
-        for _, h in ipairs(self._widget_heights) do
-            cairo_rectangle(cr, 0, y_offset, self._width, h)
-            y_offset = y_offset + h
+    local width = 0
+    local fix_width = false
+    self._min_height = 0
+    self._fillers = 0
+    for _, w in ipairs(widgets) do
+        if w.width then
+            fix_width = true
+            if w.width > width then width = w.width end
         end
-        cairo_set_line_width(cr, 1)
-        cairo_set_antialias(cr, CAIRO_ANTIALIAS_NONE)
-        cairo_set_source_rgba(cr, 1, 0, 0, 0.33)
-        cairo_stroke(cr)
+        if w.height then
+            self._min_height = self._min_height + w.height
+        else
+            self._fillers = self._fillers + 1
+        end
     end
-
-    cairo_save(cr)
-    for i = 1, #self._widgets do
-        self._widgets[i]:render_background(cr)
-        cairo_translate(cr, 0, self._widget_heights[i])
+    -- if fix_width then
+    --     self.width = width
+    -- end
+    if self._fillers == 0 then
+        self.height = self._min_height
     end
-    cairo_restore(cr)
 end
 
-function Group:update()
-    local reflow = false
-    for i, w in ipairs(self._widgets) do
-        reflow = reflow or w:update()
+function Group:layout(width, height)
+    self._width = width  -- used to draw debug lines
+    local y = 0
+    local children = {{self, 0, 0, 0, 0}}  -- include self for subclasses
+    local filler_height = (height - self._min_height) / self._fillers
+    for _, w in ipairs(self._widgets) do
+        local widget_height = w.height or filler_height
+        local sub_children = w:layout(width, widget_height)
+        if sub_children then
+            for _, child in ipairs(sub_children) do
+                child[3] = child[3] + y
+                table.insert(children, child)
+            end
+        else
+            table.insert(children, {w, 0, y, width, widget_height})
+        end
+        y = y + widget_height
     end
-    return reflow
-end
-
-function Group:render(cr)
-    cairo_save(cr)
-    for i = 1, #self._widgets do
-        self._widgets[i]:render(cr)
-        cairo_translate(cr, 0, self._widget_heights[i])
-    end
-    cairo_restore(cr)
+    return children
 end
 
 
@@ -238,60 +221,52 @@ local Columns = util.class(Widget)
 
 -- reuse an identical function
 
---- @function Columns:init
--- @tparam {Widget,...} widgets
-Columns.init = Group.init
-
-Columns.update = Group.update
-
-function Columns:layout(width)
-    self._widget_width = width / #self._widgets
-    local heights, max_height = {}, 0
-    for i, w in ipairs(self._widgets) do
-        local widget_height = w:layout(self._widget_width)
-        heights[i] = widget_height
-        if widget_height > max_height then max_height = widget_height end
-    end
-    self._height = max_height  -- used to draw debug lines
-
-    for i, w in ipairs(self._widgets) do
-        local fillers = w:_count_fillers()
-        if fillers > 0 then
-            local filler_height = (max_height - heights[i]) / fillers
-            w:_adjust_filler_height(filler_height)
+--- @tparam {Widget,...} widgets
+function Columns:init(widgets)
+    self._widgets = widgets
+    self._min_width = 0
+    self._fillers = 0
+    local height = 0
+    local fix_height = false
+    for _, w in ipairs(widgets) do
+        if w.width then
+            self._min_width = self._min_width + w.width
+        else
+            self._fillers = self._fillers + 1
+        end
+        if w.height then
+            fix_height = true
+            if w.height > height then height = w.height end
         end
     end
-
-    return max_height
+    if self._fillers == 0 then
+        self.width = self._min_width
+    end
+    if fix_height then
+        self.height = height
+    end
 end
 
-function Columns:render_background(cr)
-    if DEBUG then
-        for i = 0, #self._widgets - 1 do
-            cairo_move_to(cr, i * self._widget_width, 0)
-            cairo_rel_line_to(cr, 0, self._height)
+
+function Columns:layout(width, height)
+    self._height = height  -- used to draw debug lines
+    local x = 0
+    local children = {{self, 0, 0, 0, 0}}  -- include self for subclasses
+    local filler_width = (width - self._min_width) / self._fillers
+    for _, w in ipairs(self._widgets) do
+        local widget_width = w.width or filler_width
+        local sub_children = w:layout(widget_width, height)
+        if sub_children then
+            for _, child in ipairs(sub_children) do
+                child[2] = child[2] + x
+                table.insert(children, child)
+            end
+        else
+            table.insert(children, {w, x, 0, widget_width, height})
         end
-        cairo_set_line_width(cr, 1)
-        cairo_set_antialias(cr, CAIRO_ANTIALIAS_NONE)
-        cairo_set_source_rgba(cr, 1, 0, 0, 0.33)
-        cairo_stroke(cr)
+        x = x + widget_width
     end
-
-    cairo_save(cr)
-    for i = 1, #self._widgets do
-        self._widgets[i]:render_background(cr)
-        cairo_translate(cr, self._widget_width, 0)
-    end
-    cairo_restore(cr)
-end
-
-function Columns:render(cr)
-    cairo_save(cr)
-    for i = 1, #self._widgets do
-        self._widgets[i]:render(cr)
-        cairo_translate(cr, self._widget_width, 0)
-    end
-    cairo_restore(cr)
+    return children
 end
 
 
@@ -304,18 +279,15 @@ local Filler = util.class(Widget)
 --- no options
 -- @function Filler:init
 
--- endpoint methods for recursive Filler interaction
-function Filler:_count_fillers() return 1 end
-function Filler:_adjust_filler_height(height) return height end
-
 
 --- Leave a fixed amount of space between widgets.
 -- @type Gap
 local Gap = util.class(Widget)
 
 --- @int height Amount of vertical space in pixels
-function Gap:init(height)
-    self._height = height
+function Gap:init(size)
+    self.height = size
+    self.width = size
 end
 
 
@@ -360,36 +332,46 @@ function Frame:init(widget, args)
 
     self._border_sides = util.set(args.border_sides or {"top", "right", "bottom", "left"})
 
-    self._offset_top = self._padding.top
-                       + (self._border_sides.top and self._border_width or 0)
-    self._offset_left = self._padding.left
-                       + (self._border_sides.left and self._border_width or 0)
+    self._x_offset = self._padding.left
+                     + (self._border_sides.left and self._border_width or 0)
+    self._y_offset = self._padding.top
+                     + (self._border_sides.top and self._border_width or 0)
+    self._horizontal_space = self._x_offset + self._padding.right
+                             + (self._border_sides.right and self._border_width or 0)
+    self._vertical_space = self._y_offset + self._padding.bottom
+                           + (self._border_sides.bottom and self._border_width or 0)
+
+    if widget.width then
+        self.width = widget.width + self._horizontal_space
+    end
+    if widget.height then
+        self.height = widget.height + self._vertical_space
+    end
 end
 
-function Frame:_count_fillers()
-    return self._widget:_count_fillers()
-end
-
-function Frame:_adjust_filler_height(height)
-    local add_height = self._widget:_adjust_filler_height(height)
-    self._height = self._height + add_height
-    return add_height
-end
-
-function Frame:layout(width)
+function Frame:layout(width, height)
     self._width = width
-    local inner_width = width - self._offset_left - self._padding.right
-                        - (self._border_sides.right and self._border_width or 0)
-    local inner_height = self._widget:layout(inner_width)
-
-    self._height = inner_height + self._offset_top + self._padding.bottom
-                   + (self._border_sides.bottom and self._border_width or 0)
-    return self._height
+    self._height = height
+    local inner_width = width - self._horizontal_space
+    local inner_height = height - self._vertical_space
+    local children = self._widget:layout(inner_width, inner_height)
+    if children then
+        for _, child in ipairs(children) do
+            child[2] = child[2] + self._x_offset
+            child[3] = child[3] + self._y_offset
+        end
+        table.insert(children, 1, {self, 0, 0, width, height})
+        return children
+    else
+        return {
+            {self, 0, 0, width, height},
+            {self._widget, self._y_offset, self._x_offset,
+                           inner_width, inner_height}
+        }
+    end
 end
 
 function Frame:render_background(cr)
-    cairo_save(cr)
-
     if self._has_background then
         cairo_rectangle(cr, 0, 0, self._width, self._height)
         cairo_set_source_rgba(cr, unpack(self._background_color))
@@ -411,25 +393,6 @@ function Frame:render_background(cr)
         (side.bottom and line or move)(cr, offset, y_max);
         (side.left and line or move)(cr, offset, offset);
         cairo_stroke(cr, self._background_color)
-    end
-
-    cairo_translate(cr, self._offset_left, self._offset_top)
-    self._widget:render_background(cr)
-    cairo_restore(cr)
-end
-
-function Frame:update()
-    return self._widget:update()
-end
-
-function Frame:render(cr)
-    if self._offset_top > 0 or self._offset_left > 0 then
-        cairo_save(cr)
-        cairo_translate(cr, self._offset_left, self._offset_top)
-        self._widget:render(cr)
-        cairo_restore(cr)
-    else
-        self._widget:render(cr)
     end
 end
 
@@ -456,7 +419,7 @@ function TextLine:init(args)
     self._write_fn = write_fns[self.align]
 
     local extents = ch.font_extents(self.font_family, self.font_size)
-    self._height = extents.height + 1
+    self.height = extents.height + 1
     local line_spacing = extents.height - (extents.ascent + extents.descent)
     -- try to match conky's line spacing:
     self._baseline_offset = extents.ascent + 0.5 * line_spacing + 1
@@ -476,7 +439,6 @@ function TextLine:layout(width)
     else  -- self.align == "right"
         self._x = width
     end
-    return self._height
 end
 
 function TextLine:render(cr)
@@ -505,14 +467,14 @@ function Bar:init(args)
     self._big_ticks = args.big_ticks
     self._unit = args.unit
     self._thickness = (args.thickness or 4)
-    self._height = self._thickness + 2
+    self.height = self._thickness + 2
     self.color = args.color or default_graph_color
 
     if self._ticks then
-        self._height = self._height + (self._big_ticks and 3 or 2)
+        self.height = self.height + (self._big_ticks and 3 or 2)
     end
     if self._unit then
-        self._height = math.max(self._height, 8)  -- line_height
+        self.height = math.max(self.height, 8)  -- line_height
     end
 
     self._fraction = 0
@@ -536,7 +498,6 @@ function Bar:layout(width)
             table.insert(self._tick_coordinates, {x, self._thickness + 1, tick_length})
         end
     end
-    return self._height
 end
 
 function Bar:render_background(cr)
@@ -604,11 +565,11 @@ local MemoryBar = util.class(Bar)
 -- @tparam ?int args.thickness passed to `Bar:init`
 -- @tparam ?{number,number,number,number} args.color passed to `Bar:init`
 function MemoryBar:init(args)
-    self.total = args.total
+    self._total = args.total
     local ticks, big_ticks
-    if self.total then
-        local max_tick = math.floor(self.total)
-        ticks = util.range(1 / self.total, max_tick / self.total, 1 / self.total)
+    if self._total then
+        local max_tick = math.floor(self._total)
+        ticks = util.range(1 / self._total, max_tick / self._total, 1 / self._total)
         big_ticks = max_tick > 8 and 4 or nil
     end
     Bar.init(self, {ticks=ticks,
@@ -621,7 +582,7 @@ end
 --- Set the amount of used memory as an absolute value.
 -- @number used should be between 0 and args.total
 function MemoryBar:set_used(used)
-    self:set_fill(used / self.total)
+    self:set_fill(used / self._total)
 end
 
 function MemoryBar:update()
@@ -643,8 +604,8 @@ local Graph = util.class(Widget)
 -- @tparam ?{number,number,number,number} args.color
 function Graph:init(args)
     self._max = args.max
-    self._height = args.height or 22
-    self._inner_height = self._height - 2
+    self.height = args.height or 22
+    self._inner_height = self.height - 2
     self._upside_down = args.upside_down
     self._data = util.CycleQueue(args.data_points or 90)
     self.color = args.color or default_graph_color
@@ -660,7 +621,6 @@ function Graph:layout(width)
     else
         self._y = self._inner_height - 0.5
     end
-    return self._height
 end
 
 function Graph:render_background(cr)
@@ -734,61 +694,63 @@ local Cpu = util.class(Widget)
 -- @int args.gap space between central polygon and outer segments
 -- @int args.segment_size radial thickness of outer segments
 function Cpu:init(args)
-    self.cores = args.cores
-    self.scale = args.scale
-    self.gap = args.gap
-    self.segment_size = args.segment_size
+    self._cores = args.cores
+    self._scale = args.scale
+    self._gap = args.gap
+    self._segment_size = args.segment_size
+
+    self.height = 2 * (self._scale + self._gap + self._segment_size)
+    self.width = self.height
 end
 
-function Cpu:layout(width)
-    local radius = self.scale + self.gap + self.segment_size
-    self.height = 2 * radius
-    self.mx = width / 2
-    self.my = radius
+function Cpu:layout(width, height)
+    self._mx = width / 2
+    self._my = height / 2
 
-    self.center_coordinates = {}
-    self.segment_coordinates = {}
-    self.gradient_coordinates = {}
-    local sector_rad = 2 * math.pi / self.cores
-    local min, max = self.scale + self.gap, radius
+    self._center_coordinates = {}
+    self._segment_coordinates = {}
+    self._gradient_coordinates = {}
+    local sector_rad = 2 * math.pi / self._cores
+    local min = self._scale + self._gap
+    local max = min + self._segment_size
 
-    for core = 1, self.cores do
+    for core = 1, self._cores do
         local rad_center = (core - 1) * sector_rad - math.pi/2
         local rad_left = rad_center + sector_rad/2
         local rad_right = rad_center - sector_rad/2
         local dx_center, dy_center = math.cos(rad_center), math.sin(rad_center)
         local dx_left, dy_left = math.cos(rad_left), math.sin(rad_left)
         local dx_right, dy_right = math.cos(rad_right), math.sin(rad_right)
-        self.center_coordinates[2 * core - 1] = self.mx + self.scale * dx_left
-        self.center_coordinates[2 * core] = self.my + self.scale * dy_left
+        self._center_coordinates[2 * core - 1] = self._mx + self._scale * dx_left
+        self._center_coordinates[2 * core] = self._my + self._scale * dy_left
 
         -- segment corners
-        local dx_gap, dy_gap = self.gap * dx_center, self.gap * dy_center
-        local x1 = self.mx + min * dx_left + dx_gap
-        local y1 = self.my + min * dy_left + dy_gap
-        local x2 = self.mx + max * dx_left + dx_gap
-        local y2 = self.my + max * dy_left + dy_gap
-        local x3 = self.mx + max * dx_right + dx_gap
-        local y3 = self.my + max * dy_right + dy_gap
-        local x4 = self.mx + min * dx_right + dx_gap
-        local y4 = self.my + min * dy_right + dy_gap
-        self.segment_coordinates[core] = {x1, y1, x2, y2, x3, y3, x4, y4}
-        self.gradient_coordinates[core] = {(x1 + x4) / 2, (y1 + y4) / 2,
+        local dx_gap, dy_gap = self._gap * dx_center, self._gap * dy_center
+        local x1 = self._mx + min * dx_left + dx_gap
+        local y1 = self._my + min * dy_left + dy_gap
+        local x2 = self._mx + max * dx_left + dx_gap
+        local y2 = self._my + max * dy_left + dy_gap
+        local x3 = self._mx + max * dx_right + dx_gap
+        local y3 = self._my + max * dy_right + dy_gap
+        local x4 = self._mx + min * dx_right + dx_gap
+        local y4 = self._my + min * dy_right + dy_gap
+        self._segment_coordinates[core] = {x1, y1, x2, y2, x3, y3, x4, y4}
+        self._gradient_coordinates[core] = {(x1 + x4) / 2, (y1 + y4) / 2,
                                            (x2 + x3) / 2, (y2 + y3) / 2}
     end
-    return self.height
+    return self._height
 end
 
 function Cpu:update()
-    self.percentages = data.cpu_percentages(self.cores)
-    self.temperatures = data.cpu_temperatures()
+    self._percentages = data.cpu_percentages(self._cores)
+    self._temperatures = data.cpu_temperatures()
 end
 
 function Cpu:render(cr)
-    local avg_temperature = util.avg(self.temperatures)
+    local avg_temperature = util.avg(self._temperatures)
     local r, g, b = temp_color(avg_temperature, 30, 80)
 
-    ch.polygon(cr, self.center_coordinates)
+    ch.polygon(cr, self._center_coordinates)
     cairo_set_line_width(cr, 6)
     cairo_set_source_rgba(cr, r, g, b, .33)
     cairo_stroke_preserve(cr)
@@ -800,12 +762,12 @@ function Cpu:render(cr)
 
     cairo_set_source_rgba(cr, r, g, b, .4)
     ch.set_font(cr, default_font_family, 16, nil, CAIRO_FONT_WEIGHT_BOLD)
-    ch.write_middle(cr, self.mx + 1, self.my, string.format("%.0f°", avg_temperature))
+    ch.write_middle(cr, self._mx + 1, self._my, string.format("%.0f°", avg_temperature))
 
-    for core = 1, self.cores do
-        ch.polygon(cr, self.segment_coordinates[core])
-        local gradient = cairo_pattern_create_linear(unpack(self.gradient_coordinates[core]))
-        local r, g, b = temp_color(self.temperatures[core], 30, 80)
+    for core = 1, self._cores do
+        ch.polygon(cr, self._segment_coordinates[core])
+        local gradient = cairo_pattern_create_linear(unpack(self._gradient_coordinates[core]))
+        local r, g, b = temp_color(self._temperatures[core], 30, 80)
         cairo_set_source_rgba(cr, 0, 0, 0, .4)
         cairo_set_line_width(cr, 1.5)
         cairo_stroke_preserve(cr)
@@ -813,7 +775,7 @@ function Cpu:render(cr)
         cairo_set_line_width(cr, .75)
         cairo_stroke_preserve(cr)
 
-        local h_rel = self.percentages[core]/100
+        local h_rel = self._percentages[core]/100
         cairo_pattern_add_color_stop_rgba(gradient, 0,            r, g, b, .33)
         cairo_pattern_add_color_stop_rgba(gradient, h_rel - .045, r, g, b, .75)
         cairo_pattern_add_color_stop_rgba(gradient, h_rel,
@@ -869,7 +831,6 @@ function CpuFrequencies:layout(width)
                                    self._height + 2,
                                    big and 3 or 2})
     end
-    return self.height
 end
 
 function CpuFrequencies:render_background(cr)
@@ -949,54 +910,54 @@ local MemoryGrid = util.class(Widget)
 -- @int[opt=1] args.gap space between squares
 -- @bool[opt=true] args.shuffle randomize?
 function MemoryGrid:init(args)
-    self.rows = args.rows or 5
-    self.point_size = args.point_size or 2
-    self.gap = args.gap or 1
-    self.shuffle = args.shuffle == nil and true or args.shuffle
-    self.height = self.rows * self.point_size + (self.rows - 1) * self.gap
+    self._rows = args.rows or 5
+    self._point_size = args.point_size or 2
+    self._gap = args.gap or 1
+    self._shuffle = args.shuffle == nil and true or args.shuffle
+    self.height = self._rows * self._point_size + (self._rows - 1) * self._gap
 end
 
 function MemoryGrid:layout(width)
-    local point_plus_gap = self.point_size + self.gap
+    local point_plus_gap = self._point_size + self._gap
     local columns = math.floor(width / point_plus_gap)
-    local left = 0.5 * (width - columns * point_plus_gap + self.gap)
-    self.coordinates = {}
+    local left = 0.5 * (width - columns * point_plus_gap + self._gap)
+    self._coordinates = {}
     for col = 0, columns - 1 do
-        for row = 0, self.rows - 1 do
-            table.insert(self.coordinates, {col * point_plus_gap + left,
+        for row = 0, self._rows - 1 do
+            table.insert(self._coordinates, {col * point_plus_gap + left,
                                             row * point_plus_gap,
-                                            self.point_size, self.point_size})
+                                            self._point_size, self._point_size})
         end
     end
     if shuffle == nil or shuffle then
-        util.shuffle(self.coordinates)
+        util.shuffle(self._coordinates)
     end
-    return self.height
 end
 
 function MemoryGrid:update()
-    self.used, self.easyfree, self.free, self.total = data.memory()
+    self._used, self._easyfree, self._free, self._total = data.memory()
 end
 
 function MemoryGrid:render(cr)
-    local total_points = #self.coordinates
-    local used_points = math.floor(total_points * self.used / self.total + 0.5)
-    local cache_points = math.floor(total_points * (self.easyfree - self.free) / self.total + 0.5)
-    local r, g, b = temp_color(self.used / self.total, 0.6, 0.9)
+    if self._total <= 0 then return end  -- TODO figure out why this happens
+    local total_points = #self._coordinates
+    local used_points = math.floor(total_points * self._used / self._total + 0.5)
+    local cache_points = math.floor(total_points * (self._easyfree - self._free) / self._total + 0.5)
+    local r, g, b = temp_color(self._used / self._total, 0.6, 0.9)
 
     cairo_set_antialias(cr, CAIRO_ANTIALIAS_NONE)
     for i = 1, used_points do
-        cairo_rectangle(cr, unpack(self.coordinates[i]))
+        cairo_rectangle(cr, unpack(self._coordinates[i]))
     end
     cairo_set_source_rgba(cr, r, g, b, .8)
     cairo_fill(cr)
     for i = used_points, used_points + cache_points do
-        cairo_rectangle(cr, unpack(self.coordinates[i]))
+        cairo_rectangle(cr, unpack(self._coordinates[i]))
     end
     cairo_set_source_rgba(cr, r, g, b, .35)
     cairo_fill(cr)
     for i = used_points + cache_points, total_points do
-        cairo_rectangle(cr, unpack(self.coordinates[i]))
+        cairo_rectangle(cr, unpack(self._coordinates[i]))
     end
     cairo_set_source_rgba(cr, r, g, b, .1)
     cairo_fill(cr)
@@ -1009,21 +970,22 @@ local Gpu = util.class(Group)
 
 --- no options
 function Gpu:init()
-    self.usebar = Bar{ticks={.25, .5, .75}, unit="%"}
+    self._usebar = Bar{ticks={.25, .5, .75}, unit="%"}
+
     local _, mem_total = data.gpu_memory()
-    self.membar = MemoryBar{total=mem_total / 1024}
-    Group.init(self, {self.usebar, Gap(4), self.membar})
+    self._membar = MemoryBar{total=mem_total / 1024}
+    self._membar.update = function()
+        self._membar:set_used(data.gpu_memory() / 1024)
+    end
+    Group.init(self, {self._usebar, Gap(4), self._membar})
 end
 
 function Gpu:update()
-    self.usebar:set_fill(data.gpu_percentage() / 100)
-
-    local mem_used, _ = data.gpu_memory()
-    self.membar:set_used(mem_used / 1024)
+    self._usebar:set_fill(data.gpu_percentage() / 100)
 
     local color = {temp_color(data.gpu_temperature(), 30, 80)}
-    self.usebar.color = color
-    self.membar.color = color
+    self._usebar.color = color
+    self._membar.color = color
 end
 
 --- Table of processes for the GPU, sorted by VRAM usage
@@ -1043,7 +1005,7 @@ function GpuTop:init(args)
 
     local extents = ch.font_extents(self._font_family, self._font_size)
     self._line_height = extents.height
-    self._height = self._lines * self._line_height
+    self.height = self._lines * self._line_height
     local line_spacing = extents.height - (extents.ascent + extents.descent)
     -- try to match conky's line spacing:
     self._baseline_offset = extents.ascent + 0.5 * line_spacing + 1
@@ -1051,7 +1013,6 @@ end
 
 function GpuTop:layout(width)
     self._width = width
-    return self._height
 end
 
 function GpuTop:update()
@@ -1086,15 +1047,15 @@ local Network = util.class(Group)
 -- @number[opt=1024] args.upspeed passed as args.max to upload speed graph
 function Network:init(args)
     self.interface = args.interface
-    self.downspeed_graph = Graph{height=args.graph_height, max=args.downspeed or 1024}
-    self.upspeed_graph = Graph{height=args.graph_height, max=args.upspeed or 1024}
-    Group.init(self, {self.downspeed_graph, Gap(31), self.upspeed_graph})
+    self._downspeed_graph = Graph{height=args.graph_height, max=args.downspeed or 1024}
+    self._upspeed_graph = Graph{height=args.graph_height, max=args.upspeed or 1024}
+    Group.init(self, {self._downspeed_graph, Gap(31), self._upspeed_graph})
 end
 
 function Network:update()
     local down, up = data.network_speed(self.interface)
-    self.downspeed_graph:add_value(down)
-    self.upspeed_graph:add_value(up)
+    self._downspeed_graph:add_value(down)
+    self._upspeed_graph:add_value(up)
 end
 
 --- Visualize drive usage and temperature in a colorized Bar.
@@ -1116,17 +1077,16 @@ function Drive:init(path, device_name)
                             Gap(4),
                             self._bar,
                             Gap(25)})
+    self._real_height = self.height
     self._is_mounted = data.is_mounted(self.path)
+    self.height = self._is_mounted and self._real_height or 0
 end
 
-function Drive:layout(width)
-    local height = Group.layout(self, width)
-    return self._is_mounted and height or 0
-end
-
-function Drive:render_background(cr)
+function Drive:layout(...)
     if self._is_mounted then
-        Group.render_background(self, cr)
+        return {{self, 0, 0, 0, 0}, unpack(Group.layout(self, ...))}
+    else
+        return {{self, 0, 0, 0, 0}}
     end
 end
 
@@ -1135,29 +1095,24 @@ function Drive:update()
     self._is_mounted = data.is_mounted(self.path)
     if self._is_mounted then
         self._bar:set_fill(data.drive_percentage(self.path) / 100)
-        self.temperature = data.hddtemp()[self.device_name]
+        local temperature = data.hddtemp()[self.device_name]
+        if temperature then
+            self._bar.color = {temp_color(temperature, 35, 65)}
+            self._temperature_text:set_text(temperature .. "°C")
+        else
+            self._bar.color = {0.8, 0.8, 0.8}
+            self._temperature_text:set_text("––––")
+        end
+        self.height = self._real_height
+    else
+        self.height = 0
     end
     return self._is_mounted ~= was_mounted
-end
-
-function Drive:render(cr)
-    if not self._is_mounted then
-        return
-    end
-    if self.temperature then
-        self._bar.color = {temp_color(self.temperature, 35, 65)}
-        self._temperature_text:set_text(self.temperature .. "°C")
-    else
-        self._bar.color = {0.8, 0.8, 0.8}
-        self._temperature_text:set_text("––––")
-    end
-    Group.render(self, cr)
 end
 
 
 return {
     Bar = Bar,
-    Border = Border,
     Columns = Columns,
     Cpu = Cpu,
     CpuFrequencies = CpuFrequencies,

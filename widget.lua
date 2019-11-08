@@ -74,9 +74,23 @@ end
 -- Will be called again automatically each time the layout changes.
 function Renderer:layout()
     print("layout reflow…")
-    self._render_widgets = self._root:layout(self._width, self._height)
-    if not self._render_widgets then
-        self._render_widgets = {self._root, 0, 0}
+    local widgets = self._root:layout(self._width, self._height)
+    if not widgets then
+        widgets = {self._root, 0, 0}
+    end
+    local background_widgets = {}
+    self._update_widgets = {}
+    self._render_widgets = {}
+    for _, w in ipairs(widgets) do
+        if w[1].render_background then
+            table.insert(background_widgets, w)
+        end
+        if w[1].update then
+            table.insert(self._update_widgets, w)
+        end
+        if w[1].render then
+            table.insert(self._render_widgets, w)
+        end
     end
 
     local cr = cairo_create(self._background_surface)
@@ -90,8 +104,10 @@ function Renderer:layout()
         cairo_set_source_rgba(cr, 1, 0, 0, 1)
         ch.set_font(cr, "Ubuntu", 8)
         ch.write_left(cr, 0, 8, table.concat{"conky ", conky_version, " ", _VERSION})
-        for _, w in ipairs(self._render_widgets) do
-            cairo_rectangle(cr, unpack(w, 2))
+        for _, w in ipairs(widgets) do
+            if w[4] * w[5] ~= 0 then
+                cairo_rectangle(cr, unpack(w, 2))
+            end
         end
         cairo_set_line_width(cr, 1)
         cairo_set_antialias(cr, CAIRO_ANTIALIAS_NONE)
@@ -100,7 +116,7 @@ function Renderer:layout()
     end
     cairo_restore(cr)
 
-    for _, w in ipairs(self._render_widgets) do
+    for _, w in ipairs(background_widgets) do
         cairo_save(cr)
         cairo_translate(cr, w[2], w[3])
         w[1]:render_background(cr)
@@ -112,7 +128,7 @@ end
 --- Update all Widgets
 function Renderer:update()
     local reflow = false
-    for _, w in ipairs(self._render_widgets) do
+    for _, w in ipairs(self._update_widgets) do
         reflow = w[1]:update(cr) or reflow
     end
     if reflow then
@@ -138,27 +154,37 @@ end
 -- @type Widget
 local Widget = util.class()
 
---- Called at least once to inform the widget of its width and height.
+--- Set a width if the Widget should have a fixed width.
+-- Omit (=nil) if width should be adjusted dynamically.
+-- @int Widget.width
+
+--- Set a height if the Widget should have a fixed height.
+-- Omit (=nil) if height should be adjusted dynamically.
+-- @int Widget.height
+
+--- Called at least once to inform the widget of the width and height
+-- it may occupy.
 -- @tparam int width
+-- @tparam int height
 function Widget:layout(width, height) end
 
 --- Called at least once to allow the widget to draw static content.
+-- @function Widget:render_background
 -- @tparam cairo_t cr Cairo context for background rendering
 --                    (to be cached by the `Renderer`)
-function Widget:render_background(cr) end
 
 --- Called before each call to `Widget:render`.
 -- If this function returns a true-ish value, a reflow will be triggered.
 -- Since this involves calls to all widgets' :layout functions,
 -- reflows should be used sparingly.
+-- @function Widget:update
 -- @treturn ?bool true(-ish) if a layout reflow should be triggered, causing
 --                all `Widget:layout` and `Widget:render_background` methods
 --                to be called again
-function Widget:update() return false end
 
 --- Called once per update to do draw dynamic content.
+-- @function Widget:render
 -- @tparam cairo_t cr
-function Widget:render(cr) end
 
 
 --- Basic collection of widgets.
@@ -284,7 +310,7 @@ local Filler = util.class(Widget)
 -- @type Gap
 local Gap = util.class(Widget)
 
---- @int height Amount of vertical space in pixels
+--- @int size Amount of space in pixels
 function Gap:init(size)
     self.height = size
     self.width = size

@@ -1,6 +1,11 @@
+--- Conky entry point script
+-- @module conkyrc
+
+local conkyrc = conky or {}
+
 local script_dir = debug.getinfo(1, 'S').source:match("^@(.*/)")
 
-conky.config = {
+conkyrc.config = {
     update_interval = 1,
     total_run_times = 0,
 
@@ -24,7 +29,7 @@ conky.config = {
     override_utf8_locale = true,
 
     alignment = 'top_left',
-    gap_x = -1920,
+    gap_x = 0,
     gap_y = 28,
     minimum_width = 140,
     maximum_width = 140,
@@ -97,14 +102,13 @@ $endif]],
     template7 = '${alignc}',
     template8 = '${alignr 10}',
     template9 = '${goto 10}',
-
-};
+}
 
 -----------------
 ----- START -----
 -----------------
 
-conky.text = [[
+conkyrc.text = [[
 ${voffset 30}#
 ${font TeXGyreChorus:pixelsize=20:bold}${alignc}Linux ${color 4dd}Mint$color$font
 
@@ -163,4 +167,6 @@ ${template5 bluestor /mnt/bluestor}#
 ${template5 cryptstor /mnt/cryptstor}#
 #
 ${image ~/.config/conky/polycore/9blocks.png -p 60,990 -s 16x16}#
-]];
+]]
+
+return conkyrc

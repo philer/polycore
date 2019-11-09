@@ -11,6 +11,7 @@ require 'cairo'
 -- Conky does not add this script dir to lua's PATH, so we have to find it manually
 local script_dir = debug.getinfo(1, 'S').source:match("^@(.*/)")
 package.path = script_dir .. "?.lua;" .. package.path
+local conkyrc = require 'conkyrc'
 local data = require 'data'
 local util = require 'util'
 local widget = require 'widget'
@@ -22,7 +23,6 @@ DEBUG = false
 os.setlocale("C")  -- decimal dot
 
 local secondary_text_color = {.72, .72, .71, 1}  -- ~b9b9b7
-local win_width, win_height = 140, 1080 - 28
 local renderer
 
 --- Called once on startup to initialize widgets etc.
@@ -68,7 +68,9 @@ local function setup()
         border_width = 1,
         border_sides = {"right"},
     })
-    renderer = widget.Renderer{root=root, width=win_width, height=win_height}
+    renderer = widget.Renderer{root=root,
+                               width=conkyrc.config.minimum_width,
+                               height=conkyrc.config.minimum_height}
     renderer:layout()
 end
 

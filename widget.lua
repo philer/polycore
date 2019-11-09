@@ -637,7 +637,7 @@ end
 
 function Graph:layout(width)
     self._width = width - 2
-    self._x_scale = 1 / self._data.length * (self._width - 1)
+    self._x_scale = 1 / self._data.length * self._width
     self._y_scale = 1 / self._max * (self._inner_height - 1)
     if self._upside_down then
         self._y_scale = -self._y_scale

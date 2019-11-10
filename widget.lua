@@ -1,27 +1,32 @@
 --- A collection of Widget classes
 -- @module widget
+-- @alias w
 
 local data = require 'data'
 local util = require 'util'
 local ch = require 'cairo_helpers'
 
---- Defaults
--- @section defaults
 
---- Font used by most widgets if no other is specified.
--- @string default_font_family
-local default_font_family = "Ubuntu"
+local w = {
+    --- Font used by widgets if no other is specified.
+    -- @string default_font_family
+    default_font_family = "Ubuntu",
 
---- Font size used by most widgets if no other is specified.
--- @int default_font_size
-local default_font_size = 10
+    --- Font size used by widgets if no other is specified.
+    -- @int default_font_size
+    default_font_size = 10,
 
---- Text color used by most widgets if no other is specified.
--- @tfield {number,number,number,number} default_text_color
-local default_text_color = ({.94, .94, .94, 1})  -- ~fafafa
+    --- Text color used by widgets if no other is specified.
+    -- @tfield {number,number,number,number} default_text_color
+    default_text_color = ({.94, .94, .94, 1}),  -- ~fafafa
+
+    --- Color used to draw some widgets if no other is specified.
+    -- @tfield {number,number,number,number} default_graph_color
+    default_graph_color = ({.4, 1, 1}),
+}
 
 local temperature_colors = {
-    {.4,  1,  1},
+    w.default_graph_color,
     {.5,  1, .8},
     {.7, .9, .6},
     {1,  .9, .4},
@@ -29,17 +34,13 @@ local temperature_colors = {
     {1,  .2, .2},
 }
 
---- Color used to draw some widgets if no other is specified.
--- @tfield {number,number,number,number} default_graph_color
-local default_graph_color = temperature_colors[1]
-
 --- Generate a temperature based color.
 -- Colors are chosen based on float offset in a pre-defined color gradient.
--- @number temp current temperature (or any other type of numeric value)
+-- @number temperature current temperature (or any other type of numeric value)
 -- @number low threshold for lowest temperature / coolest color
 -- @number high threshold for highest temperature / hottest color
-local function temp_color(temp, low, high)
-    local idx = (temp - low) / (high - low) * (#temperature_colors - 1) + 1
+function w.temperature_color(temperature, low, high)
+    local idx = (temperature - low) / (high - low) * (#temperature_colors - 1) + 1
     local weight = idx - math.floor(idx)
     local cool = temperature_colors[util.clamp(1, #temperature_colors, math.floor(idx))]
     local hot = temperature_colors[util.clamp(1, #temperature_colors, math.ceil(idx))]
@@ -53,6 +54,7 @@ end
 -- Takes care of managing layout reflows and background caching.
 -- @type Renderer
 local Renderer = util.class()
+w.Renderer = Renderer
 
 ---
 -- @tparam table args table of options
@@ -151,6 +153,7 @@ end
 --- Base Widget class.
 -- @type Widget
 local Widget = util.class()
+w.Widget = Widget
 
 --- Set a width if the Widget should have a fixed width.
 -- Omit (=nil) if width should be adjusted dynamically.
@@ -190,6 +193,7 @@ function Widget:layout(width, height) end
 -- starting at the top of the drawble surface.
 -- @type Group
 local Group = util.class(Widget)
+w.Group = Group
 
 --- @tparam {Widget,...} widgets
 function Group:init(widgets)
@@ -242,6 +246,7 @@ end
 --- Display Widgets side by side
 -- @type Columns
 local Columns = util.class(Widget)
+w.Columns = Columns
 
 -- reuse an identical function
 
@@ -299,6 +304,7 @@ end
 -- between all Filler Widgets.
 -- @type Filler
 local Filler = util.class(Widget)
+w.Filler = Filler
 
 --- no options
 -- @function Filler:init
@@ -307,6 +313,7 @@ local Filler = util.class(Widget)
 --- Leave a fixed amount of space between widgets.
 -- @type Gap
 local Gap = util.class(Widget)
+w.Gap = Gap
 
 --- @int size Amount of space in pixels
 function Gap:init(size)
@@ -318,6 +325,7 @@ end
 --- Draw a static border and/or background around/behind another widget.
 -- @type Frame
 local Frame = util.class(Widget)
+w.Frame = Frame
 
 --- @tparam Widget widget Widget to be wrapped
 -- @tparam table args table of options
@@ -425,6 +433,7 @@ end
 -- Use this widget for text that will be updated on each cycle.
 -- @type TextLine
 local TextLine = util.class(Widget)
+w.TextLine = TextLine
 
 --- @tparam table args table of options
 -- @tparam ?string args.align "left" (default), "center" or "right"
@@ -433,9 +442,9 @@ local TextLine = util.class(Widget)
 -- @tparam ?{number,number,number,number} args.color
 function TextLine:init(args)
     self.align = args.align or "left"
-    self.font_family = args.font_family or default_font_family
-    self.font_size = args.font_size or default_font_size
-    self.color = args.color or default_text_color
+    self.font_family = args.font_family or w.default_font_family
+    self.font_size = args.font_size or w.default_font_size
+    self.color = args.color or w.default_text_color
 
     local write_fns = {left = ch.write_left,
                        center = ch.write_centered,
@@ -479,6 +488,7 @@ end
 -- and a unit (static, up to 3 characters) written behind the end.
 -- @type Bar
 local Bar = util.class(Widget)
+w.Bar = Bar
 
 --- @tparam table args table of options
 -- @tparam[opt=6] int args.thickness vertical size of the bar
@@ -492,7 +502,7 @@ function Bar:init(args)
     self._unit = args.unit
     self._thickness = (args.thickness or 4)
     self.height = self._thickness + 2
-    self.color = args.color or default_graph_color
+    self.color = args.color or w.default_graph_color
 
     if self._ticks then
         self.height = self.height + (self._big_ticks and 3 or 2)
@@ -526,8 +536,8 @@ end
 
 function Bar:render_background(cr)
     if self._unit then
-        cairo_set_source_rgba(cr, unpack(default_text_color))
-        ch.set_font(cr, default_font_family, default_font_size)
+        cairo_set_source_rgba(cr, unpack(w.default_text_color))
+        ch.set_font(cr, w.default_font_family, w.default_font_size)
         ch.write_left(cr, self._width + 5, 6, self._unit)
     end
     -- fake shadow border
@@ -579,6 +589,7 @@ end
 --- Specialized unit-based Bar.
 -- @type MemoryBar
 local MemoryBar = util.class(Bar)
+w.MemoryBar = MemoryBar
 
 --- @tparam table args table of options
 -- @tparam ?number args.total Total amount of memory to be represented
@@ -618,6 +629,7 @@ end
 --- Track changing data; similar to conky's graphs.
 -- @type Graph
 local Graph = util.class(Widget)
+w.Graph = Graph
 
 --- @tparam table args table of options
 -- @tparam number args.max maximum expected value to be represented;
@@ -632,7 +644,7 @@ function Graph:init(args)
     self._inner_height = self.height - 2
     self._upside_down = args.upside_down
     self._data = util.CycleQueue(args.data_points or 90)
-    self.color = args.color or default_graph_color
+    self.color = args.color or w.default_graph_color
 end
 
 function Graph:layout(width)
@@ -711,6 +723,7 @@ end
 -- Looks best for CPUs with 4 to 8 cores but also works for higher numbers
 -- @type Cpu
 local Cpu = util.class(Widget)
+w.Cpu = Cpu
 
 --- @tparam table args table of options
 -- @int args.cores How many cores does your CPU have?
@@ -772,7 +785,7 @@ end
 
 function Cpu:render(cr)
     local avg_temperature = util.avg(self._temperatures)
-    local r, g, b = temp_color(avg_temperature, 30, 80)
+    local r, g, b = w.temperature_color(avg_temperature, 30, 80)
 
     ch.polygon(cr, self._center_coordinates)
     cairo_set_line_width(cr, 6)
@@ -785,13 +798,13 @@ function Cpu:render(cr)
     cairo_fill(cr)
 
     cairo_set_source_rgba(cr, r, g, b, .4)
-    ch.set_font(cr, default_font_family, 16, nil, CAIRO_FONT_WEIGHT_BOLD)
+    ch.set_font(cr, w.default_font_family, 16, nil, CAIRO_FONT_WEIGHT_BOLD)
     ch.write_middle(cr, self._mx + 1, self._my, string.format("%.0f°", avg_temperature))
 
     for core = 1, self._cores do
         ch.polygon(cr, self._segment_coordinates[core])
         local gradient = cairo_pattern_create_linear(unpack(self._gradient_coordinates[core]))
-        local r, g, b = temp_color(self._temperatures[core], 30, 80)
+        local r, g, b = w.temperature_color(self._temperatures[core], 30, 80)
         cairo_set_source_rgba(cr, 0, 0, 0, .4)
         cairo_set_line_width(cr, 1.5)
         cairo_stroke_preserve(cr)
@@ -819,6 +832,7 @@ end
 --- Visualize cpu-frequencies in a style reminiscent of stacked progress bars.
 -- @type CpuFrequencies
 local CpuFrequencies = util.class(Widget)
+w.CpuFrequencies = CpuFrequencies
 
 --- @tparam table args table of options
 -- @int args.cores How many cores does your CPU have?
@@ -858,8 +872,8 @@ function CpuFrequencies:layout(width)
 end
 
 function CpuFrequencies:render_background(cr)
-    cairo_set_source_rgba(cr, unpack(default_text_color))
-    ch.set_font(cr, default_font_family, default_font_size)
+    cairo_set_source_rgba(cr, unpack(w.default_text_color))
+    ch.set_font(cr, w.default_font_family, w.default_font_size)
     ch.write_left(cr, self._width + 5, 0.5 * self._height + 3, "GHz")
 
     -- shadow outline
@@ -880,7 +894,7 @@ function CpuFrequencies:update()
 end
 
 function CpuFrequencies:render(cr)
-    local r, g, b = temp_color(util.avg(self.temperatures), 30, 80)
+    local r, g, b = w.temperature_color(util.avg(self.temperatures), 30, 80)
     cairo_set_antialias(cr, CAIRO_ANTIALIAS_NONE)
     cairo_set_line_width(cr, 1)
 
@@ -891,7 +905,7 @@ function CpuFrequencies:render(cr)
         cairo_rel_line_to(cr, 0, tick[3])
     end
     cairo_stroke(cr)
-    ch.set_font(cr, default_font_family, default_font_size)
+    ch.set_font(cr, w.default_font_family, w.default_font_size)
     for _, label in ipairs(self._tick_labels) do
         ch.write_centered(cr, label[1], label[2], label[3])
     end
@@ -927,6 +941,7 @@ end
 -- Also shows buffere/cache memory at reduced brightness.
 -- @type MemoryGrid
 local MemoryGrid = util.class(Widget)
+w.MemoryGrid = MemoryGrid
 
 --- @tparam table args table of options
 -- @int[opt=5] args.rows number of rows to draw
@@ -967,7 +982,7 @@ function MemoryGrid:render(cr)
     local total_points = #self._coordinates
     local used_points = math.floor(total_points * self._used / self._total + 0.5)
     local cache_points = math.floor(total_points * (self._easyfree - self._free) / self._total + 0.5)
-    local r, g, b = temp_color(self._used / self._total, 0.6, 0.9)
+    local r, g, b = w.temperature_color(self._used / self._total, 0.6, 0.9)
 
     cairo_set_antialias(cr, CAIRO_ANTIALIAS_NONE)
     for i = 1, used_points do
@@ -991,6 +1006,7 @@ end
 --- Compound widget to display GPU and VRAM usage.
 -- @type Gpu
 local Gpu = util.class(Group)
+w.Gpu = Gpu
 
 --- no options
 function Gpu:init()
@@ -1007,7 +1023,7 @@ end
 function Gpu:update()
     self._usebar:set_fill(data.gpu_percentage() / 100)
 
-    local color = {temp_color(data.gpu_temperature(), 30, 80)}
+    local color = {w.temperature_color(data.gpu_temperature(), 30, 80)}
     self._usebar.color = color
     self._membar.color = color
 end
@@ -1015,6 +1031,7 @@ end
 --- Table of processes for the GPU, sorted by VRAM usage
 -- @type GpuTop
 local GpuTop = util.class(Widget)
+w.GpuTop = GpuTop
 
 --- @tparam table args table of options
 -- @int[opt=5] args.lines how many processes to display
@@ -1023,9 +1040,9 @@ local GpuTop = util.class(Widget)
 -- @tparam ?{number,number,number,number} args.color
 function GpuTop:init(args)
     self._lines = args.lines or 5
-    self._font_family = args.font_family or default_font_family
-    self._font_size = args.font_size or default_font_size
-    self._color = args.color or default_text_color
+    self._font_family = args.font_family or w.default_font_family
+    self._font_size = args.font_size or w.default_font_size
+    self._color = args.color or w.default_text_color
 
     local extents = ch.font_extents(self._font_family, self._font_size)
     self._line_height = extents.height
@@ -1063,6 +1080,7 @@ end
 -- This widget assumes that your conky.text adds some text between the graphs.
 -- @type Network
 local Network = util.class(Group)
+w.Network = Network
 
 --- @tparam table args table of options
 -- @string args.interface e.g. "eth0"
@@ -1087,6 +1105,7 @@ end
 -- This widget is exptected to be combined with some special conky.text.
 -- @type Drive
 local Drive = util.class(Group)
+w.Drive = Drive
 
 ---
 -- @string path e.g. "/home"
@@ -1121,7 +1140,7 @@ function Drive:update()
         self._bar:set_fill(data.drive_percentage(self.path) / 100)
         local temperature = data.hddtemp()[self.device_name]
         if temperature then
-            self._bar.color = {temp_color(temperature, 35, 65)}
+            self._bar.color = {w.temperature_color(temperature, 35, 65)}
             self._temperature_text:set_text(temperature .. "°C")
         else
             self._bar.color = {0.8, 0.8, 0.8}
@@ -1134,24 +1153,4 @@ function Drive:update()
     return self._is_mounted ~= was_mounted
 end
 
-
-return {
-    Bar = Bar,
-    Columns = Columns,
-    Cpu = Cpu,
-    CpuFrequencies = CpuFrequencies,
-    Drive = Drive,
-    Filler = Filler,
-    Frame = Frame,
-    Gap = Gap,
-    Gpu = Gpu,
-    GpuTop = GpuTop,
-    Graph = Graph,
-    Group = Group,
-    MemoryBar = MemoryBar,
-    MemoryGrid = MemoryGrid,
-    Network = Network,
-    Renderer = Renderer,
-    TextLine = TextLine,
-    Widget = Widget,
-}
+return w

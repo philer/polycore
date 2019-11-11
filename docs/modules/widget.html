@@ -32,7 +32,8 @@
 
 <h2>Contents</h2>
 <ul>
-<li><a href="#Defaults">Defaults </a></li>
+<li><a href="#Functions">Functions</a></li>
+<li><a href="#Fields">Fields</a></li>
 <li><a href="#Class_Renderer">Class Renderer </a></li>
 <li><a href="#Class_Widget">Class Widget </a></li>
 <li><a href="#Class_Group">Class Group </a></li>
@@ -44,6 +45,7 @@
 <li><a href="#Class_Bar">Class Bar </a></li>
 <li><a href="#Class_MemoryBar">Class MemoryBar </a></li>
 <li><a href="#Class_Graph">Class Graph </a></li>
+<li><a href="#Class_LED">Class LED </a></li>
 <li><a href="#Class_Cpu">Class Cpu </a></li>
 <li><a href="#Class_CpuFrequencies">Class CpuFrequencies </a></li>
 <li><a href="#Class_MemoryGrid">Class MemoryGrid </a></li>
@@ -72,27 +74,30 @@
 <p></p>
 
 
-<h2><a href="#Defaults">Defaults </a></h2>
+<h2><a href="#Functions">Functions</a></h2>
+<table class="function_list">
+	<tr>
+	<td class="name" nowrap><a href="#temperature_color">temperature_color(temperature, low, high)</a></td>
+	<td class="summary">Generate a temperature based color.</td>
+	</tr>
+</table>
+<h2><a href="#Fields">Fields</a></h2>
 <table class="function_list">
 	<tr>
 	<td class="name" nowrap><a href="#default_font_family">default_font_family</a></td>
-	<td class="summary">Font used by most widgets if no other is specified.</td>
+	<td class="summary">Font used by widgets if no other is specified.</td>
 	</tr>
 	<tr>
 	<td class="name" nowrap><a href="#default_font_size">default_font_size</a></td>
-	<td class="summary">Font size used by most widgets if no other is specified.</td>
+	<td class="summary">Font size used by widgets if no other is specified.</td>
 	</tr>
 	<tr>
 	<td class="name" nowrap><a href="#default_text_color">default_text_color</a></td>
-	<td class="summary">Text color used by most widgets if no other is specified.</td>
+	<td class="summary">Text color used by widgets if no other is specified.</td>
 	</tr>
 	<tr>
 	<td class="name" nowrap><a href="#default_graph_color">default_graph_color</a></td>
 	<td class="summary">Color used to draw some widgets if no other is specified.</td>
-	</tr>
-	<tr>
-	<td class="name" nowrap><a href="#temp_color">temp_color(temp, low, high)</a></td>
-	<td class="summary">Generate a temperature based color.</td>
 	</tr>
 </table>
 <h2><a href="#Class_Renderer">Class Renderer </a></h2>
@@ -221,6 +226,21 @@
 	<td class="summary">Append the latest value to be shown - this will displace the oldest value</td>
 	</tr>
 </table>
+<h2><a href="#Class_LED">Class LED </a></h2>
+<table class="function_list">
+	<tr>
+	<td class="name" nowrap><a href="#LED:init">LED:init(args)</a></td>
+	<td class="summary"></td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#LED:set_brightness">LED:set_brightness(brightness)</a></td>
+	<td class="summary"></td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#LED:set_color">LED:set_color(color)</a></td>
+	<td class="summary"></td>
+	</tr>
+</table>
 <h2><a href="#Class_Cpu">Class Cpu </a></h2>
 <table class="function_list">
 	<tr>
@@ -266,7 +286,7 @@
 <h2><a href="#Class_Drive">Class Drive </a></h2>
 <table class="function_list">
 	<tr>
-	<td class="name" nowrap><a href="#Drive:init">Drive:init(path, device_name)</a></td>
+	<td class="name" nowrap><a href="#Drive:init">Drive:init(path)</a></td>
 	<td class="summary"></td>
 	</tr>
 </table>
@@ -275,7 +295,41 @@
 <br/>
 
 
-    <h2 class="section-header "><a name="Defaults"></a>Defaults </h2>
+    <h2 class="section-header "><a name="Functions"></a>Functions</h2>
+
+    <dl class="function">
+    <dt>
+    <a name = "temperature_color"></a>
+    <strong>temperature_color(temperature, low, high)</strong>
+    </dt>
+    <dd>
+    Generate a temperature based color.
+ Colors are chosen based on float offset in a pre-defined color gradient.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">temperature</span>
+            <span class="types"><span class="type">number</span></span>
+         current temperature (or any other type of numeric value)
+        </li>
+        <li><span class="parameter">low</span>
+            <span class="types"><span class="type">number</span></span>
+         threshold for lowest temperature / coolest color
+        </li>
+        <li><span class="parameter">high</span>
+            <span class="types"><span class="type">number</span></span>
+         threshold for highest temperature / hottest color
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
+</dl>
+    <h2 class="section-header "><a name="Fields"></a>Fields</h2>
 
     <dl class="function">
     <dt>
@@ -283,7 +337,7 @@
     <strong>default_font_family</strong>
     </dt>
     <dd>
-    Font used by most widgets if no other is specified.
+    Font used by widgets if no other is specified.
 
 
     <ul>
@@ -303,7 +357,7 @@
     <strong>default_font_size</strong>
     </dt>
     <dd>
-    Font size used by most widgets if no other is specified.
+    Font size used by widgets if no other is specified.
 
 
     <ul>
@@ -323,7 +377,7 @@
     <strong>default_text_color</strong>
     </dt>
     <dd>
-    Text color used by most widgets if no other is specified.
+    Text color used by widgets if no other is specified.
 
 
     <ul>
@@ -348,38 +402,8 @@
 
     <ul>
         <li><span class="parameter">default_graph_color</span>
-            <span class="types"><span class="type">{number,number,number,number}</span></span>
+            <span class="types"><span class="type">{number,number,number}</span></span>
 
-        </li>
-    </ul>
-
-
-
-
-
-</dd>
-    <dt>
-    <a name = "temp_color"></a>
-    <strong>temp_color(temp, low, high)</strong>
-    </dt>
-    <dd>
-    Generate a temperature based color.
- Colors are chosen based on float offset in a pre-defined color gradient.
-
-
-    <h3>Parameters:</h3>
-    <ul>
-        <li><span class="parameter">temp</span>
-            <span class="types"><span class="type">number</span></span>
-         current temperature (or any other type of numeric value)
-        </li>
-        <li><span class="parameter">low</span>
-            <span class="types"><span class="type">number</span></span>
-         threshold for lowest temperature / coolest color
-        </li>
-        <li><span class="parameter">high</span>
-            <span class="types"><span class="type">number</span></span>
-         threshold for highest temperature / hottest color
         </li>
     </ul>
 
@@ -882,7 +906,7 @@
          multiple of ticks to be drawn longer
         </li>
         <li><span class="parameter">color</span>
-            <span class="types">optional <span class="type">{number,number,number,number}</span></span>
+            <span class="types">optional <span class="type">{number,number,number}</span></span>
 
         </li>
         </li></ul>
@@ -950,7 +974,7 @@
          passed to <a href="../modules/widget.html#Bar:init">Bar:init</a>
         </li>
         <li><span class="parameter">color</span>
-            <span class="types">optional <span class="type">{number,number,number,number}</span></span>
+            <span class="types">optional <span class="type">{number,number,number}</span></span>
          passed to <a href="../modules/widget.html#Bar:init">Bar:init</a>
         </li>
         </li></ul>
@@ -1022,7 +1046,7 @@
          (<em>default</em> false)
         </li>
         <li><span class="parameter">color</span>
-            <span class="types">optional <span class="type">{number,number,number,number}</span></span>
+            <span class="types">optional <span class="type">{number,number,number}</span></span>
 
         </li>
         </li></ul>
@@ -1047,6 +1071,91 @@
             <span class="types"><span class="type">number</span></span>
          if value > args.max then the graphs vertical scale will be
                adjusted, causing it to get squished
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
+</dl>
+    <h2 class="section-header has-description"><a name="Class_LED"></a>Class LED </h2>
+
+          <div class="section-description">
+          Round light indicator for minimalistic feedback.
+          </div>
+    <dl class="function">
+    <dt>
+    <a name = "LED:init"></a>
+    <strong>LED:init(args)</strong>
+    </dt>
+    <dd>
+
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">args</span> table of options
+        <ul>
+        <li><span class="parameter">radius</span>
+            <span class="types"><span class="type">number</span></span>
+         size of the LED
+        </li>
+        <li><span class="parameter">brightness</span>
+            <span class="types"><span class="type">number</span></span>
+         between 0 and 1, how "on" should the LED be?
+                                Can be changed later with <a href="../modules/widget.html#LED:set_brightness">LED:set_brightness</a>
+         (<em>default</em> 0)
+        </li>
+        <li><span class="parameter">color</span>
+            <span class="types">optional <span class="type">{number,number,number}</span></span>
+         color of the LED,
+                                can be changed later with <a href="../modules/widget.html#LED:set_color">LED:set_color</a>.
+                                (default: <a href="../modules/widget.html#default_graph_color">default_graph_color</a>)
+        </li>
+        </li></ul>
+    </ul>
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "LED:set_brightness"></a>
+    <strong>LED:set_brightness(brightness)</strong>
+    </dt>
+    <dd>
+
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">brightness</span>
+            <span class="types"><span class="type">number</span></span>
+         between 0 and 1
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "LED:set_color"></a>
+    <strong>LED:set_color(color)</strong>
+    </dt>
+    <dd>
+
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">color</span>
+            <span class="types">optional <span class="type">{number,number,number}</span></span>
+
         </li>
     </ul>
 
@@ -1246,7 +1355,7 @@
 
         </li>
         <li><span class="parameter">color</span>
-            <span class="types">optional <span class="type">{number,number,number,number}</span></span>
+            <span class="types">optional <span class="type">{number,number,number}</span></span>
 
         </li>
         </li></ul>
@@ -1314,7 +1423,7 @@
     <dl class="function">
     <dt>
     <a name = "Drive:init"></a>
-    <strong>Drive:init(path, device_name)</strong>
+    <strong>Drive:init(path)</strong>
     </dt>
     <dd>
 
@@ -1325,10 +1434,6 @@
         <li><span class="parameter">path</span>
             <span class="types"><span class="type">string</span></span>
          e.g. "/home"
-        </li>
-        <li><span class="parameter">device_name</span>
-            <span class="types"><span class="type">string</span></span>
-         e.g. "/dev/sda1"
         </li>
     </ul>
 
@@ -1344,7 +1449,7 @@
 </div> <!-- id="main" -->
 <div id="about">
 <i>generated by <a href="http://github.com/stevedonovan/LDoc">LDoc 1.4.6</a></i>
-<i style="float:right;">Last updated 2019-11-08 02:37:08 </i>
+<i style="float:right;">Last updated 2019-11-11 15:41:41 </i>
 </div> <!-- id="about" -->
 </div> <!-- id="container" -->
 </body>

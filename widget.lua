@@ -21,7 +21,7 @@ local w = {
     default_text_color = ({.94, .94, .94, 1}),  -- ~fafafa
 
     --- Color used to draw some widgets if no other is specified.
-    -- @tfield {number,number,number,number} default_graph_color
+    -- @tfield {number,number,number} default_graph_color
     default_graph_color = ({.4, 1, 1}),
 }
 
@@ -495,7 +495,7 @@ w.Bar = Bar
 -- @tparam ?string args.unit to be drawn behind the bar - 3 characters will fit
 -- @tparam ?{number,...} args.ticks relative offsets (between 0 and 1) of ticks
 -- @tparam ?int args.big_ticks multiple of ticks to be drawn longer
--- @tparam ?{number,number,number,number} args.color
+-- @tparam ?{number,number,number} args.color
 function Bar:init(args)
     self._ticks = args.ticks
     self._big_ticks = args.big_ticks
@@ -598,7 +598,7 @@ w.MemoryBar = MemoryBar
 --                            however no ticks can be drawn.
 -- @tparam[opt="GiB"] string args.unit passed to `Bar:init`
 -- @tparam ?int args.thickness passed to `Bar:init`
--- @tparam ?{number,number,number,number} args.color passed to `Bar:init`
+-- @tparam ?{number,number,number} args.color passed to `Bar:init`
 function MemoryBar:init(args)
     self._total = args.total
     local ticks, big_ticks
@@ -637,7 +637,7 @@ w.Graph = Graph
 -- @int[opt=90] args.data_points how many values to store
 -- @int[opt=22] args.height includes fake shadow border
 -- @bool[opt=false] args.upside_down draw graph from top to bottom
--- @tparam ?{number,number,number,number} args.color
+-- @tparam ?{number,number,number} args.color
 function Graph:init(args)
     self._max = args.max
     self.height = args.height or 22
@@ -1097,7 +1097,7 @@ w.GpuTop = GpuTop
 -- @int[opt=5] args.lines how many processes to display
 -- @tparam ?string args.font_family
 -- @tparam ?number args.font_size
--- @tparam ?{number,number,number,number} args.color
+-- @tparam ?{number,number,number} args.color
 function GpuTop:init(args)
     self._lines = args.lines or 5
     self._font_family = args.font_family or w.default_font_family

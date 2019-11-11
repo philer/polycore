@@ -719,6 +719,66 @@ function Graph:render(cr)
 end
 
 
+--- Round light indicator for minimalistic feedback.
+-- @type LED
+local LED = util.class(Widget)
+w.LED = LED
+
+--- @tparam table args table of options
+-- @number args.radius size of the LED
+-- @number[opt=0] args.brightness between 0 and 1, how "on" should the LED be?
+--                                Can be changed later with `LED:set_brightness`
+-- @tparam ?{number,number,number} args.color color of the LED,
+--                                can be changed later with `LED:set_color`.
+--                                (default: `default_graph_color`)
+function LED:init(args)
+    assert(args.radius)
+    self._radius = args.radius
+    self.width = self._radius * 2
+    self.height = self._radius * 2
+    self._brightness = args.brightness or 0
+    self._color = args.color or w.default_graph_color
+end
+
+--- @number brightness between 0 and 1
+function LED:set_brightness(brightness)
+    self._brightness = util.clamp(0, 1, brightness)
+end
+
+--- @tparam ?{number,number,number} color
+function LED:set_color(color)
+    self._color = color
+end
+
+function LED:layout(width, height)
+    self._mx = width / 2
+    self._my = height / 2
+end
+
+function LED:render_background(cr)
+    cairo_arc(cr, self._mx, self._my, self._radius, 0, 360)
+    local r, g, b = unpack(self._color)
+    cairo_set_source_rgba(cr, 0.2 * r, 0.2 * g, 0.2 * b, 0.5)
+    cairo_fill(cr)
+end
+
+function LED:render(cr)
+    if self._brightness > 0 then
+        local r, g, b = unpack(self._color)
+        local gradient = cairo_pattern_create_radial(self._mx, self._my, 0,
+                                                     self._mx, self._my, self._radius)
+        cairo_pattern_add_color_stop_rgba(gradient, 0, r, g, b, 1 * self._brightness)
+        cairo_pattern_add_color_stop_rgba(gradient, 0.5, r, g, b, 0.5 * self._brightness)
+        cairo_pattern_add_color_stop_rgba(gradient, 1, r, g, b, 0.1 * self._brightness)
+        cairo_set_source(cr, gradient)
+        cairo_pattern_destroy(gradient)
+
+        cairo_arc(cr, self._mx, self._my, self._radius, 0, 360)
+        cairo_fill(cr)
+    end
+end
+
+
 --- Polygon-style CPU usage & temperature tracking.
 -- Looks best for CPUs with 4 to 8 cores but also works for higher numbers
 -- @type Cpu

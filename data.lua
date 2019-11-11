@@ -129,7 +129,7 @@ end
 --                e.g. {["/"] = {"/dev/sda1", "/dev/sda"}}
 data.find_devices = util.memoize(10, function()
     local lsblk = read_cmd("lsblk --ascii --noheadings --paths --output NAME,MOUNTPOINT")
-    local lines = lsblk:gmatch("([^/]*)(%S+) +(%S*)")
+    local lines = lsblk:gmatch("([^/]*)(%S+) +(%S*)%s*")
     local mounts = {}
     local physical_device
     for depth, device, path in lines do

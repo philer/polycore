@@ -6,27 +6,18 @@ local conkyrc = conky or {}
 local script_dir = debug.getinfo(1, 'S').source:match("^@(.*/)")
 
 conkyrc.config = {
+    lua_load = script_dir .. "polycore.lua",
+    lua_draw_hook_post = "main",
+
     update_interval = 1,
-    total_run_times = 0,
 
     -- awesome wm --
-    out_to_console = false,
-    out_to_stderr = false,
-    extra_newline = false,
     own_window = true,
     own_window_class = 'conky',
     own_window_type = 'override',
     own_window_hints = 'undecorated,sticky,skip_taskbar,skip_pager',
-    -- own_window_transparent = true,
-    own_window_colour = '131313',
-    own_window_argb_visual = true,
-    own_window_argb_value = 180,
-
-    background = false,
 
     double_buffer = true,
-    no_buffers = true,
-    override_utf8_locale = true,
 
     alignment = 'top_left',
     gap_x = 0,
@@ -35,46 +26,32 @@ conkyrc.config = {
     maximum_width = 140,
     minimum_height = 1080 - 28,
 
-    uppercase = false,
-    cpu_avg_samples = 2,
-    net_avg_samples = 1,
-
-    top_cpu_separate = true,
-    top_name_width = 10,
-
     draw_shades = false,
     draw_outline = false,
     draw_borders = false,
+    border_width = 0,
     border_inner_margin = 0,
     border_outer_margin = 0,
-    draw_graph_borders = false,
-    border_width = 0,
+
+    top_cpu_separate = true,
+    top_name_width = 10,
+    no_buffers = true,  -- include buffers in easyfree memory?
+    cpu_avg_samples = 2,
+    net_avg_samples = 1,
 
     -- font --
-    use_xft = true,
-    xftalpha = 0.1,
+    use_xft = true,  -- Use Xft (anti-aliased font and stuff)
     font = 'Ubuntu:pixelsize=10',
+    override_utf8_locale = true,
+    xftalpha = 0,  -- Alpha of Xft font. Must be a value at or between 1 and 0.
 
-    -- bars --
-    default_bar_width = 120,
-    default_bar_height = 4,
-    default_graph_width = 120,
-    default_graph_height = 16,
-
-    ------------
     -- colors --
-    ------------
-
+    own_window_colour = '131313',
+    own_window_argb_visual = true,
+    own_window_argb_value = 180,
     default_color = 'fafafa',
-
     color0 = '377',    -- titles
     color1 = 'b9b9b7', -- secondary text color
-
-    --- lua ---
-    lua_load = script_dir .. "polycore.lua",
-    -- lua_startup_hook = "init",
-    lua_draw_hook_post = "main",
-
 
     -----------------
     --- templates ---
@@ -95,7 +72,11 @@ ${template9}${color1}${top_mem name \1}${template8}${top_mem mem_res \1}$color]]
     -- drives: name dir --
     template5 = [[
 ${if_mounted \2}
-${template9}${offset 1}${font Ubuntu:pixelsize=11:bold}${color0}· \1 ·\n${voffset 8}${color1}${font Ubuntu:pixelsize=10}${template9}${fs_used \2}  /  ${fs_size \2}${template8}${if_match ${fs_used_perc \2}>=85}${color b54}$else$color$endif${fs_used_perc \2}%$font$color
+${template9}${offset 1}${font Ubuntu:pixelsize=11:bold}${color0}· \1 ·
+${voffset 8}#
+${template9}${color1}${font Ubuntu:pixelsize=10}${fs_used \2}  /  ${fs_size \2}#
+${if_match ${fs_used_perc \2}>=85}${color b54}$else$color$endif#
+${template8}${fs_used_perc \2}%$font$color
 $endif]],
 
     -- distance middle | right | left

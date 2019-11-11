@@ -102,18 +102,21 @@ end
 --- General utility functions
 -- @section general
 
+local log = math.log
+local log2, log10 = log(2), log(10)
 
---- Turn a array style table into a {[value] = true} mapping table
--- @tab entries list of keys
--- @treturn table {key = true} mapping
-function util.set(entries)
-    local set = {}
-    for i = 1, #entries do
-        set[entries[i]] = true
-    end
-    return set
-end
+--- logarithm for an arbirary base
+-- @number x
+-- @number base
+function util.log(x, base) return log(x) / log(base) end
 
+--- logarithm for base 2
+-- @number x
+function util.log2(x) return log(x) / log2 end
+
+--- logarithm for base 10
+-- @number x
+function util.log10(x) return log(x) / log10 end
 
 --- Clamp a value between a minimum and a maximum
 -- @number min minimum value returned
@@ -124,6 +127,18 @@ function util.clamp(min, max, val)
     if val < min then return min end
     if val > max then return max end
     return val
+end
+
+
+--- Turn a array style table into a {[value] = true} mapping table
+-- @tab entries list of keys
+-- @treturn table {key = true} mapping
+function util.set(entries)
+    local set = {}
+    for i = 1, #entries do
+        set[entries[i]] = true
+    end
+    return set
 end
 
 --- Call a function on each item of an iterator. Collect the results in a table.

@@ -60,7 +60,7 @@ local unit_map = {
 function data.memory()
     local conky_output = conky_parse("$mem|$memeasyfree|$memfree|$memmax")
     local results = {}
-    for result in conky_output:gmatch("%d+[,.]?%d*%a") do
+    for result in conky_output:gmatch("%d+%p?%d*%a") do
         local value, unit = result:sub(1, -2), result:sub(-1)
         table.insert(results, value * unit_map[unit])
     end
@@ -72,7 +72,7 @@ end
 -- @treturn number,number downspeed and upspeed in KiB
 function data.network_speed(interface)
     local result = conky_parse(string.format("${downspeedf %s}|${upspeedf %s}", interface, interface))
-    return unpack(util.map(tonumber, result:gmatch("%d+[,.]?%d*")))
+    return unpack(util.map(tonumber, result:gmatch("%d+%p?%d*")))
 end
 
 -- relies on nvidia-smi to be installed.
@@ -121,6 +121,26 @@ function data.gpu_top()
     return processes
 end
 
+
+--- Detect mount points and their respective devices plus physical devices.
+-- @function data.find_devices
+-- @treturn table mapping of mount points (paths) to value pairs of
+--                (logical) device and physical device
+--                e.g. {["/"] = {"/dev/sda1", "/dev/sda"}}
+data.find_devices = util.memoize(10, function()
+    local lsblk = read_cmd("lsblk --ascii --noheadings --paths --output NAME,MOUNTPOINT")
+    local lines = lsblk:gmatch("([^/]*)(%S+) +(%S*)")
+    local mounts = {}
+    local physical_device
+    for depth, device, path in lines do
+        if depth == "" then physical_device = device end
+        if path ~= "" then
+            mounts[path] = {device, physical_device}
+        end
+    end
+    return mounts
+end)
+
 --- Get the drive usage in percent for the given path.
 -- @function data.drive_percentag
 -- @string path
@@ -138,6 +158,29 @@ data.is_mounted = util.memoize(5, function(path)
     return "1" == conky_parse(string.format("${if_mounted %s}1${else}0${endif}", path))
 end)
 
+
+local diskio_unit_map = {
+    TiB = 1024 * 1024 * 1024 * 1024,
+    GiB = 1024 * 1024 * 1024,
+    MiB = 1024 * 1024,
+    KiB = 1024,
+    B = 1,
+}
+--- Get activity of a drive. If unit is specified the value will be converted
+-- to that unit.
+-- @string device e.g. /dev/sda1
+-- @tparam ?string unit any of "B", "KiB", "MiB", "GiB" or "TiB"
+-- @treturn number,string activity, unit
+function data.diskio(device, unit)
+    local result = conky_parse(("${diskio %s}"):format(device))
+    local value, parsed_unit = result:match("(%d+%p?%d*)(%w+)")
+    value = tonumber(value)
+    if unit and parsed_unit ~= unit then
+        value = value * diskio_unit_map[parsed_unit] / diskio_unit_map[unit]
+    end
+    return value, unit or parsed_unit
+end
+
 --- Get current HDD/SSD temperatures.
 -- Relies on hddtemp to be running daemon mode. The results depend on what
 -- hddtemp reports and may require manual configuration,
@@ -145,12 +188,12 @@ end)
 -- For experimental NVME support, requires "nvme smart-log" to be available
 -- and added as an exception in sudoers, hddtemp does not support NVME.
 -- @function data.hddtemp
--- @treturn table mapping device names to temperature values
+-- @treturn table mapping devices to temperature values
 data.hddtemp = util.memoize(5, function()
     local result = read_cmd("nc localhost 7634 -d")
     local temperatures = {}
-    for _, device_name, temp in result:gmatch("|([^|]+)|([^|]+)|(%d+)|C|") do
-        temperatures[device_name] = tonumber(temp)
+    for device, temp in result:gmatch("|([^|]+)|[^|]+|(%d+)|C|") do
+        temperatures[device] = tonumber(temp)
     end
     -- experimental: nvme drives, currently requires sudo
     result = read_cmd("sudo nvme smart-log /dev/nvme0")

@@ -1167,22 +1167,32 @@ end
 local Drive = util.class(Group)
 w.Drive = Drive
 
----
--- @string path e.g. "/home"
--- @string device_name e.g. "/dev/sda1"
-function Drive:init(path, device_name)
-    self.path = path
-    self.device_name = device_name
+--- @string path e.g. "/home"
+function Drive:init(path)
+    self._path = path
 
+    self._io_led = LED{radius=3}
     self._temperature_text = TextLine{align="right"}
     self._bar = Bar{}
-    Group.init(self, {self._temperature_text,
-                            Gap(4),
-                            self._bar,
-                            Gap(25)})
+    Group.init(self, {
+        Columns{
+            Filler(), Filler(),
+            self._io_led,
+            Gap(5),
+            self._temperature_text,
+        },
+        Gap(4),
+        self._bar,
+        Gap(25),
+    })
+
     self._real_height = self.height
-    self._is_mounted = data.is_mounted(self.path)
-    self.height = self._is_mounted and self._real_height or 0
+    self._is_mounted = data.is_mounted(self._path)
+    if self._is_mounted then
+        self._device, self._physical_device = unpack(data.find_devices()[path])
+    else
+        self.height = 0
+    end
 end
 
 function Drive:layout(...)
@@ -1195,10 +1205,18 @@ end
 
 function Drive:update()
     local was_mounted = self._is_mounted
-    self._is_mounted = data.is_mounted(self.path)
+    self._is_mounted = data.is_mounted(self._path)
     if self._is_mounted then
-        self._bar:set_fill(data.drive_percentage(self.path) / 100)
-        local temperature = data.hddtemp()[self.device_name]
+        if not was_mounted then
+            self._device, self._physical_device = unpack(data.find_devices()[self._path])
+        end
+        self._bar:set_fill(data.drive_percentage(self._path) / 100)
+
+        local diskio = data.diskio(self._device, "B")
+        local diskio_magnitude = util.log2(diskio)
+        self._io_led:set_brightness(diskio_magnitude / 30)
+
+        local temperature = data.hddtemp()[self._physical_device]
         if temperature then
             self._bar.color = {w.temperature_color(temperature, 35, 65)}
             self._temperature_text:set_text(temperature .. "°C")

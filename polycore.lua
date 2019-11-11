@@ -55,11 +55,11 @@ local function setup()
         widget.Gap(66),
         widget.Network{interface="enp0s31f6", downspeed=5 * 1024, upspeed=1024},
         widget.Gap(34),
-        widget.Drive("/", "/dev/nvme0"),
-        widget.Drive("/home", "/dev/nvme0"),
-        widget.Drive("/mnt/blackstor", "WDC WD2002FAEX-007BA0"),
-        widget.Drive("/mnt/bluestor", "WDC WD20EZRZ-00Z5HB0"),
-        widget.Drive("/mnt/cryptstor", "/dev/disk/by-uuid/9e340509-be93-42b5-9dcc-99bdbd428e22"),
+        widget.Drive("/"),
+        widget.Drive("/home"),
+        widget.Drive("/mnt/blackstor"),
+        widget.Drive("/mnt/bluestor"),
+        widget.Drive("/mnt/cryptstor"),
         widget.Filler(),
     }
     local root = widget.Frame(widget.Group(widgets), {

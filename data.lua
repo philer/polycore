@@ -190,14 +190,18 @@ end
 -- @function data.hddtemp
 -- @treturn table mapping devices to temperature values
 data.hddtemp = util.memoize(5, function()
-    local result = read_cmd("nc localhost 7634 -d")
+    local hddtemp = read_cmd("nc localhost 7634 -d")
     local temperatures = {}
-    for device, temp in result:gmatch("|([^|]+)|[^|]+|(%d+)|C|") do
+    for device, temp in hddtemp:gmatch("|([^|]+)|[^|]+|(%d+)|C|") do
         temperatures[device] = tonumber(temp)
     end
+
     -- experimental: nvme drives, currently requires sudo
-    result = read_cmd("sudo nvme smart-log /dev/nvme0")
-    temperatures["/dev/nvme0"] = tonumber(result:match("temperature%s+: (%d+) C"))
+    local lsblk = read_cmd("lsblk --nodeps --noheadings --paths --output NAME")
+    for device in lsblk:gmatch("/dev/nvme%S+") do
+        local nvme = read_cmd(("sudo nvme smart-log '%s'"):format(device))
+        temperatures[device] = tonumber(nvme:match("temperature%s+: (%d+) C"))
+    end
     return temperatures
 end)
 

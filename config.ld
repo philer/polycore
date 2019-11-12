@@ -3,7 +3,7 @@
 
 project = "polycore"
 description = "A conky config and library of Lua widgets"
-file = {"polycore.lua", "widget.lua", "data.lua", "cairo_helpers.lua", "util.lua"}
+file = "src"
 dir = "docs"
 all = true
 no_lua_ref = true

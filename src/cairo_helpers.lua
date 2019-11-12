@@ -2,7 +2,9 @@
 -- @module cairo_helpers
 -- @alias ch
 
-local util = require 'util'
+require 'cairo'
+
+local util = require 'src/util'
 
 local ch = {}
 

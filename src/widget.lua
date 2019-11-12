@@ -2,9 +2,11 @@
 -- @module widget
 -- @alias w
 
-local data = require 'data'
-local util = require 'util'
-local ch = require 'cairo_helpers'
+require 'cairo'
+
+local data = require 'src/data'
+local util = require 'src/util'
+local ch = require 'src/cairo_helpers'
 
 
 local w = {

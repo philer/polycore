@@ -1,13 +1,13 @@
---- Conky entry point script
--- @module conkyrc
+--- Conky config script
 
 local conkyrc = conky or {}
 
 local script_dir = debug.getinfo(1, 'S').source:match("^@(.*/)")
 
 conkyrc.config = {
-    lua_load = script_dir .. "polycore.lua",
-    lua_draw_hook_post = "main",
+    lua_load = script_dir .. "layout.lua",
+    lua_startup_hook = "conky_setup",
+    lua_draw_hook_post = "conky_update",
 
     update_interval = 1,
 

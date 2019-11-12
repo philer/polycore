@@ -1,7 +1,7 @@
 --- Data gathering facilities for conky widgets
 -- @module data
 
-local util = require 'util'
+local util = require 'src/util'
 
 local data = {}
 

@@ -12,40 +12,31 @@ else
     script_dir = "./"
 end
 
-local _, widget = pcall(require, 'src/widget')
+-- require will fail when conky runs this file the first time for conky.config
+local _, widget = pcall(function() return require('src/widget') end)
 
-local win_width, win_height = 400, 500
-
+-- minimal conky.config to run this script again once without opening a window
 local conkyrc = conky or {}
 conkyrc.text = ""
 conkyrc.config = {
     lua_load = script_path,
-    lua_draw_hook_post = "main",
+    lua_draw_hook_post = "conky_main",
     total_run_times = 1,
-
-    out_to_console = true,
+    out_to_console = false,
     out_to_x = false,
-
-    minimum_width = win_width,
-    maximum_width = win_width,
-    minimum_height = win_height,
-
-    draw_borders = false,
-    border_inner_margin = 0,
-    border_outer_margin = 0,
-    border_width = 0,
-
-    no_buffers = true,  -- include buffers in used RAM
-    override_utf8_locale = true,
 }
 
 
-local function render_to_image(root, path)
-    local renderer = widget.Renderer{root=root, width=win_width, height=win_height}
+--- utilities ---
+
+--- Render to an image file instead of conky's window canvas.
+-- @tparam widget.Renderer renderer
+-- @string path
+local function render_to_image(renderer, path)
     renderer:layout()
     renderer:update()
-
-    local cs = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, win_width, win_height)
+    local cs = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, renderer._width,
+                                                               renderer._height)
     local cr = cairo_create(cs)
     renderer:render(cr)
     local result = cairo_surface_write_to_png(cs, path)
@@ -59,19 +50,36 @@ end
 -- @string path2
 -- @treturn bool
 local function images_equal(path1, path2)
-    local command_template = 'compare -identify -metric MAE "%s" "%s" null'
+    local command_template = 'compare -identify -metric MAE "%s" "%s" null >/dev/null 2>&1'
     local result = os.execute(command_template:format(path1, path2))
 
     -- os.execute returns changed from 5.1 to 5.3
     return result == true or result == 0
 end
 
+--- Assert that the output of a given renderer matches an existing image.
+-- @string name test name
+-- @string widget.Renderer renderer
+local function check_renderer(name, renderer)
+    local out_path = "/tmp/conky_test.png"
+    local expected = script_dir .. "expected_outputs/" .. name .. ".png"
+    render_to_image(renderer, out_path)
+    assert(images_equal(out_path, expected),
+           "render of at " .. out_path .. " does not match expected result at " .. expected)
+end
 
-local function mock_widget(args)
+local frame_opts = {
+    background_color = {0.2, 0.4, 0.9, 0.4},
+    border_color = {0.3, 0.6, 0.9, 1},
+    border_width = 2,
+}
+
+--- Mock Widget that does nothing but has a background plus border.
+local function dummy(args)
     return widget.Frame(widget.Filler({width=args.width, height=args.height}), {
-        background_color=args.background_color or {0.2, 0.4, 0.9, 0.4},
-        border_color=args.border_color or {0.3, 0.6, 0.9, 1},
-        border_width=args.border_width or 2,
+        background_color=args.background_color or frame_opts.background_color,
+        border_color=args.border_color or frame_opts.border_color,
+        border_width=args.border_width or frame_opts.border_width,
         margin=args.margin,
         padding=args.padding,
     })
@@ -83,40 +91,80 @@ local function text_widget(text)
     return w
 end
 
-local function test_layout()
+
+--- test cases ---
+
+local test = {}
+
+function test.frame()
+    local inner = widget.Frame(widget.Filler{},{
+        margin = 2,
+        background_color = {1, 0, 0, 0.8},
+    })
+    local root = widget.Frame(inner, {
+        margin = {10, 12, 16, 0},
+        padding = {0, 8, 12},
+        border_width = 12,
+        border_color = {1, 1, 1, 1},
+        background_color = {0, 0, 0, 1},
+    })
+    check_renderer("frame", widget.Renderer{root=root, width=100, height=100})
+end
+
+function test.group()
+    local root = widget.Group{
+        widget.Frame(widget.Filler{}, frame_opts),
+        widget.Frame(widget.Filler{width=20}, frame_opts),
+        widget.Frame(widget.Filler{height=20}, frame_opts),
+        widget.Frame(widget.Filler{width=20, height=20}, frame_opts),
+    }
+    check_renderer("group", widget.Renderer{root=root, width=40, height=100})
+end
+
+function test.columns()
+    local root = widget.Columns{
+        widget.Frame(widget.Filler{}, frame_opts),
+        widget.Frame(widget.Filler{width=20}, frame_opts),
+        widget.Frame(widget.Filler{height=20}, frame_opts),
+        widget.Frame(widget.Filler{width=20, height=20}, frame_opts),
+    }
+    check_renderer("columns", widget.Renderer{root=root, width=100, height=40})
+end
+
+function test.complex_layout()
     local Frame, Filler, Group, Columns = widget.Frame, widget.Filler,
                                           widget.Group, widget.Columns
     local root = Frame(Group{
-        mock_widget{},
+        dummy{},
         Filler{height=10},
         Columns{
-            mock_widget{width=50, height=50},
+            dummy{width=50, height=50},
             Filler{width=20},
-            mock_widget{width=50, height=50},
+            dummy{width=50, height=50},
             Filler{width=20},
             Group{text_widget("Hello world!"),
                   text_widget("How are you doing?"),
                   text_widget("Widgets are great.")},
             Filler{width=20},
-            mock_widget{width=50, height=50},
+            dummy{width=50, height=50},
         },
         Filler{height=10},
         Frame(Group{
-            Columns{mock_widget{height=16, margin=2}},
-            Columns{mock_widget{height=16, margin=2},
-                    mock_widget{height=16, margin=2}},
-            Columns{mock_widget{height=16, margin=2},
-                    mock_widget{height=16, margin=2},
-                    mock_widget{height=16, margin=2}},
-            Columns{mock_widget{height=16, margin=2},
-                    mock_widget{height=16, margin=2},
-                    mock_widget{height=16, margin=2},
-                    mock_widget{height=16, margin=2}},
-            Columns{mock_widget{height=16, margin=2},
-                    mock_widget{height=16, margin=2},
-                    mock_widget{height=16, margin=2},
-                    mock_widget{height=16, margin=2},
-                    mock_widget{height=16, margin=2}},
+            Columns{dummy{height=16, margin=2}},
+            Columns{dummy{height=16, margin=2},
+                    dummy{height=16, margin=2}},
+            Columns{dummy{height=16, margin=2},
+                    dummy{height=16, margin=2},
+                    dummy{height=16, margin=2}},
+            Columns{dummy{height=16, margin=2},
+                    dummy{height=16, margin=2},
+                    dummy{height=16, margin=2},
+                    dummy{height=16, margin=2}},
+            Columns{dummy{height=16, margin=2},
+                    dummy{height=16, margin=2},
+                    dummy{height=16, margin=2},
+                    dummy{height=16, margin=2},
+                    dummy{height=16, margin=2}},
         }, {
             background_color={0.2, 0.8, 0.2, 0.4},
             border_color={0.2, 0.8, 0.2, 1},
@@ -124,40 +172,41 @@ local function test_layout()
             padding=2,
         }),
         Filler{height=10},
-        mock_widget{width=10},
+        dummy{width=10},
         Filler{height=10},
-        Columns{mock_widget{width=5}, Filler{width=5}, text_widget("TEXT")},
+        Columns{dummy{width=5}, Filler{width=5}, text_widget("TEXT")},
         Filler(),
         Filler(),
-        Columns{Filler(), mock_widget{width=80, height=80}, Filler()},
+        Columns{Filler(), dummy{width=80, height=80}, Filler()},
     }, {
         background_color = {0.1, 0.1, 0.1, 1},
         border_color = {0, 0, 0, 0.5},
         border_width = 4,
         padding = {16, 4, 32}
     })
-
-    local out_path = "/tmp/conky_layout_test.png"
-    render_to_image(root, out_path)
-    assert(images_equal(out_path, script_dir .. "layout.png"))
+    check_renderer("complex_layout", widget.Renderer{root=root, width=400, height=500})
 end
 
+
+--- test running ---
 
 local ANSI_RED = "\027[31m"
 local ANSI_GREEN = "\027[32m"
 local ANSI_RED_BOLD = "\027[1;31m"
 local ANSI_RESET = "\027[0m"
+
 local function error_handler(err)
     print(debug.traceback(ANSI_RED .. err .. ANSI_RESET))
 end
 
 --- Entry point called by conky
 function conky_main()
-    local success = xpcall(test_layout, error_handler)
-    print()
-    if success then
-        print(ANSI_GREEN .. "test_layout passed" .. ANSI_RESET)
-    else
-        print(ANSI_RED_BOLD .. "test_layout failed" .. ANSI_RESET)
+    for name, test_fn in pairs(test) do
+        local success = xpcall(test_fn, error_handler)
+        if success then
+            print(ANSI_GREEN .. "test " .. name .. " passed" .. ANSI_RESET)
+        else
+            print(ANSI_RED_BOLD .. "test " .. name .. " failed" .. ANSI_RESET)
+        end
     end
 end

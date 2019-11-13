@@ -301,26 +301,22 @@ function Columns:layout(width, height)
 end
 
 
---- Leave enough vertical space between widgets to eventually fill the entire
--- height of the drawable surface. Available space will be distributed evenly
--- between all Filler Widgets.
+--- Leave space between widgets.
+-- If either height or width is not specified, the available space
+-- inside a Group or Columns will be distributed evenly between Fillers
+-- with no fixed height/width.
 -- @type Filler
 local Filler = util.class(Widget)
 w.Filler = Filler
 
---- no options
--- @function Filler:init
-
-
---- Leave a fixed amount of space between widgets.
--- @type Gap
-local Gap = util.class(Widget)
-w.Gap = Gap
-
---- @int size Amount of space in pixels
-function Gap:init(size)
-    self.height = size
-    self.width = size
+--- @tparam table args table of options
+-- @tparam ?int args.width
+-- @tparam ?int args.height
+function Filler:init(args)
+    if args then
+        self.height = args.height
+        self.width = args.width
+    end
 end
 
 
@@ -1079,7 +1075,7 @@ function Gpu:init()
     self._membar.update = function()
         self._membar:set_used(data.gpu_memory() / 1024)
     end
-    Group.init(self, {self._usebar, Gap(4), self._membar})
+    Group.init(self, {self._usebar, Filler{height=4}, self._membar})
 end
 
 function Gpu:update()
@@ -1153,7 +1149,7 @@ function Network:init(args)
     self.interface = args.interface
     self._downspeed_graph = Graph{height=args.graph_height, max=args.downspeed or 1024}
     self._upspeed_graph = Graph{height=args.graph_height, max=args.upspeed or 1024}
-    Group.init(self, {self._downspeed_graph, Gap(31), self._upspeed_graph})
+    Group.init(self, {self._downspeed_graph, Filler{height=31}, self._upspeed_graph})
 end
 
 function Network:update()
@@ -1180,12 +1176,12 @@ function Drive:init(path)
         Columns{
             Filler(), Filler(),
             self._io_led,
-            Gap(5),
+            Filler{width=5},
             self._temperature_text,
         },
-        Gap(4),
+        Filler{height=4},
         self._bar,
-        Gap(25),
+        Filler{height=25},
     })
 
     self._real_height = self.height

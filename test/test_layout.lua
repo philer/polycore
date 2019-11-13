@@ -67,11 +67,13 @@ local function images_equal(path1, path2)
 end
 
 
-local function mock_widget(...)
-    return widget.Frame(widget.Filler(...), {
-        background_color={0.2, 0.4, 0.9, 0.4},
-        border_color={0.3, 0.6, 0.9, 1},
-        border_width=2,
+local function mock_widget(args)
+    return widget.Frame(widget.Filler({width=args.width, height=args.height}), {
+        background_color=args.background_color or {0.2, 0.4, 0.9, 0.4},
+        border_color=args.border_color or {0.3, 0.6, 0.9, 1},
+        border_width=args.border_width or 2,
+        margin=args.margin,
+        padding=args.padding,
     })
 end
 
@@ -85,7 +87,7 @@ local function test_layout()
     local Frame, Filler, Group, Columns = widget.Frame, widget.Filler,
                                           widget.Group, widget.Columns
     local root = Frame(Group{
-        mock_widget(),
+        mock_widget{},
         Filler{height=10},
         Columns{
             mock_widget{width=50, height=50},
@@ -100,20 +102,26 @@ local function test_layout()
         },
         Filler{height=10},
         Frame(Group{
-            Columns{mock_widget{height=16}},
-            Columns{mock_widget{height=16}, mock_widget{height=16}},
-            Columns{mock_widget{height=16}, mock_widget{height=16},
-                           mock_widget{height=16}},
-            Columns{mock_widget{height=16}, mock_widget{height=16},
-                           mock_widget{height=16}, mock_widget{height=16}},
-            Columns{mock_widget{height=16}, Filler(),
-                           mock_widget{height=16}, Filler(),
-                           mock_widget()},
+            Columns{mock_widget{height=16, margin=2}},
+            Columns{mock_widget{height=16, margin=2},
+                    mock_widget{height=16, margin=2}},
+            Columns{mock_widget{height=16, margin=2},
+                    mock_widget{height=16, margin=2},
+                    mock_widget{height=16, margin=2}},
+            Columns{mock_widget{height=16, margin=2},
+                    mock_widget{height=16, margin=2},
+                    mock_widget{height=16, margin=2},
+                    mock_widget{height=16, margin=2}},
+            Columns{mock_widget{height=16, margin=2},
+                    mock_widget{height=16, margin=2},
+                    mock_widget{height=16, margin=2},
+                    mock_widget{height=16, margin=2},
+                    mock_widget{height=16, margin=2}},
         }, {
             background_color={0.2, 0.8, 0.2, 0.4},
             border_color={0.2, 0.8, 0.2, 1},
             border_width=2,
-            padding=8,
+            padding=2,
         }),
         Filler{height=10},
         mock_widget{width=10},

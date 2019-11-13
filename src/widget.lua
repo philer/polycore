@@ -320,6 +320,20 @@ function Filler:init(args)
 end
 
 
+local function side_widths(arg)
+    arg = arg or 0
+    if type(arg) == "number" then
+        return {top=arg, right=arg, bottom=arg, left=arg}
+    elseif #arg == 2 then
+        return {top=arg[1], right=arg[2], bottom=arg[1], left=arg[2]}
+    elseif #arg == 3 then
+        return {top=arg[1], right=arg[2], bottom=arg[3], left=arg[2]}
+    elseif #arg == 4 then
+        return {top=arg[1], right=arg[2], bottom=arg[3], left=arg[4]}
+    end
+end
+
+
 --- Draw a static border and/or background around/behind another widget.
 -- @type Frame
 local Frame = util.class(Widget)
@@ -333,6 +347,7 @@ w.Frame = Frame
 --  - table of two numbers: {top & bottom, left & right}<br>
 --  - table of three numbers: {top, left & right, bottom}<br>
 --  - table of four numbers: {top, right, bottom, left}
+-- @tparam ?number|{number,...} args.margin Like padding but outside the border.
 -- @tparam ?{number,number,number,number} args.background_color
 -- @tparam ?{number,number,number,number} args.border_color
 -- @tparam ?number args.border_width border line width
@@ -345,65 +360,53 @@ function Frame:init(widget, args)
     self._border_color = args.border_color or {0, 0, 0, 0}
     self._border_width = args.border_width or 0
 
-    local pad = args.padding or 0
-    if type(pad) == "number" then
-        self._padding = {top=pad, right=pad, bottom=pad, left=pad}
-    elseif #pad == 2 then
-        self._padding = {top=pad[1], right=pad[2], bottom=pad[1], left=pad[2]}
-    elseif #pad == 3 then
-        self._padding = {top=pad[1], right=pad[2], bottom=pad[3], left=pad[2]}
-    elseif #pad == 4 then
-        self._padding = {top=pad[1], right=pad[2], bottom=pad[3], left=pad[4]}
-    end
-
-    self._has_border = self._border_width > 0
-                       and (not args.border_sides or #args.border_sides > 0)
-    self._has_background = self._background_color and self._background_color[4] > 0
-
+    self._padding = side_widths(args.padding)
+    self._margin = side_widths(args.margin)
     self._border_sides = util.set(args.border_sides or {"top", "right", "bottom", "left"})
 
-    self._x_offset = self._padding.left
-                     + (self._border_sides.left and self._border_width or 0)
-    self._y_offset = self._padding.top
-                     + (self._border_sides.top and self._border_width or 0)
-    self._horizontal_space = self._x_offset + self._padding.right
-                             + (self._border_sides.right and self._border_width or 0)
-    self._vertical_space = self._y_offset + self._padding.bottom
-                           + (self._border_sides.bottom and self._border_width or 0)
+    self._has_background = self._background_color and self._background_color[4] > 0
+    self._has_border = self._border_width > 0
+                       and (not args.border_sides or #args.border_sides > 0)
+
+    self._x_left = self._margin.left + self._padding.left
+                   + (self._border_sides.left and self._border_width or 0)
+    self._y_top = self._margin.top + self._padding.top
+                  + (self._border_sides.top and self._border_width or 0)
+    self._x_right = self._margin.right + self._padding.right
+                    + (self._border_sides.right and self._border_width or 0)
+    self._y_bottom = self._margin.bottom + self._padding.bottom
+                     + (self._border_sides.bottom and self._border_width or 0)
 
     if widget.width then
-        self.width = widget.width + self._horizontal_space
+        self.width = widget.width + self._x_left + self._x_right
     end
     if widget.height then
-        self.height = widget.height + self._vertical_space
+        self.height = widget.height + self._y_top + self._y_bottom
     end
 end
 
 function Frame:layout(width, height)
-    self._width = width
-    self._height = height
-    local inner_width = width - self._horizontal_space
-    local inner_height = height - self._vertical_space
+    self._width = width - self._margin.left - self._margin.right
+    self._height = height - self._margin.top - self._margin.bottom
+    local inner_width = width - self._x_left - self._x_right
+    local inner_height = height - self._y_top - self._y_bottom
     local children = self._widget:layout(inner_width, inner_height)
     if children then
         for _, child in ipairs(children) do
-            child[2] = child[2] + self._x_offset
-            child[3] = child[3] + self._y_offset
+            child[2] = child[2] + self._x_left
+            child[3] = child[3] + self._y_top
         end
         table.insert(children, 1, {self, 0, 0, width, height})
         return children
     else
-        return {
-            {self, 0, 0, width, height},
-            {self._widget, self._y_offset, self._x_offset,
-                           inner_width, inner_height}
-        }
+        return {{self, 0, 0, width, height},
+                {self._widget, self._y_top, self._x_left, inner_width, inner_height}}
     end
 end
 
 function Frame:render_background(cr)
     if self._has_background then
-        cairo_rectangle(cr, 0, 0, self._width, self._height)
+        cairo_rectangle(cr, self._margin.left, self._margin.top, self._width, self._height)
         cairo_set_source_rgba(cr, unpack(self._background_color))
         cairo_fill(cr)
     end
@@ -413,15 +416,16 @@ function Frame:render_background(cr)
         cairo_set_line_cap(cr, CAIRO_LINE_CAP_SQUARE)
         cairo_set_source_rgba(cr, unpack(self._border_color))
         cairo_set_line_width(cr, self._border_width)
-        local offset = 0.5 * self._border_width
-        local x_max = self._width - offset
-        local y_max = self._height - offset
+        local x_min = self._margin.left + 0.5 * self._border_width
+        local y_min = self._margin.top + 0.5 * self._border_width
+        local x_max = self._margin.left + self._width - 0.5 * self._border_width
+        local y_max = self._margin.top + self._height - 0.5 * self._border_width
         local side, line, move = self._border_sides, cairo_line_to, cairo_move_to
-        cairo_move_to(cr, offset, offset);
-        (side.top and line or move)(cr, x_max, offset);
+        cairo_move_to(cr, x_min, y_min);
+        (side.top and line or move)(cr, x_max, y_min);
         (side.right and line or move)(cr, x_max, y_max);
-        (side.bottom and line or move)(cr, offset, y_max);
-        (side.left and line or move)(cr, offset, offset);
+        (side.bottom and line or move)(cr, x_min, y_max);
+        (side.left and line or move)(cr, x_min, y_min);
         cairo_stroke(cr, self._background_color)
     end
 end

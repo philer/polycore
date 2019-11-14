@@ -12,6 +12,32 @@ local read_cmd = util.memoize(1, function(cmd)
     return result
 end)
 
+local unit_map = {
+    B = 1,
+    kiB = 1024,
+    kB = 1000,
+    KiB = 1024,
+    KB = 1000,
+    MiB = 1024 * 1024,
+    MB = 1000 * 1000,
+    GiB = 1024 * 1024 * 1024,
+    GB = 1000 * 1000 * 1000,
+    TiB = 1024 * 1024 * 1024 * 1024,
+    TB = 1000 * 1000 * 1000 * 1000,
+}
+
+--- Convert memory value from one unit to another.
+-- @string from like "B", "MiB", "kB", ...
+-- @tparam string|nil to like "B", "MiB", "kB", ...
+--                       For nil, no conversion happens.
+-- @number value amount of memory in `from` unit
+local function convert_unit(from, to, value)
+    if to and from ~= to then
+        return value * unit_map[from] / unit_map[to]
+    end
+    return value
+end
+
 --- Get the current usage percentages of individual CPU cores
 -- @int cores number of CPU cores
 -- @treturn {number,...}
@@ -48,21 +74,14 @@ function data.fan_rpm()
     return util.map(tonumber, read_cmd("sensors"):gmatch("fan%d: +(%d+) RPM"))
 end
 
-local unit_map = {
-    T = 1024,
-    G = 1,
-    M = 1 / 1024,
-    k = 1 / (1024 * 1024),
-    B = 1 / (1024 * 1024 * 1024),
-}
 --- Get current memory usage info
+-- @tparam ?string unit like "B", "MiB", "kB", ...
 -- @treturn number,number,number,number usage, easyfree, free, total
-function data.memory()
+function data.memory(unit)
     local conky_output = conky_parse("$mem|$memeasyfree|$memfree|$memmax")
     local results = {}
-    for result in conky_output:gmatch("%d+%p?%d*%a") do
-        local value, unit = result:sub(1, -2), result:sub(-1)
-        table.insert(results, value * unit_map[unit])
+    for value, parsed_unit in conky_output:gmatch("(%d+%p?%d*) ?(%w+)") do
+        table.insert(results, convert_unit(parsed_unit, unit, tonumber(value)))
     end
     return unpack(results)
 end
@@ -159,26 +178,15 @@ data.is_mounted = util.memoize(5, function(path)
 end)
 
 
-local diskio_unit_map = {
-    TiB = 1024 * 1024 * 1024 * 1024,
-    GiB = 1024 * 1024 * 1024,
-    MiB = 1024 * 1024,
-    KiB = 1024,
-    B = 1,
-}
 --- Get activity of a drive. If unit is specified the value will be converted
 -- to that unit.
 -- @string device e.g. /dev/sda1
--- @tparam ?string unit any of "B", "KiB", "MiB", "GiB" or "TiB"
+-- @tparam ?string unit like "B", "MiB", "kB", ...
 -- @treturn number,string activity, unit
 function data.diskio(device, unit)
     local result = conky_parse(("${diskio %s}"):format(device))
-    local value, parsed_unit = result:match("(%d+%p?%d*)(%w+)")
-    value = tonumber(value)
-    if unit and parsed_unit ~= unit then
-        value = value * diskio_unit_map[parsed_unit] / diskio_unit_map[unit]
-    end
-    return value, unit or parsed_unit
+    local value, parsed_unit = result:match("(%d+%p?%d*) ?(%w+)")
+    return convert_unit(parsed_unit, unit, tonumber(value)), unit or parsed_unit
 end
 
 --- Get current HDD/SSD temperatures.

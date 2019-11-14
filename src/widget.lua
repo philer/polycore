@@ -623,7 +623,7 @@ function MemoryBar:set_used(used)
 end
 
 function MemoryBar:update()
-    local used, _, _, total = data.memory()
+    local used, _, _, total = data.memory("GiB")
     self:set_fill(used / total)
 end
 
@@ -835,7 +835,7 @@ function Cpu:layout(width, height)
         local y4 = self._my + min * dy_right + dy_gap
         self._segment_coordinates[core] = {x1, y1, x2, y2, x3, y3, x4, y4}
         self._gradient_coordinates[core] = {(x1 + x4) / 2, (y1 + y4) / 2,
-                                           (x2 + x3) / 2, (y2 + y3) / 2}
+                                            (x2 + x3) / 2, (y2 + y3) / 2}
     end
     return self._height
 end
@@ -1036,7 +1036,7 @@ function MemoryGrid:layout(width)
 end
 
 function MemoryGrid:update()
-    self._used, self._easyfree, self._free, self._total = data.memory()
+    self._used, self._easyfree, self._free, self._total = data.memory("GiB")
 end
 
 function MemoryGrid:render(cr)

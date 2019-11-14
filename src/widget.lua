@@ -1006,28 +1006,38 @@ local MemoryGrid = util.class(Widget)
 w.MemoryGrid = MemoryGrid
 
 --- @tparam table args table of options
--- @int[opt=5] args.rows number of rows to draw
--- @int[opt=2] args.point_size edge length of individual squares
--- @int[opt=1] args.gap space between squares
--- @bool[opt=true] args.shuffle randomize?
+-- @tparam ?int args.rows Number of rows to draw.
+--                        For nil it will be determined based on Widget height.
+-- @tparam ?int args.columns Number of columns to draw.
+--                           For nil it will be determined based on Widget width.
+-- @tparam[opt=2] ?int args.point_size edge length of individual squares
+-- @tparam[opt=1] ?int args.gap space between squares
+-- @tparam[opt=true] ?bool args.shuffle randomize?
 function MemoryGrid:init(args)
-    self._rows = args.rows or 5
+    self._rows = args.rows
+    self._columns = args.columns
     self._point_size = args.point_size or 2
     self._gap = args.gap or 1
     self._shuffle = args.shuffle == nil and true or args.shuffle
-    self.height = self._rows * self._point_size + (self._rows - 1) * self._gap
+    if self._rows then
+        self.height = self._rows * self._point_size + (self._rows - 1) * self._gap
+    end
+    if self._columns then
+        self.width = self._columns * self._point_size + (self._columns - 1) * self._gap
+    end
 end
 
-function MemoryGrid:layout(width)
+function MemoryGrid:layout(width, height)
     local point_plus_gap = self._point_size + self._gap
-    local columns = math.floor(width / point_plus_gap)
+    local columns = self._columns or math.floor(width / point_plus_gap)
+    local rows = self._rows or math.floor(height / point_plus_gap)
     local left = 0.5 * (width - columns * point_plus_gap + self._gap)
     self._coordinates = {}
     for col = 0, columns - 1 do
-        for row = 0, self._rows - 1 do
+        for row = 0, rows - 1 do
             table.insert(self._coordinates, {col * point_plus_gap + left,
-                                            row * point_plus_gap,
-                                            self._point_size, self._point_size})
+                                             row * point_plus_gap,
+                                             self._point_size, self._point_size})
         end
     end
     if shuffle == nil or shuffle then

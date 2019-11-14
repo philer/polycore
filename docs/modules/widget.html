@@ -39,7 +39,6 @@
 <li><a href="#Class_Group">Class Group </a></li>
 <li><a href="#Class_Columns">Class Columns </a></li>
 <li><a href="#Class_Filler">Class Filler </a></li>
-<li><a href="#Class_Gap">Class Gap </a></li>
 <li><a href="#Class_Frame">Class Frame </a></li>
 <li><a href="#Class_TextLine">Class TextLine </a></li>
 <li><a href="#Class_Bar">Class Bar </a></li>
@@ -164,14 +163,7 @@
 <h2><a href="#Class_Filler">Class Filler </a></h2>
 <table class="function_list">
 	<tr>
-	<td class="name" nowrap><a href="#Filler:init">Filler:init()</a></td>
-	<td class="summary">no options</td>
-	</tr>
-</table>
-<h2><a href="#Class_Gap">Class Gap </a></h2>
-<table class="function_list">
-	<tr>
-	<td class="name" nowrap><a href="#Gap:init">Gap:init(size)</a></td>
+	<td class="name" nowrap><a href="#Filler:init">Filler:init(args)</a></td>
 	<td class="summary"></td>
 	</tr>
 </table>
@@ -697,35 +689,15 @@
     <h2 class="section-header has-description"><a name="Class_Filler"></a>Class Filler </h2>
 
           <div class="section-description">
-          Leave enough vertical space between widgets to eventually fill the entire
- height of the drawable surface.  Available space will be distributed evenly
- between all Filler Widgets.
+          Leave space between widgets.
+ If either height or width is not specified, the available space
+ inside a Group or Columns will be distributed evenly between Fillers
+ with no fixed height/width.
           </div>
     <dl class="function">
     <dt>
     <a name = "Filler:init"></a>
-    <strong>Filler:init()</strong>
-    </dt>
-    <dd>
-    no options
-
-
-
-
-
-
-
-</dd>
-</dl>
-    <h2 class="section-header has-description"><a name="Class_Gap"></a>Class Gap </h2>
-
-          <div class="section-description">
-          Leave a fixed amount of space between widgets.
-          </div>
-    <dl class="function">
-    <dt>
-    <a name = "Gap:init"></a>
-    <strong>Gap:init(size)</strong>
+    <strong>Filler:init(args)</strong>
     </dt>
     <dd>
 
@@ -733,10 +705,17 @@
 
     <h3>Parameters:</h3>
     <ul>
-        <li><span class="parameter">size</span>
-            <span class="types"><span class="type">int</span></span>
-         Amount of space in pixels
+        <li><span class="parameter">args</span> table of options
+        <ul>
+        <li><span class="parameter">width</span>
+            <span class="types">optional <span class="type">int</span></span>
+
         </li>
+        <li><span class="parameter">height</span>
+            <span class="types">optional <span class="type">int</span></span>
+
+        </li>
+        </li></ul>
     </ul>
 
 
@@ -776,6 +755,10 @@
   - table of three numbers: {top, left & right, bottom}<br>
   - table of four numbers: {top, right, bottom, left}
         </li>
+        <li><span class="parameter">margin</span>
+            <span class="types"><span class="type">number</span> or <span class="type">{number,...}</span></span>
+         Like padding but outside the border.
+        </li>
         <li><span class="parameter">background_color</span>
             <span class="types">optional <span class="type">{number,number,number,number}</span></span>
 
@@ -783,10 +766,12 @@
         <li><span class="parameter">border_color</span>
             <span class="types">optional <span class="type">{number,number,number,number}</span></span>
 
+         (<em>default</em> transparent)
         </li>
         <li><span class="parameter">border_width</span>
             <span class="types">optional <span class="type">number</span></span>
          border line width
+         (<em>default</em> 0)
         </li>
         <li><span class="parameter">border_sides</span>
             <span class="types">optional <span class="type">{string,...}</span></span>
@@ -836,7 +821,7 @@
         </li>
         <li><span class="parameter">color</span>
             <span class="types">optional <span class="type">{number,number,number,number}</span></span>
-
+         (default: <a href="../modules/widget.html#default_text_color">default_text_color</a>)
         </li>
         </li></ul>
     </ul>
@@ -907,7 +892,7 @@
         </li>
         <li><span class="parameter">color</span>
             <span class="types">optional <span class="type">{number,number,number}</span></span>
-
+         (default: <a href="../modules/widget.html#default_graph_color">default_graph_color</a>)
         </li>
         </li></ul>
     </ul>
@@ -1047,7 +1032,7 @@
         </li>
         <li><span class="parameter">color</span>
             <span class="types">optional <span class="type">{number,number,number}</span></span>
-
+         (default: <a href="../modules/widget.html#default_graph_color">default_graph_color</a>)
         </li>
         </li></ul>
     </ul>
@@ -1274,24 +1259,33 @@
         <li><span class="parameter">args</span> table of options
         <ul>
         <li><span class="parameter">rows</span>
-            <span class="types"><span class="type">int</span></span>
-         number of rows to draw
-         (<em>default</em> 5)
+            <span class="types">optional <span class="type">int</span></span>
+         Number of rows to draw.
+                        For nil it will be determined based on Widget height.
+        </li>
+        <li><span class="parameter">columns</span>
+            <span class="types">optional <span class="type">int</span></span>
+         Number of columns to draw.
+                           For nil it will be determined based on Widget width.
         </li>
         <li><span class="parameter">point_size</span>
-            <span class="types"><span class="type">int</span></span>
+            <span class="types">optional <span class="type">int</span></span>
          edge length of individual squares
          (<em>default</em> 2)
         </li>
         <li><span class="parameter">gap</span>
-            <span class="types"><span class="type">int</span></span>
+            <span class="types">optional <span class="type">int</span></span>
          space between squares
          (<em>default</em> 1)
         </li>
         <li><span class="parameter">shuffle</span>
-            <span class="types"><span class="type">bool</span></span>
+            <span class="types">optional <span class="type">bool</span></span>
          randomize?
          (<em>default</em> true)
+        </li>
+        <li><span class="parameter">color</span>
+            <span class="types">optional <span class="type">{number,number,number}</span></span>
+         (default: <a href="../modules/widget.html#default_graph_color">default_graph_color</a>)
         </li>
         </li></ul>
     </ul>
@@ -1342,7 +1336,7 @@
         <li><span class="parameter">args</span> table of options
         <ul>
         <li><span class="parameter">lines</span>
-            <span class="types"><span class="type">int</span></span>
+            <span class="types">optional <span class="type">int</span></span>
          how many processes to display
          (<em>default</em> 5)
         </li>
@@ -1356,7 +1350,7 @@
         </li>
         <li><span class="parameter">color</span>
             <span class="types">optional <span class="type">{number,number,number}</span></span>
-
+         (default: <a href="../modules/widget.html#default_text_color">default_text_color</a>)
         </li>
         </li></ul>
     </ul>
@@ -1449,7 +1443,7 @@
 </div> <!-- id="main" -->
 <div id="about">
 <i>generated by <a href="http://github.com/stevedonovan/LDoc">LDoc 1.4.6</a></i>
-<i style="float:right;">Last updated 2019-11-12 01:08:45 </i>
+<i style="float:right;">Last updated 2019-11-14 16:22:53 </i>
 </div> <!-- id="about" -->
 </div> <!-- id="container" -->
 </body>

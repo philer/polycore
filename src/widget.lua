@@ -1013,12 +1013,14 @@ w.MemoryGrid = MemoryGrid
 -- @tparam[opt=2] ?int args.point_size edge length of individual squares
 -- @tparam[opt=1] ?int args.gap space between squares
 -- @tparam[opt=true] ?bool args.shuffle randomize?
+-- @tparam ?{number,number,number} args.color
 function MemoryGrid:init(args)
     self._rows = args.rows
     self._columns = args.columns
     self._point_size = args.point_size or 2
     self._gap = args.gap or 1
     self._shuffle = args.shuffle == nil and true or args.shuffle
+    self._color = args.color or w.default_graph_color
     if self._rows then
         self.height = self._rows * self._point_size + (self._rows - 1) * self._gap
     end
@@ -1054,7 +1056,7 @@ function MemoryGrid:render(cr)
     local total_points = #self._coordinates
     local used_points = math.floor(total_points * self._used / self._total + 0.5)
     local cache_points = math.floor(total_points * (self._easyfree - self._free) / self._total + 0.5)
-    local r, g, b = w.temperature_color(self._used / self._total, 0.6, 0.9)
+    local r, g, b = unpack(self._color)
 
     cairo_set_antialias(cr, CAIRO_ANTIALIAS_NONE)
     for i = 1, used_points do

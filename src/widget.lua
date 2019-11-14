@@ -309,7 +309,7 @@ end
 local Filler = util.class(Widget)
 w.Filler = Filler
 
---- @tparam table args table of options
+--- @tparam ?table args table of options
 -- @tparam ?int args.width
 -- @tparam ?int args.height
 function Filler:init(args)
@@ -349,8 +349,8 @@ w.Frame = Frame
 --  - table of four numbers: {top, right, bottom, left}
 -- @tparam ?number|{number,...} args.margin Like padding but outside the border.
 -- @tparam ?{number,number,number,number} args.background_color
--- @tparam ?{number,number,number,number} args.border_color
--- @tparam ?number args.border_width border line width
+-- @tparam[opt=transparent] ?{number,number,number,number} args.border_color
+-- @tparam[opt=0] ?number args.border_width border line width
 -- @tparam ?{string,...} args.border_sides any combination of
 --                                         "top", "right", "bottom" and/or "left"
 --                                         (default: all sides)
@@ -441,7 +441,7 @@ w.TextLine = TextLine
 -- @tparam ?string args.align "left" (default), "center" or "right"
 -- @tparam ?string args.font_family
 -- @tparam ?number args.font_size
--- @tparam ?{number,number,number,number} args.color
+-- @tparam ?{number,number,number,number} args.color (default: `default_text_color`)
 function TextLine:init(args)
     self.align = args.align or "left"
     self.font_family = args.font_family or w.default_font_family
@@ -497,7 +497,7 @@ w.Bar = Bar
 -- @tparam ?string args.unit to be drawn behind the bar - 3 characters will fit
 -- @tparam ?{number,...} args.ticks relative offsets (between 0 and 1) of ticks
 -- @tparam ?int args.big_ticks multiple of ticks to be drawn longer
--- @tparam ?{number,number,number} args.color
+-- @tparam ?{number,number,number} args.color (default: `default_graph_color`)
 function Bar:init(args)
     self._ticks = args.ticks
     self._big_ticks = args.big_ticks
@@ -639,7 +639,7 @@ w.Graph = Graph
 -- @int[opt=90] args.data_points how many values to store
 -- @int[opt=22] args.height includes fake shadow border
 -- @bool[opt=false] args.upside_down draw graph from top to bottom
--- @tparam ?{number,number,number} args.color
+-- @tparam ?{number,number,number} args.color (default: `default_graph_color`)
 function Graph:init(args)
     self._max = args.max
     self.height = args.height or 22
@@ -1013,7 +1013,7 @@ w.MemoryGrid = MemoryGrid
 -- @tparam[opt=2] ?int args.point_size edge length of individual squares
 -- @tparam[opt=1] ?int args.gap space between squares
 -- @tparam[opt=true] ?bool args.shuffle randomize?
--- @tparam ?{number,number,number} args.color
+-- @tparam ?{number,number,number} args.color (default: `default_graph_color`)
 function MemoryGrid:init(args)
     self._rows = args.rows
     self._columns = args.columns
@@ -1108,10 +1108,10 @@ local GpuTop = util.class(Widget)
 w.GpuTop = GpuTop
 
 --- @tparam table args table of options
--- @int[opt=5] args.lines how many processes to display
+-- @tparam[opt=5] ?int args.lines how many processes to display
 -- @tparam ?string args.font_family
 -- @tparam ?number args.font_size
--- @tparam ?{number,number,number} args.color
+-- @tparam ?{number,number,number} args.color (default: `default_text_color`)
 function GpuTop:init(args)
     self._lines = args.lines or 5
     self._font_family = args.font_family or w.default_font_family

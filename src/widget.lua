@@ -87,7 +87,7 @@ function Renderer:layout()
     self._render_widgets = {}
     for _, w in ipairs(widgets) do
         local matrix = cairo_matrix_t:create()
-        cairo_matrix_init_translate(matrix, w[2], w[3])
+        cairo_matrix_init_translate(matrix, math.floor(w[2]), math.floor(w[3]))
         if w[1].render_background then
             table.insert(background_widgets, {w[1], matrix})
         end

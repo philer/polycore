@@ -4,6 +4,13 @@
 
 ![columns layout](examples/columns.png)
 
+## Features
+
+* Stylish replacements for conky's default bars and graphs
+* Allows complex layouts with minimal effort
+* Minimal resource overhead through caching
+* Easy to extend
+
 ## Requirements
 
 * conky 1.10+ (with cairo support)

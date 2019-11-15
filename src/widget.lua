@@ -77,10 +77,9 @@ end
 -- Call this once to create the initial layout.
 -- Will be called again automatically each time the layout changes.
 function Renderer:layout()
-    print("layout reflow…")
     local widgets = self._root:layout(self._width, self._height)
     if not widgets then
-        widgets = {self._root, 0, 0}
+        widgets = {{self._root, 0, 0, self._width, self._height}}
     end
     local background_widgets = {}
     self._update_widgets = {}

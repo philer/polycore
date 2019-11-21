@@ -113,8 +113,28 @@
 	<td class="summary">Turn a array style table into a {[value] = true} mapping table</td>
 	</tr>
 	<tr>
-	<td class="name" nowrap><a href="#map">map(fn, iter)</a></td>
-	<td class="summary">Call a function on each item of an iterator.</td>
+	<td class="name" nowrap><a href="#a2a_map">a2a_map(fn, items)</a></td>
+	<td class="summary">Array to Array map.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#i2a_map">i2a_map(fn, iter)</a></td>
+	<td class="summary">Iterator to Array map.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#a2i_map">a2i_map(fn, items)</a></td>
+	<td class="summary">Array to Iterator map.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#i2i_map">i2i_map(fn, iter)</a></td>
+	<td class="summary">Iterator to Iterator map.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#map">map(fn, items)</a></td>
+	<td class="summary">Call a function on each item of an array or iterator.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#imap">imap(fn, items)</a></td>
+	<td class="summary">Calls a function on each item of an array or iterator.</td>
 	</tr>
 	<tr>
 	<td class="name" nowrap><a href="#range">range(start, stop[, step=1])</a></td>
@@ -417,11 +437,44 @@
 
 </dd>
     <dt>
-    <a name = "map"></a>
-    <strong>map(fn, iter)</strong>
+    <a name = "a2a_map"></a>
+    <strong>a2a_map(fn, items)</strong>
     </dt>
     <dd>
-    Call a function on each item of an iterator.  Collect the results in a table.
+    Array to Array map.
+ Calls a function on each item of a table. Collect the results in a table.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">fn</span>
+            <span class="types"><span class="type">func</span></span>
+         should take one argument and return one result
+        </li>
+        <li><span class="parameter">items</span>
+            <span class="types"><span class="type">tab</span></span>
+         array
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><span class="type">table</span></span>
+        array of results
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "i2a_map"></a>
+    <strong>i2a_map(fn, iter)</strong>
+    </dt>
+    <dd>
+    Iterator to Array map.
+ Calls a function on each item of an iterator. Collect the results in a table.
 
 
     <h3>Parameters:</h3>
@@ -431,6 +484,7 @@
          should take one argument and return one result
         </li>
         <li><span class="parameter">iter</span>
+            <span class="types"><span class="type">func</span></span>
          iterator
         </li>
     </ul>
@@ -439,7 +493,135 @@
     <ol>
 
            <span class="types"><span class="type">table</span></span>
-        list of results
+        array of results
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "a2i_map"></a>
+    <strong>a2i_map(fn, items)</strong>
+    </dt>
+    <dd>
+    Array to Iterator map.
+ Calls a function on each item of a table. Iterate the results.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">fn</span>
+            <span class="types"><span class="type">func</span></span>
+         should take one argument and return one result
+        </li>
+        <li><span class="parameter">items</span>
+            <span class="types"><span class="type">tab</span></span>
+         array
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><span class="type">func</span></span>
+        results iterator
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "i2i_map"></a>
+    <strong>i2i_map(fn, iter)</strong>
+    </dt>
+    <dd>
+    Iterator to Iterator map.
+ Calls a function on each item of an iterator. Iterate the results.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">fn</span>
+            <span class="types"><span class="type">func</span></span>
+         should take one argument and return one result
+        </li>
+        <li><span class="parameter">iter</span>
+            <span class="types"><span class="type">func</span></span>
+         iterator
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><span class="type">func</span></span>
+        results iterator
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "map"></a>
+    <strong>map(fn, items)</strong>
+    </dt>
+    <dd>
+    Call a function on each item of an array or iterator.
+ Collect the results in a table.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">fn</span>
+            <span class="types"><span class="type">func</span></span>
+         should take one argument and return one result
+        </li>
+        <li><span class="parameter">items</span>
+            <span class="types"><span class="type">table</span> or <span class="type">func</span></span>
+
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><span class="type">table</span></span>
+        array of results
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "imap"></a>
+    <strong>imap(fn, items)</strong>
+    </dt>
+    <dd>
+    Calls a function on each item of an array or iterator.
+ Iterate the results.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">fn</span>
+            <span class="types"><span class="type">func</span></span>
+         should take one argument and return one result
+        </li>
+        <li><span class="parameter">items</span>
+            <span class="types"><span class="type">table</span> or <span class="type">func</span></span>
+
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><span class="type">func</span></span>
+        results iterator
     </ol>
 
 
@@ -538,7 +720,7 @@
 </div> <!-- id="main" -->
 <div id="about">
 <i>generated by <a href="http://github.com/stevedonovan/LDoc">LDoc 1.4.6</a></i>
-<i style="float:right;">Last updated 2019-11-21 16:30:46 </i>
+<i style="float:right;">Last updated 2019-11-21 18:27:37 </i>
 </div> <!-- id="about" -->
 </div> <!-- id="container" -->
 </body>

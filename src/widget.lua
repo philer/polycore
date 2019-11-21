@@ -732,6 +732,11 @@ w.LED = LED
 -- @tparam ?{number,number,number} args.color color of the LED,
 --                                can be changed later with `LED:set_color`.
 --                                (default: `default_graph_color`)
+-- @tparam ?{number,number,number,number} args.background_color mostly visible
+--                                when the LED is off. This allows you to choose
+--                                a neutral background if you plan on changing
+--                                the light color via `LED:set_color`.
+--                                (default: darkened `args.color`)
 function LED:init(args)
     assert(args.radius)
     self._radius = args.radius
@@ -739,6 +744,12 @@ function LED:init(args)
     self.height = self._radius * 2
     self._brightness = args.brightness or 0
     self._color = args.color or w.default_graph_color
+    if args.background_color then
+        self._background_color = args.background_color
+    else
+        local r, g, b = unpack(self._color)
+        self._background_color = {0.2 * r, 0.2 * g, 0.2 * b, 0.75}
+    end
 end
 
 --- @number brightness between 0 and 1
@@ -758,8 +769,7 @@ end
 
 function LED:render_background(cr)
     cairo_arc(cr, self._mx, self._my, self._radius, 0, 360)
-    local r, g, b = unpack(self._color)
-    cairo_set_source_rgba(cr, 0.2 * r, 0.2 * g, 0.2 * b, 0.5)
+    cairo_set_source_rgba(cr, unpack(self._background_color))
     cairo_fill(cr)
 end
 

@@ -47,7 +47,7 @@ The following Widget classes are currently available:
 * **`Widget`** the base class - Does nothing by itself.
 * **`Group`** a container for multiple widgets to be rendered in a vertical stack - It is useful to subclass this in order to create compound widgets with a combined `:update()`.
 * **`Columns`** like `Group` but horizontal
-* **`Filler`** Leave some empty space.
+* **`Filler`** Leave some empty space. Can also wrap another widget to restrict its size.
 * **`Frame`** Provides background color, border, padding and margin for other Widgets.
 * **`Bar`** a basic bar similar to the one available in normal conky.
 * **`MemoryBar`** a bar visualizing RAM usage.

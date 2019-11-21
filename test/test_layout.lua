@@ -47,7 +47,7 @@ end
 -- @string path2
 -- @treturn bool
 local function images_equal(path1, path2)
-    local command_template = 'compare -identify -metric MAE "%s" "%s" null >/dev/null 2>&1'
+    local command_template = 'compare -identify -metric MAE "%s" "%s" /dev/null >/dev/null 2>&1'
     local result = os.execute(command_template:format(path1, path2))
 
     -- os.execute returns changed from 5.1 to 5.3

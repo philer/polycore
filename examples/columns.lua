@@ -5,14 +5,11 @@ local script_path = debug.getinfo(1, 'S').source:match("^@(.*)")
 local script_dir = script_path:match("^.*/")
 if script_dir then
     package.path = script_dir .. "?.lua;" .. package.path
-else
-    script_dir = "./"
 end
 
-local s, data = pcall(function() return require('src/data') end)
-local s, widget = pcall(function() return require('src/widget') end)
-local s, polycore = pcall(function() return require('src/polycore') end)
-if not s then polycore = {} end
+local _, widget = pcall(function() return require('src/widget') end)
+local success, polycore = pcall(function() return require('src/polycore') end)
+if not success then polycore = {} end  -- luacheck: ignore 331
 
 -- Draw debug information
 DEBUG = false

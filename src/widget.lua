@@ -8,6 +8,9 @@ local data = require 'src/data'
 local util = require 'src/util'
 local ch = require 'src/cairo_helpers'
 
+-- lua 5.1 to 5.3 compatibility
+local unpack = unpack or table.unpack  -- luacheck: read_globals unpack table
+
 
 local w = {
     --- Font used by widgets if no other is specified.
@@ -84,17 +87,17 @@ function Renderer:layout()
     local background_widgets = {}
     self._update_widgets = {}
     self._render_widgets = {}
-    for _, w in ipairs(widgets) do
+    for widget, x, y in util.imap(unpack, widgets) do
         local matrix = cairo_matrix_t:create()
-        cairo_matrix_init_translate(matrix, math.floor(w[2]), math.floor(w[3]))
-        if w[1].render_background then
-            table.insert(background_widgets, {w[1], matrix})
+        cairo_matrix_init_translate(matrix, math.floor(x), math.floor(y))
+        if widget.render_background then
+            table.insert(background_widgets, {widget, matrix})
         end
-        if w[1].render then
-            table.insert(self._render_widgets, {w[1], matrix})
+        if widget.render then
+            table.insert(self._render_widgets, {widget, matrix})
         end
-        if w[1].update then
-            table.insert(self._update_widgets, w[1])
+        if widget.update then
+            table.insert(self._update_widgets, widget)
         end
     end
 
@@ -109,9 +112,9 @@ function Renderer:layout()
         cairo_set_source_rgba(cr, 1, 0, 0, 1)
         ch.set_font(cr, "Ubuntu", 8)
         ch.write_left(cr, 0, 8, table.concat{"conky ", conky_version, " ", _VERSION})
-        for _, w in ipairs(widgets) do
-            if w[4] * w[5] ~= 0 then
-                cairo_rectangle(cr, unpack(w, 2))
+        for _, x, y, width, height in util.imap(unpack, widgets) do
+            if width * height ~= 0 then
+                cairo_rectangle(cr, x, y, width, height)
             end
         end
         cairo_set_line_width(cr, 1)
@@ -121,9 +124,9 @@ function Renderer:layout()
     end
     cairo_restore(cr)
 
-    for _, wm in ipairs(background_widgets) do
-        cairo_set_matrix(cr, wm[2])
-        wm[1]:render_background(cr)
+    for widget, matrix in util.imap(unpack, background_widgets) do
+        cairo_set_matrix(cr, matrix)
+        widget:render_background(cr)
     end
     cairo_destroy(cr)
 end
@@ -132,7 +135,7 @@ end
 function Renderer:update()
     local reflow = false
     for _, widget in ipairs(self._update_widgets) do
-        reflow = widget:update(cr) or reflow
+        reflow = widget:update() or reflow
     end
     if reflow then
         self:layout()
@@ -144,9 +147,9 @@ end
 function Renderer:render(cr)
     cairo_set_source_surface(cr, self._background_surface, 0, 0)
     cairo_paint(cr)
-    for _, wm in ipairs(self._render_widgets) do
-        cairo_set_matrix(cr, wm[2])
-        wm[1]:render(cr)
+    for widget, matrix in util.imap(unpack, self._render_widgets) do
+        cairo_set_matrix(cr, matrix)
+        widget:render(cr)
     end
 end
 
@@ -168,7 +171,7 @@ w.Widget = Widget
 -- it may occupy.
 -- @tparam int width
 -- @tparam int height
-function Widget:layout(width, height) end
+function Widget:layout(width, height) end  -- luacheck: no unused
 
 --- Called at least once to allow the widget to draw static content.
 -- @function Widget:render_background
@@ -200,23 +203,18 @@ w.Group = Group
 function Group:init(widgets)
     self._widgets = widgets
     local width = 0
-    local fix_width = false
     self._min_height = 0
     self._fillers = 0
-    for _, w in ipairs(widgets) do
-        if w.width then
-            fix_width = true
-            if w.width > width then width = w.width end
+    for _, widget in ipairs(widgets) do
+        if widget.width then
+            if widget.width > width then width = widget.width end
         end
-        if w.height then
-            self._min_height = self._min_height + w.height
+        if widget.height then
+            self._min_height = self._min_height + widget.height
         else
             self._fillers = self._fillers + 1
         end
     end
-    -- if fix_width then
-    --     self.width = width
-    -- end
     if self._fillers == 0 then
         self.height = self._min_height
     end
@@ -227,16 +225,16 @@ function Group:layout(width, height)
     local y = 0
     local children = {{self, 0, 0, 0, 0}}  -- include self for subclasses
     local filler_height = (height - self._min_height) / self._fillers
-    for _, w in ipairs(self._widgets) do
-        local widget_height = w.height or filler_height
-        local sub_children = w:layout(width, widget_height)
+    for _, widget in ipairs(self._widgets) do
+        local widget_height = widget.height or filler_height
+        local sub_children = widget:layout(width, widget_height)
         if sub_children then
             for _, child in ipairs(sub_children) do
                 child[3] = child[3] + y
                 table.insert(children, child)
             end
         else
-            table.insert(children, {w, 0, y, width, widget_height})
+            table.insert(children, {widget, 0, y, width, widget_height})
         end
         y = y + widget_height
     end
@@ -258,15 +256,15 @@ function Columns:init(widgets)
     self._fillers = 0
     local height = 0
     local fix_height = false
-    for _, w in ipairs(widgets) do
-        if w.width then
-            self._min_width = self._min_width + w.width
+    for _, widget in ipairs(widgets) do
+        if widget.width then
+            self._min_width = self._min_width + widget.width
         else
             self._fillers = self._fillers + 1
         end
-        if w.height then
+        if widget.height then
             fix_height = true
-            if w.height > height then height = w.height end
+            if widget.height > height then height = widget.height end
         end
     end
     if self._fillers == 0 then
@@ -283,16 +281,16 @@ function Columns:layout(width, height)
     local x = 0
     local children = {{self, 0, 0, 0, 0}}  -- include self for subclasses
     local filler_width = (width - self._min_width) / self._fillers
-    for _, w in ipairs(self._widgets) do
-        local widget_width = w.width or filler_width
-        local sub_children = w:layout(widget_width, height)
+    for _, widget in ipairs(self._widgets) do
+        local widget_width = widget.width or filler_width
+        local sub_children = widget:layout(widget_width, height)
         if sub_children then
             for _, child in ipairs(sub_children) do
                 child[2] = child[2] + x
                 table.insert(children, child)
             end
         else
-            table.insert(children, {w, x, 0, widget_width, height})
+            table.insert(children, {widget, x, 0, widget_width, height})
         end
         x = x + widget_width
     end
@@ -889,7 +887,7 @@ function Cpu:render(cr)
     for core = 1, self._cores do
         ch.polygon(cr, self._segment_coordinates[core])
         local gradient = cairo_pattern_create_linear(unpack(self._gradient_coordinates[core]))
-        local r, g, b = w.temperature_color(self._temperatures[core], 30, 80)
+        r, g, b = w.temperature_color(self._temperatures[core], 30, 80)
         cairo_set_source_rgba(cr, 0, 0, 0, .4)
         cairo_set_line_width(cr, 1.5)
         cairo_stroke_preserve(cr)
@@ -1065,7 +1063,7 @@ function MemoryGrid:layout(width, height)
                                              self._point_size, self._point_size})
         end
     end
-    if shuffle == nil or shuffle then
+    if self._shuffle == nil or self._shuffle then
         util.shuffle(self._coordinates)
     end
 end

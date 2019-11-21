@@ -3,6 +3,9 @@
 
 local util = require 'src/util'
 
+-- lua 5.1 to 5.3 compatibility
+local unpack = unpack or table.unpack  -- luacheck: read_globals unpack table
+
 local data = {}
 
 local read_cmd = util.memoize(1, function(cmd)

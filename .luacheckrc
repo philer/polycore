@@ -3,6 +3,7 @@
 -- custom globals defined by polycore
 stds.polycore = {
     globals = {
+        "DEBUG",
         "conky_setup",
         "conky_update",
     }
@@ -58,10 +59,12 @@ stds.conky = {
         "cairo_stroke",
         "cairo_stroke_preserve",
         "cairo_surface_destroy",
+        "cairo_surface_write_to_png",
         "cairo_t",
         "cairo_text_extents",
         "cairo_text_extents_t",
         "cairo_xlib_surface_create",
+        "conky",  -- only in rc file
         "conky_parse",
         "conky_version",
         "conky_window",

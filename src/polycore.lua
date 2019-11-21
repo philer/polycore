@@ -2,14 +2,10 @@
 -- @module polycore
 
 print(table.concat{"conky ", conky_version, " ", _VERSION})
--- lua 5.1 to 5.3 compatibility
-if unpack == nil then unpack = table.unpack end
-
 
 require 'cairo'
 
 local util = require 'src/util'
-local widget = require 'src/widget'
 
 --- Draw debug information
 -- @bool DEBUG

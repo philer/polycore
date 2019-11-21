@@ -4,14 +4,6 @@ local util = require "src/util"
 
 local test = {}
 
-local function assert_arrays_equal(xs, ys)
-    assert(#xs == #ys, ("arrays have different length (%s != %s)"):format(#xs, #ys))
-    local msg = ("{%s} != {%s}"):format(table.concat(xs, ","), table.concat(ys, ","))
-    for i = 1, #xs do
-        assert(xs[i] == ys[i], msg)
-    end
-end
-
 function test.CycleQueue()
     local function check_each(q, arr)
         local idx_msg = "CycleQueue:each gave incorrect index (%s instead of %s)"
@@ -23,7 +15,7 @@ function test.CycleQueue()
             assert(val == arr[idx], val_msg:format(idx, val, arr[idx]))
         end)
     end
-    q = util.CycleQueue(3)
+    local q = util.CycleQueue(3)
     check_each(q, {0, 0, 0})
     q:put(1)
     check_each(q, {0, 0, 1})

@@ -1,8 +1,5 @@
 -- Run this test via conky: `conky -c test/test_layout.lua`
 
--- lua 5.1 to 5.3 compatibility
-if unpack == nil then unpack = table.unpack end
-
 -- Conky does not add our config directory to lua's PATH, so we do it manually
 local script_path = debug.getinfo(1, 'S').source:match("^@(.*)")
 local script_dir = script_path:match("^.*/")
@@ -20,7 +17,7 @@ local conkyrc = conky or {}
 conkyrc.text = ""
 conkyrc.config = {
     lua_load = script_path,
-    lua_draw_hook_post = "conky_main",
+    lua_draw_hook_post = "conky_update",
     total_run_times = 1,
     out_to_console = false,
     out_to_x = false,
@@ -39,7 +36,7 @@ local function render_to_image(renderer, path)
                                                                renderer._height)
     local cr = cairo_create(cs)
     renderer:render(cr)
-    local result = cairo_surface_write_to_png(cs, path)
+    cairo_surface_write_to_png(cs, path)
     cairo_surface_destroy(cs)
     cairo_destroy(cr)
 end
@@ -200,7 +197,7 @@ local function error_handler(err)
 end
 
 --- Entry point called by conky
-function conky_main()
+function conky_update()
     for name, test_fn in pairs(test) do
         local success = xpcall(test_fn, error_handler)
         if success then

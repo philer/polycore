@@ -304,6 +304,8 @@ end
 -- If either height or width is not specified, the available space
 -- inside a Group or Columns will be distributed evenly between Fillers
 -- with no fixed height/width.
+-- A Filler may contain one other Widget which will have its dimensions
+-- restricted to those of the Filler.
 -- @type Filler
 local Filler = util.class(Widget)
 w.Filler = Filler
@@ -311,10 +313,22 @@ w.Filler = Filler
 --- @tparam ?table args table of options
 -- @tparam ?int args.width
 -- @tparam ?int args.height
+-- @tparam ?Widget args.widget
 function Filler:init(args)
     if args then
-        self.height = args.height
-        self.width = args.width
+        self._widget = args.widget
+        self.height = args.height or (self._widget and self._widget.height)
+        self.width = args.width or (self._widget and self._widget.width)
+    end
+end
+
+function Filler:layout(width, height)
+    if self._widget then
+        local children = self._widget:layout(width, height)
+        if children then
+            return children
+        end
+        return {{self._widget, 0, 0, width, height}}
     end
 end
 

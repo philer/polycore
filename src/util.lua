@@ -141,18 +141,89 @@ function util.set(entries)
     return set
 end
 
---- Call a function on each item of an iterator. Collect the results in a table.
+--- Array to Array map.
+-- Calls a function on each item of a table. Collect the results in a table.
 -- @func fn should take one argument and return one result
--- @param iter iterator
--- @treturn table list of results
-function util.map(fn, iter)
-    local arr = {}
+-- @tab items array
+-- @treturn table array of results
+function util.a2a_map(fn, items)
+    local results = {}
+    for i = 1, #items do
+        results[i] = fn(items[i])
+    end
+    return results
+end
+
+--- Iterator to Array map.
+-- Calls a function on each item of an iterator. Collect the results in a table.
+-- @func fn should take one argument and return one result
+-- @func iter iterator
+-- @treturn table array of results
+function util.i2a_map(fn, iter)
+    local results = {}
     local i = 1
     for item in iter do
-        arr[i] = fn(item)
+        results[i] = fn(item)
         i = i + 1
     end
-    return arr
+    return results
+end
+
+--- Array to Iterator map.
+-- Calls a function on each item of a table. Iterate the results.
+-- @func fn should take one argument and return one result
+-- @tab items array
+-- @treturn func results iterator
+function util.a2i_map(fn, items)
+    local i, len = 0, #items
+    return function()
+        i = i + 1
+        if i <= len then
+            return fn(items[i])
+        end
+    end
+end
+
+--- Iterator to Iterator map.
+-- Calls a function on each item of an iterator. Iterate the results.
+-- @func fn should take one argument and return one result
+-- @func iter iterator
+-- @treturn func results iterator
+function util.i2i_map(fn, iter)
+    return function()
+        local elem = iter()
+        if elem then
+            return fn(elem)
+        end
+    end
+end
+
+local maps = {
+    ["table"] = util.a2a_map,
+    ["function"] = util.i2a_map,
+}
+
+--- Call a function on each item of an array or iterator.
+-- Collect the results in a table.
+-- @func fn should take one argument and return one result
+-- @tparam table|func items
+-- @treturn table array of results
+function util.map(fn, items)
+    return maps[type(items)](fn, items)
+end
+
+local imaps = {
+    ["table"] = util.a2i_map,
+    ["function"] = util.i2i_map,
+}
+
+--- Calls a function on each item of an array or iterator.
+-- Iterate the results.
+-- @func fn should take one argument and return one result
+-- @tparam table|func items
+-- @treturn func results iterator
+function util.imap(fn, items)
+    return imaps[type(items)](fn, items)
 end
 
 --- Generate a table of numbers from start to stop with step size step,

@@ -1208,15 +1208,20 @@ w.Drive = Drive
 function Drive:init(path)
     self._path = path
 
-    self._io_led = LED{radius=3}
+    self._read_led = LED{radius=2, color={0.4, 1, 0.4}}
+    self._write_led = LED{radius=2, color={1, 0.4, 0.4}}
     self._temperature_text = TextLine{align="right"}
     self._bar = Bar{}
     Group.init(self, {
         Columns{
-            Filler(), Filler(),
-            self._io_led,
-            Filler{width=5},
-            self._temperature_text,
+            Filler{},
+            Filler{width=6, widget=Group{
+                Filler{},
+                self._read_led,
+                Filler{height=1},
+                self._write_led,
+            }},
+            Filler{width=30, widget=self._temperature_text},
         },
         Filler{height=4},
         self._bar,
@@ -1249,9 +1254,13 @@ function Drive:update()
         end
         self._bar:set_fill(data.drive_percentage(self._path) / 100)
 
-        local diskio = data.diskio(self._device, "B")
-        local diskio_magnitude = util.log2(diskio)
-        self._io_led:set_brightness(diskio_magnitude / 30)
+        local read = data.diskio(self._device, "read", "B")
+        local read_magnitude = util.log2(read)
+        self._read_led:set_brightness(read_magnitude / 30)
+
+        local write = data.diskio(self._device, "write", "B")
+        local write_magnitude = util.log2(write)
+        self._write_led:set_brightness(write_magnitude / 30)
 
         local temperature = data.hddtemp()[self._physical_device]
         if temperature then

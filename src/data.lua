@@ -181,10 +181,12 @@ end)
 --- Get activity of a drive. If unit is specified the value will be converted
 -- to that unit.
 -- @string device e.g. /dev/sda1
--- @tparam ?string unit like "B", "MiB", "kB", ...
+-- @string[opt] mode "read" or "write"; both if nil
+-- @string[opt] unit like "B", "MiB", "kB", ...; no conversion if nil
 -- @treturn number,string activity, unit
-function data.diskio(device, unit)
-    local result = conky_parse(("${diskio %s}"):format(device))
+function data.diskio(device, mode, unit)
+    mode = mode and "_" .. mode or ""
+    local result = conky_parse(("${diskio%s %s}"):format(mode, device))
     local value, parsed_unit = result:match("(%d+%p?%d*) ?(%w+)")
     return convert_unit(parsed_unit, unit, tonumber(value)), unit or parsed_unit
 end

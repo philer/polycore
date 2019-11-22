@@ -56,14 +56,17 @@ local function error_handler(err)
 end
 
 local function run_tests()
+    local all_successful = true
     for name, test_fn in pairs(test) do
         local success = xpcall(test_fn, error_handler)
         if success then
             print(ANSI_GREEN .. "test " .. name .. " passed" .. ANSI_RESET)
         else
+            all_successful = false
             print(ANSI_RED_BOLD .. "test " .. name .. " failed" .. ANSI_RESET)
         end
     end
+    return all_successful
 end
 
-run_tests()
+os.exit(run_tests() and 0 or 1)

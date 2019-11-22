@@ -192,12 +192,15 @@ end
 
 --- Entry point called by conky
 function conky_update()
+    local all_successful = true
     for name, test_fn in pairs(test) do
         local success = xpcall(test_fn, error_handler)
         if success then
             print(ANSI_GREEN .. "test " .. name .. " passed" .. ANSI_RESET)
         else
+            all_successful = false
             print(ANSI_RED_BOLD .. "test " .. name .. " failed" .. ANSI_RESET)
         end
     end
+    os.exit(all_successful and 0 or 1)
 end

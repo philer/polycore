@@ -1,11 +1,9 @@
 --- polycore main module
 -- @module polycore
 
-print(table.concat{"conky ", conky_version, " ", _VERSION})
+pcall(function() require('cairo') end)
 
-require 'cairo'
-
-local util = require 'src/util'
+local util = require('src/util')
 
 --- Draw debug information
 -- @bool DEBUG

@@ -2,7 +2,7 @@
 
 local conkyrc = conky or {}
 
-local script_dir = debug.getinfo(1, 'S').source:match("^@(.*/)")
+local script_dir = debug.getinfo(1, 'S').source:match("^@(.*/)") or "./"
 
 conkyrc.config = {
     lua_load = script_dir .. "layout.lua",

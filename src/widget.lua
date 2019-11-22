@@ -2,11 +2,11 @@
 -- @module widget
 -- @alias w
 
-require 'cairo'
+pcall(function() require('cairo') end)
 
-local data = require 'src/data'
-local util = require 'src/util'
-local ch = require 'src/cairo_helpers'
+local data = require('src/data')
+local util = require('src/util')
+local ch = require('src/cairo_helpers')
 
 -- lua 5.1 to 5.3 compatibility
 local unpack = unpack or table.unpack  -- luacheck: read_globals unpack table

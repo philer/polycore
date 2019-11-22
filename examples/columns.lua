@@ -1,15 +1,11 @@
 --- Conky config script
 
 -- Conky does not add our config directory to lua's PATH, so we do it manually
-local script_path = debug.getinfo(1, 'S').source:match("^@(.*)")
-local script_dir = script_path:match("^.*/")
-if script_dir then
-    package.path = script_dir .. "?.lua;" .. package.path
-end
+local script_dir = debug.getinfo(1, 'S').source:match("^@(.*/)") or "./"
+package.path = script_dir .. "../?.lua;" .. package.path
 
-local _, widget = pcall(function() return require('src/widget') end)
-local success, polycore = pcall(function() return require('src/polycore') end)
-if not success then polycore = {} end  -- luacheck: ignore 331
+local widget = require('src/widget')
+local polycore = require('src/polycore')
 
 -- Draw debug information
 DEBUG = false
@@ -17,7 +13,7 @@ DEBUG = false
 
 local conkyrc = conky or {}
 conkyrc.config = {
-    lua_load = script_path,
+    lua_load = script_dir .. "columns.lua",
     lua_startup_hook = "conky_setup",
     lua_draw_hook_post = "conky_update",
 

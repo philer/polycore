@@ -1,22 +1,16 @@
 -- Run this test via conky: `conky -c test/test_layout.lua`
 
 -- Conky does not add our config directory to lua's PATH, so we do it manually
-local script_path = debug.getinfo(1, 'S').source:match("^@(.*)")
-local script_dir = script_path:match("^.*/")
-if script_dir then
-    package.path = script_dir .. "?.lua;" .. package.path
-else
-    script_dir = "./"
-end
+local script_dir = debug.getinfo(1, 'S').source:match("^@(.*/)") or "./"
+package.path = script_dir .. "../?.lua;" .. package.path
 
--- require will fail when conky runs this file the first time for conky.config
-local _, widget = pcall(function() return require('src/widget') end)
+local widget = require('src/widget')
 
 -- minimal conky.config to run this script again once without opening a window
 local conkyrc = conky or {}
 conkyrc.text = ""
 conkyrc.config = {
-    lua_load = script_path,
+    lua_load = script_dir .. "test_layout.lua",
     lua_draw_hook_post = "conky_update",
     total_run_times = 1,
     out_to_console = false,

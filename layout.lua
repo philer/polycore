@@ -1,13 +1,13 @@
 --- Conky entry point script
 
 -- Conky does not add our config directory to lua's PATH, so we do it manually
-local script_dir = debug.getinfo(1, 'S').source:match("^@(.*/)")
+local script_dir = debug.getinfo(1, 'S').source:match("^@(.*/)") or "./"
 package.path = script_dir .. "?.lua;" .. package.path
 
-local conkyrc = require 'conkyrc'
-local polycore = require 'src/polycore'
-local data = require 'src/data'
-local widget = require 'src/widget'
+local conkyrc = require('conkyrc')
+local polycore = require('src/polycore')
+local data = require('src/data')
+local widget = require('src/widget')
 
 -- Draw debug information
 DEBUG = false

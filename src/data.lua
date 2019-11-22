@@ -1,7 +1,7 @@
 --- Data gathering facilities for conky widgets
 -- @module data
 
-local util = require 'src/util'
+local util = require('src/util')
 
 -- lua 5.1 to 5.3 compatibility
 local unpack = unpack or table.unpack  -- luacheck: read_globals unpack table

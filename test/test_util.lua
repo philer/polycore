@@ -1,6 +1,6 @@
 -- Run this test from the project root via `lua test/test_util.lua`
 
-local util = require "src/util"
+local util = require("src/util")
 
 local test = {}
 

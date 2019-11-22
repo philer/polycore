@@ -2,9 +2,9 @@
 -- @module cairo_helpers
 -- @alias ch
 
-require 'cairo'
+pcall(function() require('cairo') end)
 
-local util = require 'src/util'
+local util = require('src/util')
 
 local ch = {}
 

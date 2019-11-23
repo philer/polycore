@@ -29,6 +29,13 @@ understood by inspecting the `polycore.setup` function in `layout.lua`. Modifyin
 You can either use a single-file setup (see [examples/columns.lua](examples/columns.lua)) or split the conky config and Widget layout into two files (see [conkyrc.lua](conkyrc.lua) and [layout.lua](layout.lua)).
 
 ![screenshot](screenshots.png)
+*Wallpapers from pexels.com:
+[1](https://www.pexels.com/photo/gray-mountain-2098403/),
+[2](https://www.pexels.com/photo/photo-of-night-sky-1819650/),
+[3](https://www.pexels.com/photo/green-leafed-trees-1144687/),
+[4](https://www.pexels.com/photo/ocean-water-and-black-rock-formations-1590247/),
+[5](https://www.pexels.com/photo/people-gathered-beside-bonfire-1368388/)
+and [the one above](https://www.pexels.com/photo/black-and-white-photography-of-sand-2387819/)*
 
 ## Using Widgets
 

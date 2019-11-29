@@ -20,6 +20,8 @@ conkyrc.config = {
 
 --- utilities ---
 
+local TMP_PREFIX = "/tmp/conky_test_"
+
 --- Render to an image file instead of conky's window canvas.
 -- @tparam widget.Renderer renderer
 -- @string path
@@ -37,26 +39,26 @@ end
 
 --- Check if two image files contain the same pixels
 -- requires imagemagick
--- @string path1
--- @string path2
--- @treturn bool
-local function images_equal(path1, path2)
-    local command_template = 'compare -identify -metric MAE "%s" "%s" /dev/null >/dev/null 2>&1'
-    local result = os.execute(command_template:format(path1, path2))
+-- @string candidate_path
+-- @string expected_path
+local function assert_images_equal(candidate_path, expected_path)
+    local command_template = 'compare -identify -metric MAE "%s" "%s" null >/dev/null 2>&1'
+    local result = os.execute(command_template:format(candidate_path, expected_path))
 
     -- os.execute returns changed from 5.1 to 5.3
-    return result == true or result == 0
+    assert(result == true or result == 0,
+           "render of at " .. candidate_path
+           .. " does not match expected result at " .. expected_path)
 end
 
 --- Assert that the output of a given renderer matches an existing image.
 -- @string name test name
 -- @string widget.Renderer renderer
 local function check_renderer(name, renderer)
-    local out_path = "/tmp/conky_test.png"
+    local out_path = TMP_PREFIX .. name .. ".png"
     local expected = script_dir .. "expected_outputs/" .. name .. ".png"
     render_to_image(renderer, out_path)
-    assert(images_equal(out_path, expected),
-           "render of at " .. out_path .. " does not match expected result at " .. expected)
+    assert_images_equal(out_path, expected)
 end
 
 local frame_opts = {

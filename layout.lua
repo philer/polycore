@@ -19,12 +19,17 @@ function polycore.setup()
 
     local secondary_text_color = {.72, .72, .71, 1}  -- ~b9b9b7
 
+    -- Write fan speeds. This requires lm_sensors to be installed.
+    -- Run `sensonrs` to see if any fans are reported. If not, remove
+    -- this section and the corresponding line below.
     local fan_rpm_text = widget.TextLine{align="center", color=secondary_text_color}
     fan_rpm_text.update = function(self)
         local fans = data.fan_rpm()
         self:set_text(table.concat{fans[1], " rpm   ·   ", fans[2], " rpm"})
     end
 
+    -- Write individual CPU core temperatures as text.
+    -- This also relies on lm_sensors.
     local cpu_temps_text = widget.TextLine{align="center", color=secondary_text_color}
     cpu_temps_text.update = function(self)
         local cpu_temps = data.cpu_temperatures()
@@ -32,22 +37,35 @@ function polycore.setup()
     end
 
     local widgets = {
-        fan_rpm_text,
-        cpu_temps_text,
+        fan_rpm_text,  -- see above
+        cpu_temps_text,  -- see above
         widget.Filler{height=8},
+
+        -- Adjust the CPU core count to your system.
+        -- Requires lm_sensors for CPU temperatures.
         widget.Cpu{cores=6, scale=23, gap=5, segment_size=24},
         widget.Filler{height=12},
         widget.CpuFrequencies{cores=6, min_freq=0.75, max_freq=4.3},
         widget.Filler{height=136},
+
+        -- See also widget.MemoryBar
         widget.MemoryGrid{rows=5},
         widget.Filler{height=82},
+
+        -- Requires `nvidia-smi` to be installed. Does not work for AMD GPUs.
         widget.Gpu(),
         widget.Filler{height=1},
         widget.GpuTop{lines=5, color=secondary_text_color},
         widget.Filler{height=66},
+
+        -- Adjust the interface name for your system. Run `ifconfig` to find
+        -- out yours. Common names are "eth0" and "wlan0".
         widget.Network{interface="enp0s31f6", downspeed=5 * 1024, upspeed=1024,
                        graph_height=22},
         widget.Filler{height=34},
+
+        -- Mount paths. Devices that aren't mounted will not be rendered until
+        -- they appear. That way external drives can be displayed automatically.
         widget.Drive("/"),
         widget.Drive("/home"),
         widget.Drive("/mnt/blackstor"),

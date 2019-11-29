@@ -67,6 +67,7 @@ end
 
 --- Circular queue implementation.
 -- Adding new values causes old values to disappear.
+-- Use # to get length, ipairs to iterate, [] to access individual values.
 -- @type CycleQueue
 local CycleQueue = util.class()
 util.CycleQueue = CycleQueue
@@ -74,28 +75,48 @@ util.CycleQueue = CycleQueue
 --- @int length fixed number of items to be stored
 function CycleQueue:init(length)
     self.length = length
-    self.latest = length
+    self._latest = length
+    self._items = {}
     for i = 1, length do
-        self[i] = 0
+        self._items[i] = 0
     end
 end
 
 --- Add a value, causing the oldest value to disappear.
 -- @param item value to add
 function CycleQueue:put(item)
-    self.latest = self.latest % self.length + 1
-    self[self.latest] = item
+    self._latest = self._latest % self.length + 1
+    self._items[self._latest] = item
 end
 
---- Apply a function to each item in order from oldest to newest.
--- @func fn
-function CycleQueue:each(fn)
-    for i = self.latest + 1, self.length do
-        fn(self[i], i - self.latest % self.length)
+--- Get the length of this Queue as specified in `CycleQueue:init`.
+-- Implements # for Lua 5.2+
+function CycleQueue:__len()
+    return self.length
+end
+
+--- Access individual items by 1-based index.
+-- Implements ...[idx] access for Lua 5.2+
+-- @tparam int|string idx
+-- @return item at index idx (or a named property of this instance)
+function CycleQueue:__index(idx)
+    if type(idx) == "number"then
+        return self._items[(idx + self._latest - 1) % self.length + 1]
     end
-    for i = 1, self.latest do
-        fn(self[i], i - self.latest + self.length)
+    return CycleQueue[idx]
+end
+
+--- Iterate items and indices (starting at 1).
+-- Implements ipairs(...) for Lua 5.2+
+-- @treturn func,table,int
+function CycleQueue:__ipairs()
+    local function iter(items, idx)
+        idx = idx + 1
+        if idx <= self.length then
+            return idx, items[(idx + self._latest - 1) % self.length + 1]
+        end
     end
+    return iter, self._items, 0
 end
 
 

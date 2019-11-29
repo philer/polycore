@@ -716,10 +716,10 @@ function Graph:render(cr)
 
     cairo_move_to(cr, 0, self._y)
     local current_max = 0
-    self._data:each(function(val, idx)
+    for idx, val in self._data:__ipairs() do
         cairo_line_to(cr, 0.5 + (idx - 1) * self._x_scale, self._y - val * self._y_scale)
         if val > current_max then current_max = val end
-    end)
+    end
     cairo_line_to(cr, self._width, self._y)
     cairo_set_source_rgba(cr, r, g, b, 1)
     cairo_set_line_width(cr, .5)

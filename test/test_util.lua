@@ -4,37 +4,40 @@ local util = require("src/util")
 
 local test = {}
 
-function test.CycleQueue()
-    local function check_each(q, arr)
-        local idx_msg = "CycleQueue:each gave incorrect index (%s instead of %s)"
-        local val_msg = "CycleQueue:each gave incorrect value at index %s (%s instead of %s)"
-        local expected_idx = 1
-        q:each(function(val, idx)
-            assert(idx == expected_idx, idx_msg:format(idx, expected_idx))
-            expected_idx = expected_idx + 1
-            assert(val == arr[idx], val_msg:format(idx, val, arr[idx]))
-        end)
+local function assert_arrays_equal(xs, ys)
+    assert(#xs == #ys, ("arrays have different length (%s != %s)"):format(#xs, #ys))
+    local msg = ("{%s} != {%s}"):format(table.concat(xs, ","), table.concat(ys, ","))
+    for i = 1, #xs do
+        assert(xs[i] == ys[i], msg)
     end
-    local q = util.CycleQueue(3)
-    check_each(q, {0, 0, 0})
-    q:put(1)
-    check_each(q, {0, 0, 1})
-    for i = 2, 20 do
+end
+
+function test.CycleQueue_index()
+    local q
+    q = util.CycleQueue(5)
+    for i = 10, 50, 10 do
         q:put(i)
-        check_each(q, {i - 2, i - 1, i})
     end
-    q = util.CycleQueue(10)
-    check_each(q, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0})
-    for i = 1, 5 do q:put(i) end
-    check_each(q, {0, 0, 0, 0, 0, 1, 2, 3, 4, 5})
-    for i = 6, 9 do q:put(i) end
-    check_each(q, {0, 1, 2, 3, 4, 5, 6, 7, 8, 9})
-    q:put(0)  -- overwrite same value
-    check_each(q, {1, 2, 3, 4, 5, 6, 7, 8, 9, 0})
-    q:put(10)  -- overflow to start
-    check_each(q, {2, 3, 4, 5, 6, 7, 8, 9, 0, 10})
-    q:put(20)
-    check_each(q, {3, 4, 5, 6, 7, 8, 9, 0, 10, 20})
+    for i = 1, 5 do
+        assert(q[i] == i * 10)
+    end
+end
+
+function test.CycleQueue_ipairs()
+    local q
+    q = util.CycleQueue(5)
+    for i = 10, 140, 10 do
+        q:put(i)
+    end
+    local indeces, values = {}, {}
+    local i = 1
+    for idx, val in q:__ipairs() do
+        indeces[i] = idx
+        values[i] = val
+        i = i + 1
+    end
+    assert_arrays_equal(indeces, {1, 2, 3, 4, 5})
+    assert_arrays_equal(values, {100, 110, 120, 130, 140})
 end
 
 

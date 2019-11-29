@@ -648,17 +648,21 @@ w.Graph = Graph
 -- @tparam number args.max maximum expected value to be represented;
 --                         may be expanded automatically as need arises
 -- @int[opt=90] args.data_points how many values to store
+-- @bool[opt=false] args.upside_down Draw graph from top to bottom?
+-- @number[opt=0.5] args.smoothness Bézier curves smoothness.
+--                                  Set to 0 to draw straight lines instead,
+--                                  which may be slightly faster.
 -- @int[opt] args.width fix width in pixels
 -- @int[opt] args.height fixeheight in pixels
--- @bool[opt=false] args.upside_down draw graph from top to bottom
 -- @tparam ?{number,number,number} args.color (default: `default_graph_color`)
 function Graph:init(args)
+    self._max = args.max
+    self._data = util.CycleQueue(args.data_points or 90)
+    self._upside_down = args.upside_down or false
+    self._smoothness = args.smoothness or 0.5
+    self.color = args.color or w.default_graph_color
     self.width = args.width
     self.height = args.height
-    self._max = args.max
-    self._upside_down = args.upside_down
-    self._data = util.CycleQueue(args.data_points or 90)
-    self.color = args.color or w.default_graph_color
 end
 
 function Graph:layout(width, height)
@@ -712,7 +716,7 @@ function Graph:add_value(value)
     end
 end
 
-function Graph:_path(cr)
+function Graph:_line_path(cr)
     local current_max = 0
     cairo_move_to(cr, 0, self._y)
     for idx, val in self._data:__ipairs() do
@@ -723,40 +727,7 @@ function Graph:_path(cr)
     return current_max
 end
 
-function Graph:render(cr)
-    local r, g, b = unpack(self.color)
-    cairo_set_antialias(cr, CAIRO_ANTIALIAS_DEFAULT)
-    cairo_set_source_rgba(cr, r, g, b, 1)
-    cairo_set_line_width(cr, 0.5)
-    local current_max = self:_path(cr)
-    if current_max > 0 then  -- fill under graph
-        cairo_stroke_preserve(cr)
-        cairo_line_to(cr, self._width, self._y)
-        cairo_line_to(cr, 0, self._y)
-        cairo_close_path(cr)
-        ch.alpha_gradient(cr, 0, self._y - current_max * self._y_scale, 0, self._y,
-                          r, g, b, {0, .66, .5, .33, 1, .25})
-        cairo_fill(cr)
-    else
-        cairo_stroke(cr)
-    end
-end
-
-
---- Same as Graph but with smoothed curve
--- @type CurvedGraph
-local CurvedGraph = util.class(Graph)
-w.CurvedGraph = CurvedGraph
-
---- Same options as `Graph:init`, plus:
--- @tparam table args table of options
--- @number[opt=0.4] args.smoothness
-function CurvedGraph:init(args)
-    Graph.init(self, args)
-    self._smoothness = args.smoothness or 0.5
-end
-
-function CurvedGraph:_path(cr)
+function Graph:_berzier_path(cr)
     local current_max = 0
     local prev_x, prev_y = 0.5, self._y
     cairo_move_to(cr, prev_x, prev_y)
@@ -770,6 +741,28 @@ function CurvedGraph:_path(cr)
         prev_x, prev_y = current_x, current_y
     end
     return current_max
+end
+
+function Graph:render(cr)
+    local r, g, b = unpack(self.color)
+    cairo_set_antialias(cr, CAIRO_ANTIALIAS_DEFAULT)
+    cairo_set_source_rgba(cr, r, g, b, 1)
+    cairo_set_line_width(cr, 0.5)
+
+    local current_max = self._smoothness > 0 and self:_berzier_path(cr)
+                                              or self:_line_path(cr)
+
+    if current_max > 0 then  -- fill under graph
+        cairo_stroke_preserve(cr)
+        cairo_line_to(cr, self._width, self._y)
+        cairo_line_to(cr, 0, self._y)
+        cairo_close_path(cr)
+        ch.alpha_gradient(cr, 0, self._y - current_max * self._y_scale, 0, self._y,
+                          r, g, b, {0, .66, .5, .33, 1, .25})
+        cairo_fill(cr)
+    else
+        cairo_stroke(cr)
+    end
 end
 
 
@@ -1225,12 +1218,12 @@ w.Network = Network
 -- @number[opt=1024] args.upspeed passed as args.max to upload speed graph
 function Network:init(args)
     self.interface = args.interface
-    self._downspeed_graph = CurvedGraph{
+    self._downspeed_graph = Graph{
         height=args.graph_height,
         max=args.downspeed or 1024,
         data_points = 60,
     }
-    self._upspeed_graph = CurvedGraph{
+    self._upspeed_graph = Graph{
         height=args.graph_height,
         max=args.upspeed or 1024,
         data_points = 60,

@@ -647,7 +647,7 @@ w.Graph = Graph
 --- @tparam table args table of options
 -- @tparam number args.max maximum expected value to be represented;
 --                         may be expanded automatically as need arises
--- @int[opt=90] args.data_points how many values to store
+-- @int[opt=60] args.data_points how many values to store
 -- @bool[opt=false] args.upside_down Draw graph from top to bottom?
 -- @number[opt=0.5] args.smoothness Bézier curves smoothness.
 --                                  Set to 0 to draw straight lines instead,
@@ -657,7 +657,7 @@ w.Graph = Graph
 -- @tparam ?{number,number,number} args.color (default: `default_graph_color`)
 function Graph:init(args)
     self._max = args.max
-    self._data = util.CycleQueue(args.data_points or 90)
+    self._data = util.CycleQueue(args.data_points or 60)
     self._upside_down = args.upside_down or false
     self._smoothness = args.smoothness or 0.5
     self.color = args.color or w.default_graph_color
@@ -1222,16 +1222,8 @@ w.Network = Network
 -- @number[opt=1024] args.upspeed passed as args.max to upload speed graph
 function Network:init(args)
     self.interface = args.interface
-    self._downspeed_graph = Graph{
-        height=args.graph_height,
-        max=args.downspeed or 1024,
-        data_points = 60,
-    }
-    self._upspeed_graph = Graph{
-        height=args.graph_height,
-        max=args.upspeed or 1024,
-        data_points = 60,
-    }
+    self._downspeed_graph = Graph{height=args.graph_height, max=args.downspeed or 1024}
+    self._upspeed_graph = Graph{height=args.graph_height, max=args.upspeed or 1024}
     Group.init(self, {self._downspeed_graph, Filler{height=31}, self._upspeed_graph})
 end
 

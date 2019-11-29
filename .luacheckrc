@@ -17,6 +17,7 @@ stds.conky = {
         "cairo_arc",
         "cairo_close_path",
         "cairo_create",
+        "cairo_curve_to",
         "cairo_destroy",
         "cairo_fill",
         "cairo_fill_preserve",

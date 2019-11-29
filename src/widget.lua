@@ -648,27 +648,29 @@ w.Graph = Graph
 -- @tparam number args.max maximum expected value to be represented;
 --                         may be expanded automatically as need arises
 -- @int[opt=90] args.data_points how many values to store
--- @int[opt=22] args.height includes fake shadow border
+-- @int[opt] args.width fix width in pixels
+-- @int[opt] args.height fixeheight in pixels
 -- @bool[opt=false] args.upside_down draw graph from top to bottom
 -- @tparam ?{number,number,number} args.color (default: `default_graph_color`)
 function Graph:init(args)
+    self.width = args.width
+    self.height = args.height
     self._max = args.max
-    self.height = args.height or 22
-    self._inner_height = self.height - 2
     self._upside_down = args.upside_down
     self._data = util.CycleQueue(args.data_points or 90)
     self.color = args.color or w.default_graph_color
 end
 
-function Graph:layout(width)
+function Graph:layout(width, height)
     self._width = width - 2
-    self._x_scale = 1 / self._data.length * self._width
-    self._y_scale = 1 / self._max * (self._inner_height - 1)
+    self._height = height - 2
+    self._x_scale = (width - 3) / (self._data.length - 1)
+    self._y_scale = (height - 3) / self._max
     if self._upside_down then
         self._y_scale = -self._y_scale
         self._y = -0.5
     else
-        self._y = self._inner_height - 0.5
+        self._y = self._height - 0.5
     end
 end
 
@@ -677,8 +679,8 @@ function Graph:render_background(cr)
     cairo_set_antialias(cr, CAIRO_ANTIALIAS_NONE)
 
     -- background
-    cairo_rectangle(cr, 0, 0, self._width, self._inner_height)
-    ch.alpha_gradient(cr, 0, 0, 0, self._inner_height, r, g, b, {
+    cairo_rectangle(cr, 0, 0, self._width, self._height)
+    ch.alpha_gradient(cr, 0, 0, 0, self._height, r, g, b, {
         .1, .14, .1, .06, .2, .06, .2, .14,
         .3, .14, .3, .06, .4, .06, .4, .14,
         .5, .14, .5, .06, .6, .06, .6, .14,
@@ -689,12 +691,12 @@ function Graph:render_background(cr)
 
     -- border
     cairo_set_line_width(cr, 1)
-    cairo_rectangle(cr, 1, 1, self._width - 1, self._inner_height - 1)
+    cairo_rectangle(cr, 1, 1, self._width - 1, self._height - 1)
     cairo_set_source_rgba(cr, r, g, b, .2)
     cairo_stroke(cr)
 
     -- fake shadow border
-    cairo_rectangle(cr, 0, 0, self._width + 1, self._inner_height + 1)
+    cairo_rectangle(cr, 0, 0, self._width + 1, self._height + 1)
     cairo_set_source_rgba(cr, 0, 0, 0, .33)
     cairo_stroke(cr)
 end
@@ -706,29 +708,68 @@ function Graph:add_value(value)
     self._data:put(value)
     if value > self._max then
         self._max = value
-        self:layout(self._width + 2)
+        self:layout(self._width + 2, self._height + 2)
     end
+end
+
+function Graph:_path(cr)
+    local current_max = 0
+    cairo_move_to(cr, 0, self._y)
+    for idx, val in self._data:__ipairs() do
+        if current_max < val then current_max = val end
+        cairo_line_to(cr, 0.5 + (idx - 1) * self._x_scale,
+                          self._y - val * self._y_scale)
+    end
+    return current_max
 end
 
 function Graph:render(cr)
     local r, g, b = unpack(self.color)
     cairo_set_antialias(cr, CAIRO_ANTIALIAS_DEFAULT)
-
-    cairo_move_to(cr, 0, self._y)
-    local current_max = 0
-    for idx, val in self._data:__ipairs() do
-        cairo_line_to(cr, 0.5 + (idx - 1) * self._x_scale, self._y - val * self._y_scale)
-        if val > current_max then current_max = val end
-    end
-    cairo_line_to(cr, self._width, self._y)
     cairo_set_source_rgba(cr, r, g, b, 1)
-    cairo_set_line_width(cr, .5)
-    cairo_stroke_preserve(cr)
+    cairo_set_line_width(cr, 0.5)
+    local current_max = self:_path(cr)
+    if current_max > 0 then  -- fill under graph
+        cairo_stroke_preserve(cr)
+        cairo_line_to(cr, self._width, self._y)
+        cairo_line_to(cr, 0, self._y)
+        cairo_close_path(cr)
+        ch.alpha_gradient(cr, 0, self._y - current_max * self._y_scale, 0, self._y,
+                          r, g, b, {0, .66, .5, .33, 1, .25})
+        cairo_fill(cr)
+    else
+        cairo_stroke(cr)
+    end
+end
 
-    -- fill under graph
-    ch.alpha_gradient(cr, 0, self._y - current_max * self._y_scale, 0, self._y,
-                      r, g, b, {0, .66, .5, .33, 1, .25})
-    cairo_fill(cr)
+
+--- Same as Graph but with smoothed curve
+-- @type CurvedGraph
+local CurvedGraph = util.class(Graph)
+w.CurvedGraph = CurvedGraph
+
+--- Same options as `Graph:init`, plus:
+-- @tparam table args table of options
+-- @number[opt=0.4] args.smoothness
+function CurvedGraph:init(args)
+    Graph.init(self, args)
+    self._smoothness = args.smoothness or 0.5
+end
+
+function CurvedGraph:_path(cr)
+    local current_max = 0
+    local prev_x, prev_y = 0.5, self._y
+    cairo_move_to(cr, prev_x, prev_y)
+    for idx, val in self._data:__ipairs() do
+        if current_max < val then current_max = val end
+        local current_x = 0.5 + (idx - 1) * self._x_scale
+        local current_y = self._y - val * self._y_scale
+        local x1 = prev_x + self._smoothness * self._x_scale
+        local x2 = current_x - self._smoothness * self._x_scale
+        cairo_curve_to(cr, x1, prev_y, x2, current_y, current_x, current_y)
+        prev_x, prev_y = current_x, current_y
+    end
+    return current_max
 end
 
 
@@ -1184,8 +1225,16 @@ w.Network = Network
 -- @number[opt=1024] args.upspeed passed as args.max to upload speed graph
 function Network:init(args)
     self.interface = args.interface
-    self._downspeed_graph = Graph{height=args.graph_height, max=args.downspeed or 1024}
-    self._upspeed_graph = Graph{height=args.graph_height, max=args.upspeed or 1024}
+    self._downspeed_graph = CurvedGraph{
+        height=args.graph_height,
+        max=args.downspeed or 1024,
+        data_points = 60,
+    }
+    self._upspeed_graph = CurvedGraph{
+        height=args.graph_height,
+        max=args.upspeed or 1024,
+        data_points = 60,
+    }
     Group.init(self, {self._downspeed_graph, Filler{height=31}, self._upspeed_graph})
 end
 

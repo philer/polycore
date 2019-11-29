@@ -718,27 +718,31 @@ end
 
 function Graph:_line_path(cr)
     local current_max = 0
-    cairo_move_to(cr, 0, self._y)
+    cairo_move_to(cr, 0.5, self._y - self._data[1] * self._y_scale)
     for idx, val in self._data:__ipairs() do
         if current_max < val then current_max = val end
-        cairo_line_to(cr, 0.5 + (idx - 1) * self._x_scale,
-                          self._y - val * self._y_scale)
+        if idx > 1 then
+            cairo_line_to(cr, 0.5 + (idx - 1) * self._x_scale,
+                              self._y - val * self._y_scale)
+        end
     end
     return current_max
 end
 
 function Graph:_berzier_path(cr)
     local current_max = 0
-    local prev_x, prev_y = 0.5, self._y
+    local prev_x, prev_y = 0.5, self._y - self._data[1] * self._y_scale
     cairo_move_to(cr, prev_x, prev_y)
     for idx, val in self._data:__ipairs() do
         if current_max < val then current_max = val end
-        local current_x = 0.5 + (idx - 1) * self._x_scale
-        local current_y = self._y - val * self._y_scale
-        local x1 = prev_x + self._smoothness * self._x_scale
-        local x2 = current_x - self._smoothness * self._x_scale
-        cairo_curve_to(cr, x1, prev_y, x2, current_y, current_x, current_y)
-        prev_x, prev_y = current_x, current_y
+        if idx > 1 then
+            local current_x = 0.5 + (idx - 1) * self._x_scale
+            local current_y = self._y - val * self._y_scale
+            local x1 = prev_x + self._smoothness * self._x_scale
+            local x2 = current_x - self._smoothness * self._x_scale
+            cairo_curve_to(cr, x1, prev_y, x2, current_y, current_x, current_y)
+            prev_x, prev_y = current_x, current_y
+        end
     end
     return current_max
 end

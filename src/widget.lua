@@ -26,8 +26,8 @@ local w = {
     default_text_color = ({.94, .94, .94, 1}),  -- ~fafafa
 
     --- Color used to draw some widgets if no other is specified.
-    -- @tfield {number,number,number} default_graph_color
-    default_graph_color = ({.4, 1, 1}),
+    -- @tfield {number,number,number,number} default_graph_color
+    default_graph_color = ({.4, 1, 1, 1}),
 }
 
 local temperature_colors = {

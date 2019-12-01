@@ -90,12 +90,6 @@ local function dummy(args)
     })
 end
 
-local function text_widget(text)
-    local w = widget.TextLine{color={1, 1, 1, 1}}
-    w:set_text(text)
-    return w
-end
-
 
 --- test cases ---
 
@@ -136,24 +130,93 @@ function test.columns()
     check_renderer("columns", widget.Renderer{root=root, width=100, height=40})
 end
 
+function test.text()
+    local LOREM_IPSUM = [[Lorem ipsum dolor sit amet, consectetur adipiscing elit,
+sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad
+minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea
+commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit
+esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat
+cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est
+laborum.]]
+
+    local footer = widget.TextLine{align="center"}
+    footer:set_text("Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor in")
+
+    local root = widget.Frame(widget.Group{
+        widget.StaticText"Simple Text!",
+        widget.StaticText("This text should be centered.", {align="center"}),
+        widget.StaticText("Aligned to the right?", {align="right"}),
+
+        widget.Filler{height=10},
+
+        -- paragraph with newlines
+        widget.StaticText(LOREM_IPSUM, {
+            align="center",
+            font_slant=CAIRO_FONT_SLANT_ITALIC,
+        }),
+
+        widget.Filler{height=10},
+
+        widget.StaticText("Large and Bold and Red", {
+            font_size=20,
+            font_weight=CAIRO_FONT_WEIGHT_BOLD,
+            color={1, 0, 0, 1},
+        }),
+
+        widget.StaticText("Small and Bold and Italic and Green", {
+            font_size=8,
+            font_weight=CAIRO_FONT_WEIGHT_BOLD,
+            font_slant=CAIRO_FONT_SLANT_ITALIC,
+            color={0, 1, 0, 1},
+        }),
+
+        widget.Filler(),
+
+        widget.Frame(footer, {
+            border_sides={"top"},
+            border_width=1,
+            border_color={1, 1, 1, .5},
+        })
+    }, {
+        padding=2,
+        background_color={0, 0, 0, 1},
+    })
+    check_renderer("text", widget.Renderer{root=root, width=400, height=200})
+end
+
 function test.complex_layout()
     local Frame, Filler, Group, Columns = widget.Frame, widget.Filler,
                                           widget.Group, widget.Columns
     local root = Frame(Group{
-        dummy{},
+        -- dynamicly sized widgets and fillers
+        dummy{width=10},
+        Filler(),
+        Filler(),
+        dummy{width=10},
+
         Filler{height=10},
-        Columns{
-            dummy{width=50, height=50},
-            Filler{width=20},
-            dummy{width=50, height=50},
-            Filler{width=20},
-            Group{text_widget("Hello world!"),
-                  text_widget("How are you doing?"),
-                  text_widget("Widgets are great.")},
-            Filler{width=20},
-            dummy{width=50, height=50},
-        },
+
+        -- centered fixed size widget
+        Columns{Filler(), dummy{width=80, height=80}, Filler()},
+
         Filler{height=10},
+
+        -- fixed size widgets in columns with fillers
+        Columns{dummy{width=50, height=50}, Filler{width=20},
+                dummy{width=50, height=50}, Filler{},
+                dummy{width=50, height=50}},
+
+        Filler{height=10},
+
+        -- variably sized widgets in columns with fillers
+        Columns{dummy{width=5}, Filler{width=5},
+                dummy{width=5}, Filler{width=5, height=10},
+                dummy{height=10}, Filler{height=10},
+                dummy{height=10}},
+
+        Filler{height=10},
+
+        -- nested layout
         Frame(Group{
             Columns{dummy{height=16, margin=2}},
             Columns{dummy{height=16, margin=2},
@@ -176,13 +239,6 @@ function test.complex_layout()
             border_width=2,
             padding=2,
         }),
-        Filler{height=10},
-        dummy{width=10},
-        Filler{height=10},
-        Columns{dummy{width=5}, Filler{width=5}, text_widget("TEXT")},
-        Filler(),
-        Filler(),
-        Columns{Filler(), dummy{width=80, height=80}, Filler()},
     }, {
         background_color = {0.1, 0.1, 0.1, 1},
         border_color = {0, 0, 0, 0.5},

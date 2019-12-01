@@ -40,6 +40,8 @@
 <li><a href="#Class_Columns">Class Columns </a></li>
 <li><a href="#Class_Filler">Class Filler </a></li>
 <li><a href="#Class_Frame">Class Frame </a></li>
+<li><a href="#Class_Text">Class Text </a></li>
+<li><a href="#Class_StaticText">Class StaticText </a></li>
 <li><a href="#Class_TextLine">Class TextLine </a></li>
 <li><a href="#Class_Bar">Class Bar </a></li>
 <li><a href="#Class_MemoryBar">Class MemoryBar </a></li>
@@ -110,7 +112,7 @@
 	<td class="summary">Layout all Widgets and cache their backgrounds.</td>
 	</tr>
 	<tr>
-	<td class="name" nowrap><a href="#Renderer:update">Renderer:update()</a></td>
+	<td class="name" nowrap><a href="#Renderer:update">Renderer:update(update_count)</a></td>
 	<td class="summary">Update all Widgets</td>
 	</tr>
 	<tr>
@@ -138,7 +140,7 @@
 	<td class="summary">Called at least once to allow the widget to draw static content.</td>
 	</tr>
 	<tr>
-	<td class="name" nowrap><a href="#Widget:update">Widget:update()</a></td>
+	<td class="name" nowrap><a href="#Widget:update">Widget:update(update_count)</a></td>
 	<td class="summary">Called before each call to <a href="../modules/widget.html#Widget:render">Widget:render</a>.</td>
 	</tr>
 	<tr>
@@ -171,6 +173,20 @@
 <table class="function_list">
 	<tr>
 	<td class="name" nowrap><a href="#Frame:init">Frame:init(widget, args)</a></td>
+	<td class="summary"></td>
+	</tr>
+</table>
+<h2><a href="#Class_Text">Class Text </a></h2>
+<table class="function_list">
+	<tr>
+	<td class="name" nowrap><a href="#Text:init">Text:init(args)</a></td>
+	<td class="summary"></td>
+	</tr>
+</table>
+<h2><a href="#Class_StaticText">Class StaticText </a></h2>
+<table class="function_list">
+	<tr>
+	<td class="name" nowrap><a href="#StaticText:init">StaticText:init(text, args)</a></td>
 	<td class="summary"></td>
 	</tr>
 </table>
@@ -394,7 +410,7 @@
 
     <ul>
         <li><span class="parameter">default_graph_color</span>
-            <span class="types"><span class="type">{number,number,number}</span></span>
+            <span class="types"><span class="type">{number,number,number,number}</span></span>
 
         </li>
     </ul>
@@ -463,12 +479,19 @@
 </dd>
     <dt>
     <a name = "Renderer:update"></a>
-    <strong>Renderer:update()</strong>
+    <strong>Renderer:update(update_count)</strong>
     </dt>
     <dd>
     Update all Widgets
 
 
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">update_count</span>
+            <span class="types"><span class="type">int</span></span>
+         Conky's $updates
+        </li>
+    </ul>
 
 
 
@@ -583,7 +606,7 @@
 </dd>
     <dt>
     <a name = "Widget:update"></a>
-    <strong>Widget:update()</strong>
+    <strong>Widget:update(update_count)</strong>
     </dt>
     <dd>
     Called before each call to <a href="../modules/widget.html#Widget:render">Widget:render</a>.
@@ -592,6 +615,13 @@
  reflows should be used sparingly.
 
 
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">update_count</span>
+            <span class="types"><span class="type">int</span></span>
+         Conky's $updates
+        </li>
+    </ul>
 
     <h3>Returns:</h3>
     <ol>
@@ -794,16 +824,15 @@
 
 </dd>
 </dl>
-    <h2 class="section-header has-description"><a name="Class_TextLine"></a>Class TextLine </h2>
+    <h2 class="section-header has-description"><a name="Class_Text"></a>Class Text </h2>
 
           <div class="section-description">
-          Draw a single line changeable of text.
- Use this widget for text that will be updated on each cycle.
+          Common (abstract) base class for <a href="../modules/widget.html#StaticText">StaticText</a> and <a href="../modules/widget.html#TextLine">TextLine</a>.
           </div>
     <dl class="function">
     <dt>
-    <a name = "TextLine:init"></a>
-    <strong>TextLine:init(args)</strong>
+    <a name = "Text:init"></a>
+    <strong>Text:init(args)</strong>
     </dt>
     <dd>
 
@@ -820,16 +849,90 @@
         <li><span class="parameter">font_family</span>
             <span class="types">optional <span class="type">string</span></span>
 
+         (<em>default</em> w.default_font_family)
         </li>
         <li><span class="parameter">font_size</span>
             <span class="types">optional <span class="type">number</span></span>
 
+         (<em>default</em> w.default_font_size)
+        </li>
+        <li><span class="parameter">font_slant</span>
+            <span class="types">optional <span class="type">cairo_font_slant_t</span></span>
+
+         (<em>default</em> CAIRO_FONT_WEIGHT_NORMAL)
+        </li>
+        <li><span class="parameter">font_weight</span>
+            <span class="types">optional <span class="type">cairo_font_weight_t</span></span>
+
+         (<em>default</em> CAIRO_FONT_SLANT_NORMAL)
         </li>
         <li><span class="parameter">color</span>
             <span class="types">optional <span class="type">{number,number,number,number}</span></span>
          (default: <a href="../modules/widget.html#default_text_color">default_text_color</a>)
         </li>
         </li></ul>
+    </ul>
+
+
+
+
+
+</dd>
+</dl>
+    <h2 class="section-header has-description"><a name="Class_StaticText"></a>Class StaticText </h2>
+
+          <div class="section-description">
+          Draw some unchangeable text.
+ Use this widget for text that will never be updated.
+          </div>
+    <dl class="function">
+    <dt>
+    <a name = "StaticText:init"></a>
+    <strong>StaticText:init(text, args)</strong>
+    </dt>
+    <dd>
+
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">text</span>
+            <span class="types"><span class="type">string</span></span>
+         Text to be displayed.
+        </li>
+        <li><span class="parameter">args</span>
+            <span class="types">optional <span class="type">table</span></span>
+         table of options, see <a href="../modules/widget.html#Text:init">Text:init</a>
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
+</dl>
+    <h2 class="section-header has-description"><a name="Class_TextLine"></a>Class TextLine </h2>
+
+          <div class="section-description">
+          Draw a single line of changeable text.
+ Text line can be updated on each cycle via <a href="../modules/widget.html#TextLine:set_text">set_text</a>.
+          </div>
+    <dl class="function">
+    <dt>
+    <a name = "TextLine:init"></a>
+    <strong>TextLine:init(args)</strong>
+    </dt>
+    <dd>
+
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">args</span>
+            <span class="types"><span class="type">table</span></span>
+         table of options, see <a href="../modules/widget.html#Text:init">Text:init</a>
+        </li>
     </ul>
 
 
@@ -1469,7 +1572,7 @@
 </div> <!-- id="main" -->
 <div id="about">
 <i>generated by <a href="http://github.com/stevedonovan/LDoc">LDoc 1.4.6</a></i>
-<i style="float:right;">Last updated 2019-11-29 23:31:50 </i>
+<i style="float:right;">Last updated 2019-12-01 19:50:07 </i>
 </div> <!-- id="about" -->
 </div> <!-- id="container" -->
 </body>

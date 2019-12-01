@@ -41,14 +41,25 @@ end
 -- requires imagemagick
 -- @string candidate_path
 -- @string expected_path
-local function assert_images_equal(candidate_path, expected_path)
+-- @string[opt] diff_path Render an image highlighting the differences between
+--                        candidate and expected image.
+local function assert_images_equal(candidate_path, expected_path, diff_path)
     local command_template = 'compare -identify -metric MAE "%s" "%s" null >/dev/null 2>&1'
     local result = os.execute(command_template:format(candidate_path, expected_path))
 
     -- os.execute returns changed from 5.1 to 5.3
-    assert(result == true or result == 0,
-           "render of at " .. candidate_path
-           .. " does not match expected result at " .. expected_path)
+    if not result == true or result == 0 then
+        local fail_msg = string.format(
+            "Render at '%s' does not match expected result at '%s'.",
+            candidate_path, expected_path)
+
+        if diff_path then
+            fail_msg = fail_msg .. ("\nImage diff stored at '%s'."):format(diff_path)
+            local cmd = 'compare -compose src "%s" "%s" "%s"'
+            os.execute(cmd:format(candidate_path, expected_path, diff_path))
+        end
+        assert(false, fail_msg)
+    end
 end
 
 --- Assert that the output of a given renderer matches an existing image.
@@ -56,9 +67,10 @@ end
 -- @string widget.Renderer renderer
 local function check_renderer(name, renderer)
     local out_path = TMP_PREFIX .. name .. ".png"
+    local diff_path = TMP_PREFIX .. name .. "_diff.png"
     local expected = script_dir .. "expected_outputs/" .. name .. ".png"
     render_to_image(renderer, out_path)
-    assert_images_equal(out_path, expected)
+    assert_images_equal(out_path, expected, diff_path)
 end
 
 local frame_opts = {

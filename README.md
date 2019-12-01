@@ -59,7 +59,9 @@ The following Widget classes are currently available:
 * **`Bar`** a basic bar similar to the one available in normal conky.
 * **`MemoryBar`** a bar visualizing RAM usage.
 * **`Graph`** a basic graph similar to the one available in normal conky.
-* **`TextLine`** Display a dynamic line of text
+* **`LED`** a minimalistic indicator light with adjustable brightness and color.
+* **`StaticText`** Display some unchangeable text.
+* **`TextLine`** Display a dynamic line of text.
 * **`Cpu`** CPU-Usage indiciator in the form of a Polygon one segment per core - You guessed it, that's how this theme got its name.
 * **`CpuFrequencies`** Bar-like indicator of frequencies for individual cores
 * **`MemoryGrid`** visualization of used (and buffered/cached) RAM in a randomized grid

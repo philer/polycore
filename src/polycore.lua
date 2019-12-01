@@ -27,7 +27,8 @@ local function update()
         return
     end
 
-    polycore.renderer:update()
+    local update_count = tonumber(conky_parse('${updates}'))
+    polycore.renderer:update(update_count)
 
     local cs = cairo_xlib_surface_create(conky_window.display,
                                          conky_window.drawable,
@@ -39,7 +40,7 @@ local function update()
     polycore.renderer:render(cr)
     cairo_destroy(cr)
 
-    util.reset_data(tonumber(conky_parse('${updates}')))
+    util.reset_data(update_count)
 end
 
 

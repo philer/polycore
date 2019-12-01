@@ -78,7 +78,7 @@ The Widget API assumes the following functions. Note that only `:layout` is requ
 * **`MyWidget:layout(width, height)`** This function will be called with arguments specifying the assigned space. If fixed `.width` and/or `.height` were specified the given arguments will be *at least* that value but may be greater.
 *Note: For container Widgets this function must return a table of its children with relative coordinates and sizes. See the implementations of `Columns` and `Frame`.*
 * **`MyWidget:render_background(cr)`** Allows you to draw some static background. This function will be called once at startup and again if the layout changes.
-* **`MyWidget:update()`** Called once per update before `:render`. Here you can fetch new data to update the information visualized by your widget.
+* **`MyWidget:update(update_count)`** Called once per update before `:render` with the value of conky's `${updates}` variable. Here you can fetch new data to update the information visualized by your widget.
 If your widget's size has changed this function should return `true` to trigger a layout reflow.
 * **`MyWidget:render(cr)`** Allows you to draw dynamic content once per update.
 

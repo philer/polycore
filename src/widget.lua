@@ -132,10 +132,11 @@ function Renderer:layout()
 end
 
 --- Update all Widgets
-function Renderer:update()
+-- @int update_count Conky's $updates
+function Renderer:update(update_count)
     local reflow = false
     for _, widget in ipairs(self._update_widgets) do
-        reflow = widget:update() or reflow
+        reflow = widget:update(update_count) or reflow
     end
     if reflow then
         self:layout()
@@ -183,6 +184,7 @@ function Widget:layout(width, height) end  -- luacheck: no unused
 -- Since this involves calls to all widgets' :layout functions,
 -- reflows should be used sparingly.
 -- @function Widget:update
+-- @int update_count Conky's $updates
 -- @treturn ?bool true(-ish) if a layout reflow should be triggered, causing
 --                all `Widget:layout` and `Widget:render_background` methods
 --                to be called again

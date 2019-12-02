@@ -11,7 +11,7 @@ local ch = require('src/cairo_helpers')
 -- lua 5.1 to 5.3 compatibility
 local unpack = unpack or table.unpack  -- luacheck: read_globals unpack table
 
-local sin, cos, PI = math.sin, math.cos, math.pi
+local sin, cos, tan, PI = math.sin, math.cos, math.tan, math.pi
 local floor, ceil, clamp = math.floor, math.ceil, util.clamp
 
 local w = {
@@ -1036,7 +1036,10 @@ function CpuRound:layout(width, height)
     self._mx = width / 2
     self._my = height / 2
     local sector_rad = 2 * PI / self._cores
-    local ctrl_rad = 0.3333 * sector_rad
+
+    -- choose control points that best approximate a circle, see
+    -- https://stackoverflow.com/questions/1734745/how-to-create-circle-with-b%C3%A9zier-curves
+    local ctrl_rad = sector_rad * 1.25 * tan(0.25 * sector_rad)
     local ctrl_scale = 1 / cos(ctrl_rad)
     self._points = {}
     for core = 1, self._cores do

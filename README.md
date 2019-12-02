@@ -62,7 +62,8 @@ The following Widget classes are currently available:
 * **`LED`** a minimalistic indicator light with adjustable brightness and color.
 * **`StaticText`** Display some unchangeable text.
 * **`TextLine`** Display a dynamic line of text.
-* **`Cpu`** CPU-Usage indiciator in the form of a Polygon one segment per core - You guessed it, that's how this theme got its name.
+* **`Cpu`** CPU usage indiciator in the form of a polygon one segment per core - You guessed it, that's how this theme got its name.
+* **`CpuRound`** A round CPU usage indicator best suited for high core counts.
 * **`CpuFrequencies`** Bar-like indicator of frequencies for individual cores
 * **`MemoryGrid`** visualization of used (and buffered/cached) RAM in a randomized grid
 * **`Gpu`** Bars for GPU and VRAM usage - requires `nvidia-smi`

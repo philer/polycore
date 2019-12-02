@@ -23,6 +23,27 @@ function ch.polygon(cr, coordinates)
     cairo_close_path(cr)
 end
 
+--- Draw a little cross where a given point is. Useful for debugging.
+-- By default the cross is red.
+-- @tparam cairo_t cr
+-- @number x x coordinate of point
+-- @number y y coordinate of point
+-- @number[opt=4] size line length of cross
+-- @number[opt=1] r red color component
+-- @number[opt=0] g green color component
+-- @number[opt=0] b blue color component
+-- @number[opt=0.7] a alpha color compnent (transparency)
+function ch.show_point(cr, x, y, size, r, g, b, a)
+    size = 0.5 * (size or 4)
+    cairo_move_to(cr, x - size, y - size)
+    cairo_line_to(cr, x + size, y + size)
+    cairo_move_to(cr, x + size, y - size)
+    cairo_line_to(cr, x - size, y + size)
+    cairo_set_source_rgba(cr, r or 1, g or 0, b or 0, a or 0.7)
+    cairo_set_line_width(cr, 0.75)
+    cairo_stroke(cr)
+end
+
 --- Set a single color gradient with varying opacity
 -- on the given cairo drawing context.
 -- @tparam cairo_t cr
@@ -40,6 +61,41 @@ end
 --          by color variation.
 function ch.alpha_gradient(cr, x1, y1, x2, y2, r, g, b, stops)
     local gradient = cairo_pattern_create_linear(x1, y1, x2, y2)
+    for i = 1, #stops, 2 do
+        local offset, alpha = stops[i], stops[i + 1]
+        if alpha > 0.5 then
+            -- additional brightness (white) for peaks
+            cairo_pattern_add_color_stop_rgba(gradient, offset, r * 1.3, g * 1.3, b * 1.3, alpha)
+        else
+            cairo_pattern_add_color_stop_rgba(gradient, offset, r, g, b, alpha)
+        end
+
+    end
+    cairo_set_source(cr, gradient)
+    cairo_pattern_destroy(gradient)
+end
+
+--- Set a radial single color gradient with varying opacity
+-- on the given cairo drawing context.
+-- @tparam cairo_t cr
+-- @number x1 x coordinate of inner circle center point
+-- @number y1 y coordinate of inner circle center point
+-- @number inner_radius
+-- @number x2 x coordinate of outer circle center point
+-- @number y2 y coordinate of outer circle center point
+-- @number outer_radius
+-- @number r red color component
+-- @number g green color component
+-- @number b blue color component
+-- @tparam {number,...} stops list of offset & alpha value pairs
+--          offset between 0 and 1 describes position in the gradient
+--          alpha between 0 and 1 describes opacity at given offset.
+--          Note: For high/low alpha values the brightness may be emphasized
+--          by color variation.
+function ch.alpha_gradient_radial(cr, x1, y1, inner_radius, x2, y2, outer_radius,
+                                      r, g, b, stops)
+    local gradient = cairo_pattern_create_radial(x1, y1, inner_radius,
+                                                 x2, y2, outer_radius)
     for i = 1, #stops, 2 do
         local offset, alpha = stops[i], stops[i + 1]
         if alpha > 0.5 then

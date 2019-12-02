@@ -11,6 +11,8 @@ local ch = require('src/cairo_helpers')
 -- lua 5.1 to 5.3 compatibility
 local unpack = unpack or table.unpack  -- luacheck: read_globals unpack table
 
+local sin, cos, PI = math.sin, math.cos, math.pi
+local floor, ceil, clamp = math.floor, math.ceil, util.clamp
 
 local w = {
     --- Font used by widgets if no other is specified.
@@ -46,9 +48,9 @@ local temperature_colors = {
 -- @number high threshold for highest temperature / hottest color
 function w.temperature_color(temperature, low, high)
     local idx = (temperature - low) / (high - low) * (#temperature_colors - 1) + 1
-    local weight = idx - math.floor(idx)
-    local cool = temperature_colors[util.clamp(1, #temperature_colors, math.floor(idx))]
-    local hot = temperature_colors[util.clamp(1, #temperature_colors, math.ceil(idx))]
+    local weight = idx - floor(idx)
+    local cool = temperature_colors[clamp(1, #temperature_colors, floor(idx))]
+    local hot = temperature_colors[clamp(1, #temperature_colors, ceil(idx))]
     return cool[1] + weight * (hot[1] - cool[1]),
            cool[2] + weight * (hot[2] - cool[2]),
            cool[3] + weight * (hot[3] - cool[3])
@@ -89,7 +91,7 @@ function Renderer:layout()
     self._render_widgets = {}
     for widget, x, y in util.imap(unpack, widgets) do
         local matrix = cairo_matrix_t:create()
-        cairo_matrix_init_translate(matrix, math.floor(x), math.floor(y))
+        cairo_matrix_init_translate(matrix, floor(x), floor(y))
         if widget.render_background then
             table.insert(background_widgets, {widget, matrix})
         end
@@ -109,9 +111,12 @@ function Renderer:layout()
     cairo_paint(cr)
 
     if DEBUG then
+        local version_info = table.concat{"conky ", conky_version,
+                                          " ", _VERSION,
+                                          " cairo ", cairo_version_string()}
         cairo_set_source_rgba(cr, 1, 0, 0, 1)
         ch.set_font(cr, "Ubuntu", 8)
-        ch.write_left(cr, 0, 8, table.concat{"conky ", conky_version, " ", _VERSION})
+        ch.write_left(cr, 0, 8, version_info)
         for _, x, y, width, height in util.imap(unpack, widgets) do
             if width * height ~= 0 then
                 cairo_rectangle(cr, x, y, width, height)
@@ -665,7 +670,7 @@ function MemoryBar:init(args)
     self._total = args.total
     local ticks, big_ticks
     if self._total then
-        local max_tick = math.floor(self._total)
+        local max_tick = floor(self._total)
         ticks = util.range(1 / self._total, max_tick / self._total, 1 / self._total)
         big_ticks = max_tick > 8 and 4 or nil
     end
@@ -853,7 +858,7 @@ end
 
 --- @number brightness between 0 and 1
 function LED:set_brightness(brightness)
-    self._brightness = util.clamp(0, 1, brightness)
+    self._brightness = clamp(0, 1, brightness)
 end
 
 --- @tparam ?{number,number,number} color
@@ -917,17 +922,17 @@ function Cpu:layout(width, height)
     self._center_coordinates = {}
     self._segment_coordinates = {}
     self._gradient_coordinates = {}
-    local sector_rad = 2 * math.pi / self._cores
+    local sector_rad = 2 * PI / self._cores
     local min = self._scale + self._gap
     local max = min + self._segment_size
 
     for core = 1, self._cores do
-        local rad_center = (core - 1) * sector_rad - math.pi/2
+        local rad_center = (core - 1) * sector_rad - PI/2
         local rad_left = rad_center + sector_rad/2
         local rad_right = rad_center - sector_rad/2
-        local dx_center, dy_center = math.cos(rad_center), math.sin(rad_center)
-        local dx_left, dy_left = math.cos(rad_left), math.sin(rad_left)
-        local dx_right, dy_right = math.cos(rad_right), math.sin(rad_right)
+        local dx_center, dy_center = cos(rad_center), sin(rad_center)
+        local dx_left, dy_left = cos(rad_left), sin(rad_left)
+        local dx_right, dy_right = cos(rad_right), sin(rad_right)
         self._center_coordinates[2 * core - 1] = self._mx + self._scale * dx_left
         self._center_coordinates[2 * core] = self._my + self._scale * dy_left
 
@@ -945,7 +950,6 @@ function Cpu:layout(width, height)
         self._gradient_coordinates[core] = {(x1 + x4) / 2, (y1 + y4) / 2,
                                             (x2 + x3) / 2, (y2 + y3) / 2}
     end
-    return self._height
 end
 
 function Cpu:update()
@@ -996,6 +1000,110 @@ function Cpu:render(cr)
         cairo_pattern_destroy(gradient)
         cairo_fill(cr)
     end
+end
+
+
+--- Round CPU usage & temperature tracking.
+-- Best suited for CPUs with high core counts.
+-- @type CpuRound
+local CpuRound = util.class(Widget)
+w.CpuRound = CpuRound
+
+CpuRound.update = Cpu.update
+
+--- @tparam table args table of options
+-- @int args.cores How many cores does your CPU have?
+-- @int args.inner_radius Size of inner circle
+-- @int args.outer_radius Max radius for core at 100%
+function CpuRound:init(args)
+    self._cores = args.cores
+    self._inner_radius = args.inner_radius
+    self._outer_radius = args.outer_radius
+
+    if self._outer_radius then
+        self.height = 2 * self._outer_radius
+        self.width = self.height
+    end
+end
+
+function CpuRound:layout(width, height)
+    if not self._outer_radius then
+        self._outer_radius = 0.5  * math.min(width, height)
+    end
+    if not self._inner_radius then
+        self._inner_radius = 0.6667 * self._outer_radius
+    end
+    self._mx = width / 2
+    self._my = height / 2
+    local sector_rad = 2 * PI / self._cores
+    local ctrl_rad = 0.3333 * sector_rad
+    local ctrl_scale = 1 / cos(ctrl_rad)
+    self._points = {}
+    for core = 1, self._cores do
+        local rad = (core - 1) * sector_rad
+        local ctrl_left_rad = rad + ctrl_rad
+        local ctrl_right_rad = rad - ctrl_rad
+        self._points[core] = {
+            dx = cos(rad),
+            dy = sin(rad),
+            ctrl_left_dx = cos(ctrl_left_rad) * ctrl_scale,
+            ctrl_left_dy = sin(ctrl_left_rad) * ctrl_scale,
+            ctrl_right_dx = cos(ctrl_right_rad) * ctrl_scale,
+            ctrl_right_dy = sin(ctrl_right_rad) * ctrl_scale,
+        }
+    end
+    self._points[self._cores + 1] = self._points[1]  -- easy cycling
+end
+
+function CpuRound:render(cr)
+    local avg_temperature = util.avg(self._temperatures)
+    local r, g, b = w.temperature_color(avg_temperature, 30, 80)
+
+    -- temperature text
+    cairo_set_source_rgba(cr, r, g, b, 0.5)
+    ch.set_font(cr, w.default_font_family, 16, nil, CAIRO_FONT_WEIGHT_BOLD)
+    ch.write_middle(cr, self._mx + 1, self._my, string.format("%.0f°", avg_temperature))
+
+    -- inner fill
+    cairo_new_path(cr)
+    cairo_arc(cr, self._mx, self._my, self._inner_radius * 0.99, 0, 2 * PI)
+    ch.alpha_gradient_radial(cr, self._mx -  self._inner_radius * .5, self._my -  self._inner_radius * .5, 0,
+                                 self._mx, self._my, self._inner_radius,
+                                 r, g, b, {0, 0.4, 0.66, 0.15, 1, 0.1})
+    cairo_fill_preserve(cr)
+
+    -- usage curve
+    local dr = self._outer_radius - self._inner_radius
+    for core = 1, self._cores do
+        local scale = self._inner_radius + dr * self._percentages[core] / 100
+        local point = self._points[core]
+        point.x = self._mx + point.dx * scale
+        point.y = self._my + point.dy * scale
+        point.ctrl_left_x = self._mx + point.ctrl_left_dx * scale
+        point.ctrl_left_y = self._my + point.ctrl_left_dy * scale
+        point.ctrl_right_x = self._mx + point.ctrl_right_dx * scale
+        point.ctrl_right_y = self._my + point.ctrl_right_dy * scale
+    end
+    cairo_move_to(cr, self._points[1].x, self._points[1].y)
+    for core = 1, self._cores do
+        local current, next = self._points[core], self._points[core + 1]
+        cairo_curve_to(cr, current.ctrl_left_x,
+                           current.ctrl_left_y,
+                           next.ctrl_right_x,
+                           next.ctrl_right_y,
+                           next.x,
+                           next.y)
+    end
+    cairo_close_path(cr)
+
+    ch.alpha_gradient_radial(cr, self._mx, self._my, self._inner_radius,
+                                 self._mx, self._my, self._outer_radius,
+                                 r, g, b, {0, 0, 0, 0.2, 1, 0.4})
+    cairo_set_antialias(cr, CAIRO_ANTIALIAS_DEFAULT)
+    cairo_fill_preserve(cr)
+    cairo_set_source_rgba(cr, r, g, b, 1)
+    cairo_set_line_width(cr, 0.5)
+    cairo_stroke(cr)
 end
 
 

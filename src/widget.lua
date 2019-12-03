@@ -1047,20 +1047,18 @@ function CpuRound:layout(width, height)
 
     -- choose control points that best approximate a circle, see
     -- https://stackoverflow.com/questions/1734745/how-to-create-circle-with-b%C3%A9zier-curves
-    local ctrl_rad = sector_rad * 1.25 * tan(0.25 * sector_rad)
-    local ctrl_scale = 1 / cos(ctrl_rad)
+    local ctrl_length = 1.3333 * tan(0.25 * sector_rad)
     self._points = {}
     for core = 1, self._cores do
         local rad = (core - 1) * sector_rad
-        local ctrl_left_rad = rad + ctrl_rad
-        local ctrl_right_rad = rad - ctrl_rad
+        local dx, dy = cos(rad), sin(rad)
         self._points[core] = {
-            dx = cos(rad),
-            dy = sin(rad),
-            ctrl_left_dx = cos(ctrl_left_rad) * ctrl_scale,
-            ctrl_left_dy = sin(ctrl_left_rad) * ctrl_scale,
-            ctrl_right_dx = cos(ctrl_right_rad) * ctrl_scale,
-            ctrl_right_dy = sin(ctrl_right_rad) * ctrl_scale,
+            dx = dx,
+            dy = dy,
+            ctrl_left_dx = dx - dy * ctrl_length,
+            ctrl_left_dy = dy + dx * ctrl_length,
+            ctrl_right_dx = dx + dy * ctrl_length,
+            ctrl_right_dy = dy - dx * ctrl_length,
         }
     end
     self._points[self._cores + 1] = self._points[1]  -- easy cycling

@@ -1440,11 +1440,7 @@ function Drive:init(path)
 end
 
 function Drive:layout(...)
-    if self._is_mounted then
-        return {{self, 0, 0, 0, 0}, unpack(Group.layout(self, ...))}
-    else
-        return {{self, 0, 0, 0, 0}}
-    end
+    return self._is_mounted and Group.layout(self, ...) or {{self, 0, 0, 0, 0}}
 end
 
 function Drive:update()

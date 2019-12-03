@@ -39,12 +39,12 @@ function polycore.setup()
     local widgets = {
         fan_rpm_text,  -- see above
         cpu_temps_text,  -- see above
-        widget.Filler{height=8},
+        widget.Filler{height=3},
 
         -- Adjust the CPU core count to your system.
         -- Requires lm_sensors for CPU temperatures.
-        widget.Cpu{cores=6, scale=23, gap=5, segment_size=24},
-        widget.Filler{height=12},
+        widget.Cpu{cores=6, inner_radius=28, gap=5, outer_radius=57},
+        widget.Filler{height=7},
         widget.CpuFrequencies{cores=6, min_freq=0.75, max_freq=4.3},
         widget.Filler{height=136},
 

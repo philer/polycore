@@ -907,15 +907,23 @@ w.Cpu = Cpu
 -- @int args.segment_size radial thickness of outer segments
 function Cpu:init(args)
     self._cores = args.cores
-    self._scale = args.scale
-    self._gap = args.gap
-    self._segment_size = args.segment_size
+    self._inner_radius = args.inner_radius
+    self._outer_radius = args.outer_radius
+    self._gap = args.gap or 4
 
-    self.height = 2 * (self._scale + self._gap + self._segment_size)
-    self.width = self.height
+    if self._outer_radius then
+        self.height = 2 * self._outer_radius
+        self.width = self.height
+    end
 end
 
 function Cpu:layout(width, height)
+    if not self._outer_radius then
+        self._outer_radius = 0.5  * math.min(width, height)
+    end
+    if not self._inner_radius then
+        self._inner_radius = 0.5 * self._outer_radius
+    end
     self._mx = width / 2
     self._my = height / 2
 
@@ -923,18 +931,18 @@ function Cpu:layout(width, height)
     self._segment_coordinates = {}
     self._gradient_coordinates = {}
     local sector_rad = 2 * PI / self._cores
-    local min = self._scale + self._gap
-    local max = min + self._segment_size
-
+    local center_scale = self._inner_radius - 2.5  -- thick stroke
+    local min = self._inner_radius
+    local max = self._outer_radius - self._gap
     for core = 1, self._cores do
-        local rad_center = (core - 1) * sector_rad - PI/2
-        local rad_left = rad_center + sector_rad/2
-        local rad_right = rad_center - sector_rad/2
+        local rad_center = (core - 1) * sector_rad - PI / 2
+        local rad_left = rad_center + sector_rad / 2
+        local rad_right = rad_center - sector_rad / 2
         local dx_center, dy_center = cos(rad_center), sin(rad_center)
         local dx_left, dy_left = cos(rad_left), sin(rad_left)
         local dx_right, dy_right = cos(rad_right), sin(rad_right)
-        self._center_coordinates[2 * core - 1] = self._mx + self._scale * dx_left
-        self._center_coordinates[2 * core] = self._my + self._scale * dy_left
+        self._center_coordinates[2 * core - 1] = self._mx + center_scale * dx_left
+        self._center_coordinates[2 * core] = self._my + center_scale * dy_left
 
         -- segment corners
         local dx_gap, dy_gap = self._gap * dx_center, self._gap * dy_center

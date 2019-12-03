@@ -72,14 +72,19 @@ end
 local CycleQueue = util.class()
 util.CycleQueue = CycleQueue
 
---- @int length fixed number of items to be stored
-function CycleQueue:init(length)
-    self.length = length
-    self._latest = length
-    self._items = {}
-    for i = 1, length do
-        self._items[i] = 0
+--- @tparam int|table items length of queue or array of initial items
+function CycleQueue:init(items)
+    if type(items) == "table" then
+        self._items = items
+        self.length = #items
+    else
+        self._items = {}
+        self.length = items
+        for i = 1, self.length do
+            self._items[i] = 0
+        end
     end
+    self._latest = self.length
 end
 
 --- Add a value, causing the oldest value to disappear.

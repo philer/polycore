@@ -1039,7 +1039,7 @@ function CpuRound:layout(width, height)
         self._outer_radius = 0.5  * math.min(width, height)
     end
     if not self._inner_radius then
-        self._inner_radius = 0.6667 * self._outer_radius
+        self._inner_radius = 0.75 * self._outer_radius
     end
     self._mx = width / 2
     self._my = height / 2
@@ -1066,7 +1066,14 @@ end
 
 function CpuRound:render(cr)
     local avg_temperature = util.avg(self._temperatures)
+    local avg_percentage = util.avg(self._percentages)
     local r, g, b = w.temperature_color(avg_temperature, 30, 80)
+
+    ch.alpha_gradient_radial(cr, self._mx, self._my, self._inner_radius,
+                                 self._mx, self._my,
+                                 self._outer_radius * (1 + 0.5 * avg_percentage / 100),
+                                 r, g, b, {0, 0, 0.05, 0.2, 1, 0})
+    cairo_paint(cr)
 
     -- temperature text
     cairo_set_source_rgba(cr, r, g, b, 0.5)
@@ -1076,10 +1083,12 @@ function CpuRound:render(cr)
     -- inner fill
     cairo_new_path(cr)
     cairo_arc(cr, self._mx, self._my, self._inner_radius * 0.99, 0, 2 * PI)
-    ch.alpha_gradient_radial(cr, self._mx -  self._inner_radius * .5, self._my -  self._inner_radius * .5, 0,
+    ch.alpha_gradient_radial(cr, self._mx - self._inner_radius * 0.5,
+                                 self._my - self._inner_radius * 0.5,
+                                 0,
                                  self._mx, self._my, self._inner_radius,
                                  r, g, b, {0, 0.4, 0.66, 0.15, 1, 0.1})
-    cairo_fill_preserve(cr)
+    cairo_fill(cr)
 
     -- usage curve
     local dr = self._outer_radius - self._inner_radius
@@ -1107,11 +1116,11 @@ function CpuRound:render(cr)
 
     ch.alpha_gradient_radial(cr, self._mx, self._my, self._inner_radius,
                                  self._mx, self._my, self._outer_radius,
-                                 r, g, b, {0, 0, 0, 0.2, 1, 0.4})
+                                 r, g, b, {0, 0, 0.05, 0.4, 1, 0.9})
     cairo_set_antialias(cr, CAIRO_ANTIALIAS_DEFAULT)
     cairo_fill_preserve(cr)
     cairo_set_source_rgba(cr, r, g, b, 1)
-    cairo_set_line_width(cr, 0.5)
+    cairo_set_line_width(cr, 0.75)
     cairo_stroke(cr)
 end
 

@@ -62,8 +62,17 @@
 	<td class="summary">Draw a polygon with the given vertices.</td>
 	</tr>
 	<tr>
+	<td class="name" nowrap><a href="#show_point">show_point(cr, x, y[, size=4[, r=1[, g=0[, b=0[, a=0.7]]]]])</a></td>
+	<td class="summary">Draw a little cross where a given point is.</td>
+	</tr>
+	<tr>
 	<td class="name" nowrap><a href="#alpha_gradient">alpha_gradient(cr, x1, y1, x2, y2, r, g, b, stops)</a></td>
 	<td class="summary">Set a single color gradient with varying opacity
+ on the given cairo drawing context.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#alpha_gradient_radial">alpha_gradient_radial(cr, x1, y1, inner_radius, x2, y2, outer_radius, r, g, b, stops)</a></td>
+	<td class="summary">Set a radial single color gradient with varying opacity
  on the given cairo drawing context.</td>
 	</tr>
 	<tr>
@@ -133,6 +142,61 @@
 
 </dd>
     <dt>
+    <a name = "show_point"></a>
+    <strong>show_point(cr, x, y[, size=4[, r=1[, g=0[, b=0[, a=0.7]]]]])</strong>
+    </dt>
+    <dd>
+    Draw a little cross where a given point is.  Useful for debugging.
+ By default the cross is red.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">cr</span>
+            <span class="types"><span class="type">cairo_t</span></span>
+
+        </li>
+        <li><span class="parameter">x</span>
+            <span class="types"><span class="type">number</span></span>
+         x coordinate of point
+        </li>
+        <li><span class="parameter">y</span>
+            <span class="types"><span class="type">number</span></span>
+         y coordinate of point
+        </li>
+        <li><span class="parameter">size</span>
+            <span class="types"><span class="type">number</span></span>
+         line length of cross
+         (<em>default</em> 4)
+        </li>
+        <li><span class="parameter">r</span>
+            <span class="types"><span class="type">number</span></span>
+         red color component
+         (<em>default</em> 1)
+        </li>
+        <li><span class="parameter">g</span>
+            <span class="types"><span class="type">number</span></span>
+         green color component
+         (<em>default</em> 0)
+        </li>
+        <li><span class="parameter">b</span>
+            <span class="types"><span class="type">number</span></span>
+         blue color component
+         (<em>default</em> 0)
+        </li>
+        <li><span class="parameter">a</span>
+            <span class="types"><span class="type">number</span></span>
+         alpha color compnent (transparency)
+         (<em>default</em> 0.7)
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
+    <dt>
     <a name = "alpha_gradient"></a>
     <strong>alpha_gradient(cr, x1, y1, x2, y2, r, g, b, stops)</strong>
     </dt>
@@ -162,6 +226,72 @@
         <li><span class="parameter">y2</span>
             <span class="types"><span class="type">number</span></span>
          y coordinate of gradient end
+        </li>
+        <li><span class="parameter">r</span>
+            <span class="types"><span class="type">number</span></span>
+         red color component
+        </li>
+        <li><span class="parameter">g</span>
+            <span class="types"><span class="type">number</span></span>
+         green color component
+        </li>
+        <li><span class="parameter">b</span>
+            <span class="types"><span class="type">number</span></span>
+         blue color component
+        </li>
+        <li><span class="parameter">stops</span>
+            <span class="types"><span class="type">{number,...}</span></span>
+         list of offset & alpha value pairs
+          offset between 0 and 1 describes position in the gradient
+          alpha between 0 and 1 describes opacity at given offset.
+          Note: For high/low alpha values the brightness may be emphasized
+          by color variation.
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "alpha_gradient_radial"></a>
+    <strong>alpha_gradient_radial(cr, x1, y1, inner_radius, x2, y2, outer_radius, r, g, b, stops)</strong>
+    </dt>
+    <dd>
+    Set a radial single color gradient with varying opacity
+ on the given cairo drawing context.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">cr</span>
+            <span class="types"><span class="type">cairo_t</span></span>
+
+        </li>
+        <li><span class="parameter">x1</span>
+            <span class="types"><span class="type">number</span></span>
+         x coordinate of inner circle center point
+        </li>
+        <li><span class="parameter">y1</span>
+            <span class="types"><span class="type">number</span></span>
+         y coordinate of inner circle center point
+        </li>
+        <li><span class="parameter">inner_radius</span>
+            <span class="types"><span class="type">number</span></span>
+
+        </li>
+        <li><span class="parameter">x2</span>
+            <span class="types"><span class="type">number</span></span>
+         x coordinate of outer circle center point
+        </li>
+        <li><span class="parameter">y2</span>
+            <span class="types"><span class="type">number</span></span>
+         y coordinate of outer circle center point
+        </li>
+        <li><span class="parameter">outer_radius</span>
+            <span class="types"><span class="type">number</span></span>
+
         </li>
         <li><span class="parameter">r</span>
             <span class="types"><span class="type">number</span></span>
@@ -448,7 +578,7 @@
 </div> <!-- id="main" -->
 <div id="about">
 <i>generated by <a href="http://github.com/stevedonovan/LDoc">LDoc 1.4.6</a></i>
-<i style="float:right;">Last updated 2019-12-01 19:50:07 </i>
+<i style="float:right;">Last updated 2019-12-04 18:06:27 </i>
 </div> <!-- id="about" -->
 </div> <!-- id="container" -->
 </body>

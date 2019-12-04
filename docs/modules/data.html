@@ -58,6 +58,14 @@
 <h2><a href="#Functions">Functions</a></h2>
 <table class="function_list">
 	<tr>
+	<td class="name" nowrap><a href="#eager_loader:load">eager_loader:load()</a></td>
+	<td class="summary">Run a bulk conky_parse with collected strings from previous updates.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#eager_loader:get">eager_loader:get([remember=1], var)</a></td>
+	<td class="summary">Retrieve a conky_parse result.</td>
+	</tr>
+	<tr>
 	<td class="name" nowrap><a href="#cpu_percentages">cpu_percentages(cores)</a></td>
 	<td class="summary">Get the current usage percentages of individual CPU cores</td>
 	</tr>
@@ -104,20 +112,20 @@
 	<td class="summary">Get list of GPU processes with individual VRAM usage in MiB.</td>
 	</tr>
 	<tr>
-	<td class="name" nowrap><a href="#find_devices">find_devices()</a></td>
-	<td class="summary">Detect mount points and their respective devices plus physical devices.</td>
-	</tr>
-	<tr>
-	<td class="name" nowrap><a href="#drive_percentag">drive_percentag(path)</a></td>
-	<td class="summary">Get the drive usage in percent for the given path.</td>
-	</tr>
-	<tr>
 	<td class="name" nowrap><a href="#is_mounted">is_mounted(path)</a></td>
 	<td class="summary">Is the given path a mount?</td>
 	</tr>
 	<tr>
+	<td class="name" nowrap><a href="#drive_percentage">drive_percentage(path)</a></td>
+	<td class="summary">Get the drive usage in percent for the given path.</td>
+	</tr>
+	<tr>
 	<td class="name" nowrap><a href="#diskio">diskio(device[, mode[, unit]])</a></td>
 	<td class="summary">Get activity of a drive.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#find_devices">find_devices()</a></td>
+	<td class="summary">Detect mount points and their respective devices plus physical devices.</td>
 	</tr>
 	<tr>
 	<td class="name" nowrap><a href="#hddtemp">hddtemp()</a></td>
@@ -139,6 +147,47 @@
     <h2 class="section-header "><a name="Functions"></a>Functions</h2>
 
     <dl class="function">
+    <dt>
+    <a name = "eager_loader:load"></a>
+    <strong>eager_loader:load()</strong>
+    </dt>
+    <dd>
+    Run a bulk conky_parse with collected strings from previous updates.
+ Called at the begin of each update to greatly improve performance.
+
+
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "eager_loader:get"></a>
+    <strong>eager_loader:get([remember=1], var)</strong>
+    </dt>
+    <dd>
+    Retrieve a conky_parse result.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">remember</span>
+            <span class="types"><span class="type">int</span></span>
+
+         (<em>default</em> 1)
+        </li>
+        <li><span class="parameter">var</span>
+            <span class="types"><span class="type">string</span></span>
+         string to be evaluated by conky_parse
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
     <dt>
     <a name = "cpu_percentages"></a>
     <strong>cpu_percentages(cores)</strong>
@@ -394,55 +443,6 @@
 
 </dd>
     <dt>
-    <a name = "find_devices"></a>
-    <strong>find_devices()</strong>
-    </dt>
-    <dd>
-    Detect mount points and their respective devices plus physical devices.
-
-
-
-    <h3>Returns:</h3>
-    <ol>
-
-           <span class="types"><span class="type">table</span></span>
-         mapping of mount points (paths) to value pairs of
-                (logical) device and physical device
-                e.g. {["/"] = {"/dev/sda1", "/dev/sda"}}
-    </ol>
-
-
-
-
-</dd>
-    <dt>
-    <a name = "drive_percentag"></a>
-    <strong>drive_percentag(path)</strong>
-    </dt>
-    <dd>
-    Get the drive usage in percent for the given path.
-
-
-    <h3>Parameters:</h3>
-    <ul>
-        <li><span class="parameter">path</span>
-            <span class="types"><span class="type">string</span></span>
-
-        </li>
-    </ul>
-
-    <h3>Returns:</h3>
-    <ol>
-
-           <span class="types"><span class="type">number</span></span>
-
-    </ol>
-
-
-
-
-</dd>
-    <dt>
     <a name = "is_mounted"></a>
     <strong>is_mounted(path)</strong>
     </dt>
@@ -462,6 +462,33 @@
     <ol>
 
            <span class="types"><span class="type">bool</span></span>
+
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "drive_percentage"></a>
+    <strong>drive_percentage(path)</strong>
+    </dt>
+    <dd>
+    Get the drive usage in percent for the given path.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">path</span>
+            <span class="types"><span class="type">string</span></span>
+
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><span class="type">number</span></span>
 
     </ol>
 
@@ -501,6 +528,28 @@
 
            <span class="types"><span class="type">number,string</span></span>
         activity, unit
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "find_devices"></a>
+    <strong>find_devices()</strong>
+    </dt>
+    <dd>
+    Detect mount points and their respective devices plus physical devices.
+
+
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><span class="type">table</span></span>
+         mapping of mount points (paths) to value pairs of
+                (logical) device and physical device
+                e.g. {["/"] = {"/dev/sda1", "/dev/sda"}}
     </ol>
 
 
@@ -573,7 +622,7 @@
 </div> <!-- id="main" -->
 <div id="about">
 <i>generated by <a href="http://github.com/stevedonovan/LDoc">LDoc 1.4.6</a></i>
-<i style="float:right;">Last updated 2019-12-01 19:50:07 </i>
+<i style="float:right;">Last updated 2019-12-04 18:06:27 </i>
 </div> <!-- id="about" -->
 </div> <!-- id="container" -->
 </body>

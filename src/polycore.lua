@@ -4,6 +4,7 @@
 pcall(function() require('cairo') end)
 
 local util = require('src/util')
+local data = require('src/data')
 
 --- Draw debug information
 -- @bool DEBUG
@@ -27,7 +28,10 @@ local function update()
         return
     end
 
-    local update_count = tonumber(conky_parse('${updates}'))
+    data.eager_loader:load()
+    local update_count = tonumber(data.eager_loader:get('$updates'))
+    util.reset_data(update_count)
+
     polycore.renderer:update(update_count)
 
     local cs = cairo_xlib_surface_create(conky_window.display,
@@ -39,8 +43,6 @@ local function update()
     cairo_surface_destroy(cs)
     polycore.renderer:render(cr)
     cairo_destroy(cr)
-
-    util.reset_data(update_count)
 end
 
 

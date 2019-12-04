@@ -41,6 +41,69 @@ local function convert_unit(from, to, value)
     return value
 end
 
+
+-- Gather conky_parse calls and run them in bulk on the next update.
+local EagerLoader = util.class()
+
+function EagerLoader:init()
+    self._vars = {}  -- maps vars to max age
+    self._results = {}  -- maps vars to results
+end
+
+--- Run a bulk conky_parse with collected strings from previous updates.
+-- Called at the begin of each update to greatly improve performance.
+-- @function eager_loader:load
+function EagerLoader:load()
+    local vars = {}
+
+    -- age remembered variables, queue outdated ones for evaluation
+    local i = 1
+    for var, remember in pairs(self._vars) do
+        remember = remember > 1 and remember - 1 or nil
+        self._vars[var] = remember
+        if not remember then
+            self._results[var] = nil
+            vars[i] = var
+            i = i + 1
+        end
+    end
+    if i == 1 then return end
+
+    -- parse collected variables
+    i = 1
+    local conky_string = "<|" .. table.concat(vars, "|><|") .. "|>"
+    for result in conky_parse(conky_string):gmatch("<|(.-)|>") do
+        self._results[vars[i]] = result
+        i = i + 1
+    end
+end
+
+--- Retrieve a conky_parse result.
+-- @function eager_loader:get
+-- @int[opt=1] remember
+-- @string var string to be evaluated by conky_parse
+function EagerLoader:get(remember, var)
+    if not var then
+        remember, var = 1, remember
+    end
+
+    -- queue this variable for future updates
+    if not self._vars[var] then
+        self._vars[var] = remember or 1
+    end
+
+    -- retrieve the result
+    if not self._results[var] then
+        self._results[var] = conky_parse(var)
+    end
+    return self._results[var]
+end
+
+
+local loader = EagerLoader()
+data.eager_loader = loader
+
+
 --- Get the current usage percentages of individual CPU cores
 -- @int cores number of CPU cores
 -- @treturn {number,...}
@@ -49,7 +112,7 @@ function data.cpu_percentages(cores)
     for i = 2, cores do
         conky_string = conky_string .. "|${cpu cpu" .. i .. "}"
     end
-    return util.map(tonumber, conky_parse(conky_string):gmatch("%d+"))
+    return util.map(tonumber, loader:get(conky_string):gmatch("%d+"))
 end
 
 --- Get the current frequencies at which individual CPU cores are running
@@ -60,7 +123,7 @@ function data.cpu_frequencies(cores)
     for i = 2, cores do
         conky_string = conky_string .. "|${freq_g " .. i .. "}"
     end
-    return util.map(tonumber, conky_parse(conky_string):gmatch("%d+[,.]?%d*"))
+    return util.map(tonumber, loader:get(conky_string):gmatch("%d+[,.]?%d*"))
 end
 
 --- Get the current CPU core temperatures
@@ -81,7 +144,7 @@ end
 -- @tparam ?string unit like "B", "MiB", "kB", ...
 -- @treturn number,number,number,number usage, easyfree, free, total
 function data.memory(unit)
-    local conky_output = conky_parse("$mem|$memeasyfree|$memfree|$memmax")
+    local conky_output = loader:get("$mem|$memeasyfree|$memfree|$memmax")
     local results = {}
     for value, parsed_unit in conky_output:gmatch("(%d+%p?%d*) ?(%w+)") do
         table.insert(results, convert_unit(parsed_unit, unit, tonumber(value)))
@@ -93,7 +156,7 @@ end
 -- @string interface e.g. "eth0"
 -- @treturn number,number downspeed and upspeed in KiB
 function data.network_speed(interface)
-    local result = conky_parse(string.format("${downspeedf %s}|${upspeedf %s}", interface, interface))
+    local result = loader:get(string.format("${downspeedf %s}|${upspeedf %s}", interface, interface))
     return unpack(util.map(tonumber, result:gmatch("%d+%p?%d*")))
 end
 
@@ -112,7 +175,7 @@ end
 --- Get current GPU frequency.
 -- @treturn number
 function data.gpu_frequency()
-    return tonumber(conky_parse("${nvidia gpufreq}"))
+    return tonumber(loader:get("${nvidia gpufreq}"))
 end
 
 --- Get current GPU temperature.
@@ -144,6 +207,33 @@ function data.gpu_top()
 end
 
 
+--- Is the given path a mount? (see conky's is_mounted)
+-- @string path
+-- @treturn bool
+function data.is_mounted(path)
+    return "1" == loader:get(5, string.format("${if_mounted %s}1${endif}", path))
+end
+
+--- Get the drive usage in percent for the given path.
+-- @string path
+-- @treturn number
+function data.drive_percentage(path)
+    return tonumber(loader:get(5, string.format("${fs_used_perc %s}", path)))
+end
+
+--- Get activity of a drive. If unit is specified the value will be converted
+-- to that unit.
+-- @string device e.g. /dev/sda1
+-- @string[opt] mode "read" or "write"; both if nil
+-- @string[opt] unit like "B", "MiB", "kB", ...; no conversion if nil
+-- @treturn number,string activity, unit
+function data.diskio(device, mode, unit)
+    mode = mode and "_" .. mode or ""
+    local result = loader:get(("${diskio%s %s}"):format(mode, device))
+    local value, parsed_unit = result:match("(%d+%p?%d*) ?(%w+)")
+    return convert_unit(parsed_unit, unit, tonumber(value)), unit or parsed_unit
+end
+
 --- Detect mount points and their respective devices plus physical devices.
 -- @function data.find_devices
 -- @treturn table mapping of mount points (paths) to value pairs of
@@ -162,37 +252,6 @@ data.find_devices = util.memoize(10, function()
     end
     return mounts
 end)
-
---- Get the drive usage in percent for the given path.
--- @function data.drive_percentag
--- @string path
--- @treturn number
-data.drive_percentage = util.memoize(5, function(path)
-    return tonumber(conky_parse(string.format("${fs_used_perc %s}", path)))
-end)
-
-
---- Is the given path a mount? (see conky's is_mounted)
--- @function data.is_mounted
--- @string path
--- @treturn bool
-data.is_mounted = util.memoize(5, function(path)
-    return "1" == conky_parse(string.format("${if_mounted %s}1${else}0${endif}", path))
-end)
-
-
---- Get activity of a drive. If unit is specified the value will be converted
--- to that unit.
--- @string device e.g. /dev/sda1
--- @string[opt] mode "read" or "write"; both if nil
--- @string[opt] unit like "B", "MiB", "kB", ...; no conversion if nil
--- @treturn number,string activity, unit
-function data.diskio(device, mode, unit)
-    mode = mode and "_" .. mode or ""
-    local result = conky_parse(("${diskio%s %s}"):format(mode, device))
-    local value, parsed_unit = result:match("(%d+%p?%d*) ?(%w+)")
-    return convert_unit(parsed_unit, unit, tonumber(value)), unit or parsed_unit
-end
 
 --- Get current HDD/SSD temperatures.
 -- Relies on hddtemp to be running daemon mode. The results depend on what

@@ -35,7 +35,7 @@ local memoization_clearers = {}
 -- @func fn function to be memoized; should only take stringable
 --                     arguments and return a non-nil value
 function util.memoize(delay, fn)
-    if fn == nil then
+    if not fn then
         delay, fn = 0, delay
     end
     local results = {}

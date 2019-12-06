@@ -17,16 +17,8 @@ end)
 
 local unit_map = {
     B = 1,
-    kiB = 1024,
-    kB = 1000,
-    KiB = 1024,
-    KB = 1000,
-    MiB = 1024 * 1024,
-    MB = 1000 * 1000,
-    GiB = 1024 * 1024 * 1024,
-    GB = 1000 * 1000 * 1000,
-    TiB = 1024 * 1024 * 1024 * 1024,
-    TB = 1000 * 1000 * 1000 * 1000,
+    kB = 1000, KB = 1000, MB = 1000 ^ 2, GB = 1000 ^ 3, TB = 1000 ^ 4,
+    kiB = 1024, KiB = 1024, MiB = 1024 ^ 2, GiB = 1024 ^ 3, TiB = 1024 ^ 4,
 }
 
 --- Convert memory value from one unit to another.
@@ -79,12 +71,21 @@ function EagerLoader:load()
 end
 
 --- Retrieve a conky_parse result.
+-- @usage
+-- data.eager_loader:get("$update")
+-- data.eager_loader:get("${cpu cpu%s}", 2)  -- usage of second CPU core
+-- data.eager_loader:get(5, "${fs_used_perc %s}", "/home")  -- cached for 5 updates
 -- @function eager_loader:get
 -- @int[opt=1] remember
--- @string var string to be evaluated by conky_parse
-function EagerLoader:get(remember, var)
-    if not var then
-        remember, var = 1, remember
+-- @string var string to be evaluated by `conky_parse`
+-- @param[opt] ... Additional arguments passed to `var:format(...)`
+-- @treturn string result of `conky_parse(var)`
+function EagerLoader:get(remember, var, ...)
+    if type(remember) == "string" then  -- skipped first argument
+        var = var and remember:format(var, ...) or remember
+        remember = 1
+    elseif ... then
+        var = var:format(...)
     end
 
     -- queue this variable for future updates
@@ -156,7 +157,7 @@ end
 -- @string interface e.g. "eth0"
 -- @treturn number,number downspeed and upspeed in KiB
 function data.network_speed(interface)
-    local result = loader:get(string.format("${downspeedf %s}|${upspeedf %s}", interface, interface))
+    local result = loader:get("${downspeedf %s}|${upspeedf %s}", interface, interface)
     return unpack(util.map(tonumber, result:gmatch("%d+%p?%d*")))
 end
 
@@ -211,14 +212,14 @@ end
 -- @string path
 -- @treturn bool
 function data.is_mounted(path)
-    return "1" == loader:get(5, string.format("${if_mounted %s}1${endif}", path))
+    return "1" == loader:get(5, "${if_mounted %s}1${endif}", path)
 end
 
 --- Get the drive usage in percent for the given path.
 -- @string path
 -- @treturn number
 function data.drive_percentage(path)
-    return tonumber(loader:get(5, string.format("${fs_used_perc %s}", path)))
+    return tonumber(loader:get(5, "${fs_used_perc %s}", path))
 end
 
 --- Get activity of a drive. If unit is specified the value will be converted
@@ -229,7 +230,7 @@ end
 -- @treturn number,string activity, unit
 function data.diskio(device, mode, unit)
     mode = mode and "_" .. mode or ""
-    local result = loader:get(("${diskio%s %s}"):format(mode, device))
+    local result = loader:get("${diskio%s %s}", mode, device)
     local value, parsed_unit = result:match("(%d+%p?%d*) ?(%w+)")
     return convert_unit(parsed_unit, unit, tonumber(value)), unit or parsed_unit
 end

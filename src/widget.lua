@@ -894,8 +894,8 @@ function LED:render(cr)
 end
 
 
---- Polygon-style CPU usage & temperature tracking.
--- Looks best for CPUs with 4 to 8 cores but also works for higher numbers
+--- Polygon-style CPU usage & temperature indicator.
+-- Looks best for CPUs with 4 to 8 cores but also works for higher numbers.
 -- @type Cpu
 local Cpu = util.class(Widget)
 w.Cpu = Cpu
@@ -1011,7 +1011,7 @@ function Cpu:render(cr)
 end
 
 
---- Round CPU usage & temperature tracking.
+--- Round CPU usage & temperature indicator.
 -- Best suited for CPUs with high core counts.
 -- @type CpuRound
 local CpuRound = util.class(Widget)
@@ -1023,10 +1023,12 @@ CpuRound.update = Cpu.update
 -- @int args.cores How many cores does your CPU have?
 -- @int args.inner_radius Size of inner circle
 -- @int args.outer_radius Max radius for core at 100%
+-- @int[opt] args.grid Number of grid lines to draw in the background.
 function CpuRound:init(args)
     self._cores = args.cores
     self._inner_radius = args.inner_radius
     self._outer_radius = args.outer_radius
+    self._grid = args.grid
 
     if self._outer_radius then
         self.height = 2 * self._outer_radius
@@ -1041,8 +1043,7 @@ function CpuRound:layout(width, height)
     if not self._inner_radius then
         self._inner_radius = 0.75 * self._outer_radius
     end
-    self._mx = width / 2
-    self._my = height / 2
+    self._center = {width / 2, height / 2}
     local sector_rad = 2 * PI / self._cores
 
     -- choose control points that best approximate a circle, see
@@ -1064,13 +1065,39 @@ function CpuRound:layout(width, height)
     self._points[self._cores + 1] = self._points[1]  -- easy cycling
 end
 
+function CpuRound:render_background(cr)
+    if not self._grid or self._grid < 1 then
+        return
+    end
+    local mx, my = unpack(self._center)
+    local gap = (self._outer_radius - self._inner_radius) / self._grid
+    for line = 0, self._grid do
+        local scale = self._inner_radius + gap * line
+        cairo_move_to(cr, mx + self._points[1].dx * scale,
+                          my + self._points[1].dy * scale)
+        cairo_arc(cr, mx, my, scale, 0, 2 * PI)
+    end
+    for _, point in ipairs(self._points) do
+        cairo_move_to(cr, mx + point.dx * self._inner_radius,
+                          my + point.dy * self._inner_radius)
+        cairo_line_to(cr, mx + point.dx * self._outer_radius,
+                          my + point.dy * self._outer_radius)
+    end
+    local r, g, b = unpack(w.default_graph_color)
+    cairo_set_source_rgba(cr, r, g, b, 0.2)
+    cairo_set_line_width(cr, 1)
+    cairo_stroke(cr)
+end
+
 function CpuRound:render(cr)
     local avg_temperature = util.avg(self._temperatures)
     local avg_percentage = util.avg(self._percentages)
     local r, g, b = w.temperature_color(avg_temperature, 30, 80)
+    local mx, my = unpack(self._center)
 
-    ch.alpha_gradient_radial(cr, self._mx, self._my, self._inner_radius,
-                                 self._mx, self._my,
+    -- glow
+    ch.alpha_gradient_radial(cr, mx, my, self._inner_radius,
+                                 mx, my,
                                  self._outer_radius * (1 + 0.5 * avg_percentage / 100),
                                  r, g, b, {0, 0, 0.05, 0.2, 1, 0})
     cairo_paint(cr)
@@ -1078,29 +1105,29 @@ function CpuRound:render(cr)
     -- temperature text
     cairo_set_source_rgba(cr, r, g, b, 0.5)
     ch.set_font(cr, w.default_font_family, 16, nil, CAIRO_FONT_WEIGHT_BOLD)
-    ch.write_middle(cr, self._mx + 1, self._my, string.format("%.0f°", avg_temperature))
+    ch.write_middle(cr, mx + 1, my, string.format("%.0f°", avg_temperature))
 
     -- inner fill
     cairo_new_path(cr)
-    cairo_arc(cr, self._mx, self._my, self._inner_radius * 0.99, 0, 2 * PI)
-    ch.alpha_gradient_radial(cr, self._mx - self._inner_radius * 0.5,
-                                 self._my - self._inner_radius * 0.5,
+    cairo_arc(cr, mx, my, self._inner_radius * 0.99, 0, 2 * PI)
+    ch.alpha_gradient_radial(cr, mx - self._inner_radius * 0.5,
+                                 my - self._inner_radius * 0.5,
                                  0,
-                                 self._mx, self._my, self._inner_radius,
+                                 mx, my, self._inner_radius,
                                  r, g, b, {0, 0.4, 0.66, 0.15, 1, 0.1})
     cairo_fill(cr)
 
     -- usage curve
     local dr = self._outer_radius - self._inner_radius
     for core = 1, self._cores do
-        local scale = self._inner_radius + dr * self._percentages[core] / 100
         local point = self._points[core]
-        point.x = self._mx + point.dx * scale
-        point.y = self._my + point.dy * scale
-        point.ctrl_left_x = self._mx + point.ctrl_left_dx * scale
-        point.ctrl_left_y = self._my + point.ctrl_left_dy * scale
-        point.ctrl_right_x = self._mx + point.ctrl_right_dx * scale
-        point.ctrl_right_y = self._my + point.ctrl_right_dy * scale
+        local scale = self._inner_radius + dr * self._percentages[core] / 100
+        point.x = mx + point.dx * scale
+        point.y = my + point.dy * scale
+        point.ctrl_left_x = mx + point.ctrl_left_dx * scale
+        point.ctrl_left_y = my + point.ctrl_left_dy * scale
+        point.ctrl_right_x = mx + point.ctrl_right_dx * scale
+        point.ctrl_right_y = my + point.ctrl_right_dy * scale
     end
     cairo_move_to(cr, self._points[1].x, self._points[1].y)
     for core = 1, self._cores do
@@ -1114,8 +1141,8 @@ function CpuRound:render(cr)
     end
     cairo_close_path(cr)
 
-    ch.alpha_gradient_radial(cr, self._mx, self._my, self._inner_radius,
-                                 self._mx, self._my, self._outer_radius,
+    ch.alpha_gradient_radial(cr, mx, my, self._inner_radius,
+                                 mx, my, self._outer_radius,
                                  r, g, b, {0, 0, 0.05, 0.4, 1, 0.9})
     cairo_set_antialias(cr, CAIRO_ANTIALIAS_DEFAULT)
     cairo_fill_preserve(cr)

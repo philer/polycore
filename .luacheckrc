@@ -42,7 +42,10 @@ stds.conky = {
 -- see https://www.cairographics.org/manual/
 stds.cairo = {
     read_globals = {
+        "CAIRO_ANTIALIAS_BEST",
         "CAIRO_ANTIALIAS_DEFAULT",
+        "CAIRO_ANTIALIAS_FAST",
+        "CAIRO_ANTIALIAS_GOOD",
         "CAIRO_ANTIALIAS_GRAY",
         "CAIRO_ANTIALIAS_NONE",
         "CAIRO_ANTIALIAS_SUBPIXEL",

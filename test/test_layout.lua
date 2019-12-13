@@ -253,6 +253,10 @@ end
 
 --- Entry point called by conky
 function conky_update()
+    print("Running test_layout on")
+    print("* conky", conky_version)
+    print("* lua", _VERSION)
+    print("* cairo", cairo_version_string())
     local all_successful = true
     for name, test_fn in pairs(test) do
         local success = xpcall(test_fn, error_handler)

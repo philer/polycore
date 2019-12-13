@@ -1325,12 +1325,12 @@ function MemoryGrid:render(cr)
     end
     cairo_set_source_rgba(cr, r, g, b, .8)
     cairo_fill(cr)
-    for i = used_points, used_points + cache_points do
+    for i = used_points, total_points - cache_points do
         cairo_rectangle(cr, unpack(self._coordinates[i]))
     end
     cairo_set_source_rgba(cr, r, g, b, .35)
     cairo_fill(cr)
-    for i = used_points + cache_points, total_points do
+    for i = total_points - cache_points, total_points do
         cairo_rectangle(cr, unpack(self._coordinates[i]))
     end
     cairo_set_source_rgba(cr, r, g, b, .1)

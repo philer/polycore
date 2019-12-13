@@ -126,7 +126,7 @@ function polycore.setup()
     local root = widget.Frame(widget.Columns{
         widget.Group{
             widget.Filler{},
-            widget.Cpu{cores=6, scale=23, gap=5, segment_size=24},
+            widget.Cpu{cores=6, inner_radius=28, gap=5, outer_radius=57},
             widget.Filler{},
         },
         widget.Filler{width=10},

@@ -1316,7 +1316,7 @@ function MemoryGrid:render(cr)
     if self._total <= 0 then return end  -- TODO figure out why this happens
     local total_points = #self._coordinates
     local used_points = math.floor(total_points * self._used / self._total + 0.5)
-    local cache_points = math.floor(total_points * (self._easyfree - self._free) / self._total + 0.5)
+    local free_points = math.floor(total_points * self._free / self._total + 0.5)
     local r, g, b = unpack(self._color)
 
     cairo_set_antialias(cr, CAIRO_ANTIALIAS_NONE)
@@ -1325,12 +1325,12 @@ function MemoryGrid:render(cr)
     end
     cairo_set_source_rgba(cr, r, g, b, .8)
     cairo_fill(cr)
-    for i = used_points, total_points - cache_points do
+    for i = used_points, total_points - free_points do
         cairo_rectangle(cr, unpack(self._coordinates[i]))
     end
     cairo_set_source_rgba(cr, r, g, b, .35)
     cairo_fill(cr)
-    for i = total_points - cache_points, total_points do
+    for i = total_points - free_points, total_points do
         cairo_rectangle(cr, unpack(self._coordinates[i]))
     end
     cairo_set_source_rgba(cr, r, g, b, .1)

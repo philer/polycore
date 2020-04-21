@@ -47,10 +47,16 @@ local temperature_colors = {
 -- @number low threshold for lowest temperature / coolest color
 -- @number high threshold for highest temperature / hottest color
 function w.temperature_color(temperature, low, high)
-    local idx = (temperature - low) / (high - low) * (#temperature_colors - 1) + 1
-    local weight = idx - floor(idx)
-    local cool = temperature_colors[clamp(1, #temperature_colors, floor(idx))]
-    local hot = temperature_colors[clamp(1, #temperature_colors, ceil(idx))]
+    -- defaults in case temperature is nil
+    local cool = temperature_colors[1]
+    local hot = temperature_colors[1]
+    local weight = 0
+    if type(temperature) == "number" and temperature>-math.huge and temperature<math.huge then
+        local idx = (temperature - low) / (high - low) * (#temperature_colors - 1) + 1
+        weight = idx - floor(idx)
+        cool = temperature_colors[clamp(1, #temperature_colors, floor(idx))]
+        hot = temperature_colors[clamp(1, #temperature_colors, ceil(idx))]
+    end
     return cool[1] + weight * (hot[1] - cool[1]),
            cool[2] + weight * (hot[2] - cool[2]),
            cool[3] + weight * (hot[3] - cool[3])

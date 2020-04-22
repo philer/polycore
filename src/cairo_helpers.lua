@@ -157,12 +157,24 @@ local function text_extents(cr, text)
     return extents
 end
 
+--- Round coordinates to even pixel values
+-- @see https://www.cairographics.org/FAQ/#sharp_lines
+-- @see https://scriptinghelpers.org/questions/4850/how-do-i-round-numbers-in-lua-answered
+-- @tparam cairo_t cr
+-- @number x horizontal pixel coord value
+-- @number y vertical pixel coord value
+local function round_coords(cr, x, y)
+    local u, v = cairo_user_to_device(cr, x, y)
+    return cairo_device_to_user(cr, math.floor(u+0.5), math.floor(v+0.5))
+end
+
 --- Write text left-aligned (to the right of given x).
 -- @tparam cairo_t cr
 -- @number x start of the written text
 -- @number y coordinate of the baseline on top of which the text will be written
 -- @string text
 function ch.write_left(cr, x, y, text)
+    x, y = round_coords(cr, x, y)
     cairo_move_to(cr, x, y)
     cairo_show_text(cr, text)
 end
@@ -173,6 +185,7 @@ end
 -- @number y coordinate of the baseline on top of which the text will be written
 -- @string text
 function ch.write_right(cr, x, y, text)
+    x, y = round_coords(cr, x, y)
     cairo_move_to(cr, x - text_extents(cr, text).width, y)
     cairo_show_text(cr, text)
 end

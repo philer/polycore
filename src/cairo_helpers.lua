@@ -157,12 +157,6 @@ local function text_extents(cr, text)
     return extents
 end
 
---- Round number to nearest integer, 0.5 goes to next upper value
---  @number a number to be rounded
-local function round_value(a)
-  return a + 0.5 - (a + 0.5) % 1
-end
-
 --- Round coordinates to even pixel values
 -- @see https://www.cairographics.org/FAQ/#sharp_lines
 -- @see https://scriptinghelpers.org/questions/4850/how-do-i-round-numbers-in-lua-answered
@@ -170,8 +164,8 @@ end
 -- @number x horizontal pixel coord value
 -- @number y vertical pixel coord value
 local function round_coords(cr, x, y)
-    x, y = cairo_user_to_device(cr, x, y)
-    return cairo_device_to_user(cr, round_value(x), round_value(y))
+    local u, v = cairo_user_to_device(cr, x, y)
+    return cairo_device_to_user(cr, math.floor(u+0.5), math.floor(v+0.5))
 end
 
 --- Write text left-aligned (to the right of given x).

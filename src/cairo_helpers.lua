@@ -164,8 +164,8 @@ end
 -- @number x horizontal pixel coord value
 -- @number y vertical pixel coord value
 local function round_coords(cr, x, y)
-    local u, v = cairo_user_to_device(cr, x, y)
-    return cairo_device_to_user(cr, math.floor(u+0.5), math.floor(v+0.5))
+    x, y = cairo_user_to_device(cr, x, y)
+    return cairo_device_to_user(cr, math.floor(x + 0.5), math.floor(y + 0.5))
 end
 
 --- Write text left-aligned (to the right of given x).

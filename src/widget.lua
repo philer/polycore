@@ -51,7 +51,7 @@ function w.temperature_color(temperature, low, high)
     local cool = temperature_colors[1]
     local hot = temperature_colors[1]
     local weight = 0
-    if type(temperature) == "number" and temperature>-math.huge and temperature<math.huge then
+    if type(temperature) == "number" and temperature > -math.huge and temperature < math.huge then
         local idx = (temperature - low) / (high - low) * (#temperature_colors - 1) + 1
         weight = idx - floor(idx)
         cool = temperature_colors[clamp(1, #temperature_colors, floor(idx))]

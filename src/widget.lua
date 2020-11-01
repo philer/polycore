@@ -728,7 +728,7 @@ end
 function Graph:layout(width, height)
     self._width = width - 2
     self._height = height - 2
-    self._x_scale = (width - 3) / (self._data.length - 1)
+    self._x_scale = (width - 2) / (self._data.length - 1)
     self._y_scale = (height - 3) / self._max
     if self._upside_down then
         self._y_scale = -self._y_scale
@@ -743,25 +743,30 @@ function Graph:render_background(cr)
     cairo_set_antialias(cr, CAIRO_ANTIALIAS_NONE)
 
     -- background
-    cairo_rectangle(cr, 0, 0, self._width, self._height)
-    ch.alpha_gradient(cr, 0, 0, 0, self._height, r, g, b, {
-        .1, .14, .1, .06, .2, .06, .2, .14,
-        .3, .14, .3, .06, .4, .06, .4, .14,
-        .5, .14, .5, .06, .6, .06, .6, .14,
-        .7, .14, .7, .06, .8, .06, .8, .14,
-        .9, .14, .9, .06,
-    })
+    cairo_rectangle(cr, 0, 0, self._width + 1, self._height + 1)
+    ch.alpha_gradient(cr, 0, 0, 0, self._height, r, g, b, {0, .15, 1, .03})
     cairo_fill(cr)
 
-    -- border
+    -- grid
     cairo_set_line_width(cr, 1)
+    cairo_set_source_rgba(cr, r, g, b, .0667)
     cairo_rectangle(cr, 1, 1, self._width - 1, self._height - 1)
-    cairo_set_source_rgba(cr, r, g, b, .2)
+    local gridsize = 5
+    for row = gridsize + 1, self._height, gridsize do
+        cairo_move_to(cr, 1, row)
+        cairo_line_to(cr, self._width, row)
+    end
+    for column = gridsize + 1, self._width, gridsize do
+        cairo_move_to(cr, column, 1)
+        cairo_line_to(cr, column, self._height)
+    end
     cairo_stroke(cr)
-
-    -- fake shadow border
-    cairo_rectangle(cr, 0, 0, self._width + 1, self._height + 1)
-    cairo_set_source_rgba(cr, 0, 0, 0, .33)
+    for row = gridsize + 1, self._height, gridsize do
+        for column = gridsize + 1, self._width, gridsize do
+            cairo_rectangle(cr, column - 0.5, row - 0.5, 0.5, 0.5)
+        end
+    end
+    cairo_set_source_rgba(cr, r, g, b, .15)
     cairo_stroke(cr)
 end
 

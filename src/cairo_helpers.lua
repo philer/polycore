@@ -8,6 +8,24 @@ local util = require('src/util')
 
 local ch = {}
 
+--- Get a new drawing context for the given conky window.
+-- Be sure to call cairo_destroy(cr) when you're done.
+-- @param conky_window global conky_window
+-- @treturn cairo_t
+function ch.create_cr(conky_window)
+    if conky_window == nil then
+        return nil
+    end
+    local cs = cairo_xlib_surface_create(conky_window.display,
+                                         conky_window.drawable,
+                                         conky_window.visual,
+                                         conky_window.text_width,
+                                         conky_window.text_height)
+    local cr = cairo_create(cs)
+    cairo_surface_destroy(cs)
+    return cr
+end
+
 --- Draw a polygon with the given vertices.
 -- @tparam cairo_t cr
 -- @tparam {number,...} coordinates of vertices (x1, y1, x2, y2, ...)

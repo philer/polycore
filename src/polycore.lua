@@ -3,8 +3,9 @@
 
 pcall(function() require('cairo') end)
 
-local util = require('src/util')
+local ch = require('src/cairo_helpers')
 local data = require('src/data')
+local util = require('src/util')
 
 --- Draw debug information
 -- @bool DEBUG
@@ -22,7 +23,16 @@ local function setup()
     polycore.renderer:layout()
 end
 
---- Called once per update cycle to (re-)draw the entire surface.
+--- Called once per update cycle to (re-)draw the entire surface background.
+local function paint_background()
+    if conky_window ~= nil then
+        local cr = ch.create_cr(conky_window)
+        polycore.renderer:paint_background(cr)
+        cairo_destroy(cr)
+    end
+end
+
+--- Called once per update cycle to (re-)draw the entire surface foreground.
 local function update()
     if conky_window == nil then
         return
@@ -34,13 +44,7 @@ local function update()
 
     polycore.renderer:update(update_count)
 
-    local cs = cairo_xlib_surface_create(conky_window.display,
-                                         conky_window.drawable,
-                                         conky_window.visual,
-                                         conky_window.text_width,
-                                         conky_window.text_height)
-    local cr = cairo_create(cs)
-    cairo_surface_destroy(cs)
+    local cr = ch.create_cr(conky_window)
     polycore.renderer:render(cr)
     cairo_destroy(cr)
 end
@@ -56,6 +60,11 @@ end
 --- Global setup entry point, called by conky as per conkyrc.lua.
 function conky_setup()
     xpcall(setup, error_handler)
+end
+
+--- Global update cycle entry point, called by conky as per conkyrc.lua.
+function conky_paint_background()
+    xpcall(paint_background, error_handler)
 end
 
 --- Global update cycle entry point, called by conky as per conkyrc.lua.

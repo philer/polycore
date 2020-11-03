@@ -115,11 +115,19 @@ function Renderer:layout()
     cairo_set_source_rgba(cr, 0, 0, 0, 0)
     cairo_set_operator(cr, CAIRO_OPERATOR_SOURCE)
     cairo_paint(cr)
+    cairo_restore(cr)
+
+    cairo_save(cr)
+    for widget, matrix in util.imap(unpack, background_widgets) do
+        cairo_set_matrix(cr, matrix)
+        widget:render_background(cr)
+    end
+    cairo_restore(cr)
 
     if DEBUG then
         local version_info = table.concat{"conky ", conky_version,
-                                          " ", _VERSION,
-                                          " cairo ", cairo_version_string()}
+                                          "    ", _VERSION,
+                                          "    cairo ", cairo_version_string()}
         cairo_set_source_rgba(cr, 1, 0, 0, 1)
         ch.set_font(cr, "Ubuntu", 8)
         ch.write_left(cr, 0, 8, version_info)
@@ -133,12 +141,7 @@ function Renderer:layout()
         cairo_set_source_rgba(cr, 1, 0, 0, 0.33)
         cairo_stroke(cr)
     end
-    cairo_restore(cr)
 
-    for widget, matrix in util.imap(unpack, background_widgets) do
-        cairo_set_matrix(cr, matrix)
-        widget:render_background(cr)
-    end
     cairo_destroy(cr)
 end
 
@@ -154,11 +157,14 @@ function Renderer:update(update_count)
     end
 end
 
+function Renderer:paint_background(cr)
+    cairo_set_source_surface(cr, self._background_surface, 0, 0)
+    cairo_paint(cr)
+end
+
 --- Render to the given context
 -- @tparam cairo_t cr
 function Renderer:render(cr)
-    cairo_set_source_surface(cr, self._background_surface, 0, 0)
-    cairo_paint(cr)
     for widget, matrix in util.imap(unpack, self._render_widgets) do
         cairo_set_matrix(cr, matrix)
         widget:render(cr)

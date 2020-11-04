@@ -424,7 +424,7 @@ function Frame:layout(width, height)
         return children
     else
         return {{self, 0, 0, width, height},
-                {self._widget, self._y_top, self._x_left, inner_width, inner_height}}
+                {self._widget, self._x_left, self._y_top, inner_width, inner_height}}
     end
 end
 

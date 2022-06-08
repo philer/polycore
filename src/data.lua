@@ -11,7 +11,10 @@ local data = {}
 local read_cmd = util.memoize(1, function(cmd)
     local pipe = io.popen(cmd)
     local result = pipe:read("*a")
-    pipe:close()
+    local success, exit_or_signal, n = pipe:close()
+    if not success then
+        print("\027[31mCommand '" .. cmd .. "' failed.\027[0m")
+    end
     return result
 end)
 

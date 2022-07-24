@@ -38,9 +38,10 @@ local function update()
         return
     end
 
-    data.eager_loader:load()
-    local update_count = tonumber(data.eager_loader:get('$updates'))
+    data.conky_loader:load()
+    local update_count = tonumber(data.conky_loader:get('$updates'))
     util.reset_data(update_count)
+    data.nvidia_loader:load()
 
     polycore.renderer:update(update_count)
 

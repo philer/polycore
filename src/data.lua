@@ -40,7 +40,12 @@ end
 -- Gather conky_parse calls and run them in bulk on the next update.
 local EagerLoader = util.class()
 
-function EagerLoader:init()
+
+--- Create an EagerLoader instance.
+-- Pass a function that takes a list of keys and returns an iterator of values.
+-- @tparam function
+function EagerLoader:init(fetch_data)
+    self.fetch_data = fetch_data
     self._vars = {}  -- maps vars to max age
     self._results = {}  -- maps vars to results
 end
@@ -66,8 +71,7 @@ function EagerLoader:load()
 
     -- parse collected variables
     i = 1
-    local conky_string = "<|" .. table.concat(vars, "|><|") .. "|>"
-    for result in conky_parse(conky_string):gmatch("<|(.-)|>") do
+    for result in self.fetch_data(vars) do
         self._results[vars[i]] = result
         i = i + 1
     end
@@ -98,14 +102,25 @@ function EagerLoader:get(remember, var, ...)
 
     -- retrieve the result
     if not self._results[var] then
-        self._results[var] = conky_parse(var)
+        self._results[var] = self.fetch_data({var})()
     end
     return self._results[var]
 end
 
 
-local loader = EagerLoader()
-data.eager_loader = loader
+-- local ConkyLoader = util.class(EagerLoader)
+local conky_loader = EagerLoader(function(vars)
+    local output = conky_parse("<|" .. table.concat(vars, "|><|") .. "|>")
+    return output:gmatch("<|(.-)|>")
+end)
+data.conky_loader = conky_loader
+
+
+local nvidia_loader = EagerLoader(function(vars)
+    local output = read_cmd("nvidia-smi --format=csv,noheader,nounits --query-gpu=" .. table.concat(vars, ","))
+    return (", " .. output):gmatch(", ([^,]+)")
+end)
+data.nvidia_loader = nvidia_loader
 
 
 --- Get the current usage percentages of individual CPU cores
@@ -116,7 +131,7 @@ function data.cpu_percentages(cores)
     for i = 2, cores do
         conky_string = conky_string .. "|${cpu cpu" .. i .. "}"
     end
-    return util.map(tonumber, loader:get(conky_string):gmatch("%d+"))
+    return util.map(tonumber, conky_loader:get(conky_string):gmatch("%d+"))
 end
 
 --- Get the current frequencies at which individual CPU cores are running
@@ -127,7 +142,7 @@ function data.cpu_frequencies(cores)
     for i = 2, cores do
         conky_string = conky_string .. "|${freq_g " .. i .. "}"
     end
-    return util.map(tonumber, loader:get(conky_string):gmatch("%d+[,.]?%d*"))
+    return util.map(tonumber, conky_loader:get(conky_string):gmatch("%d+[,.]?%d*"))
 end
 
 --- Get the current CPU core temperatures
@@ -148,7 +163,7 @@ end
 -- @tparam ?string unit like "B", "MiB", "kB", ...
 -- @treturn number,number,number,number usage, easyfree, free, total
 function data.memory(unit)
-    local conky_output = loader:get("$mem|$memeasyfree|$memfree|$memmax")
+    local conky_output = conky_loader:get("$mem|$memeasyfree|$memfree|$memmax")
     local results = {}
     for value, parsed_unit in conky_output:gmatch("(%d+%p?%d*) ?(%w+)") do
         table.insert(results, convert_unit(parsed_unit, unit, tonumber(value)))
@@ -160,41 +175,50 @@ end
 -- @string interface e.g. "eth0"
 -- @treturn number,number downspeed and upspeed in KiB
 function data.network_speed(interface)
-    local result = loader:get("${downspeedf %s}|${upspeedf %s}", interface, interface)
+    local result = conky_loader:get("${downspeedf %s}|${upspeedf %s}", interface, interface)
     return unpack(util.map(tonumber, result:gmatch("%d+%p?%d*")))
-end
-
--- relies on nvidia-smi to be installed.
-local function cmd_nvidia_smi()
-    return read_cmd("nvidia-smi -q -d UTILIZATION,MEMORY,TEMPERATURE")
 end
 
 --- Get current GPU usage in percent.
 -- Relies on nvidia-smi to be installed.
 -- @treturn number
 function data.gpu_percentage()
-    return tonumber(cmd_nvidia_smi():match("Gpu%s+: (%d+) %%"))
+    return tonumber(nvidia_loader:get("utilization.gpu"))
 end
 
 --- Get current GPU frequency.
--- @treturn number
+-- @treturn number in MHz
 function data.gpu_frequency()
-    return tonumber(loader:get("${nvidia gpufreq}"))
+    return tonumber(nvidia_loader:get("clocks.current.graphics"))
 end
 
 --- Get current GPU temperature.
 -- Relies on nvidia-smi to be installed.
 -- @treturn number temperature in °C
 function data.gpu_temperature()
-    return tonumber(cmd_nvidia_smi():match("GPU Current Temp%s+: (%d+) C"))
+    return tonumber(nvidia_loader:get("temperature.gpu"))
 end
 
 --- Get current VRAM usage.
 -- Relies on nvidia-smi to be installed.
 -- @treturn number,number used, total in MiB
 function data.gpu_memory()
-    return tonumber(cmd_nvidia_smi():match("Used%s+: (%d+) MiB")),
-           tonumber(cmd_nvidia_smi():match("Total%s+: (%d+) MiB"))
+    return tonumber(nvidia_loader:get("memory.used")),
+           tonumber(nvidia_loader:get("memory.total"))
+end
+
+--- Get current GPU power draw.
+-- Relies on nvidia-smi to be installed.
+-- @treturn number power draw in W
+function gpu_power_draw()
+    return tonumber(nvidia_loader:get("power.draw"))
+end
+
+--- Get current GPU power draw.
+-- Relies on nvidia-smi to be installed.
+-- @treturn number power draw in W
+function gpu_power_limit()
+    return tonumber(nvidia_loader:get("power.limit"))
 end
 
 --- Get list of GPU processes with individual VRAM usage in MiB.
@@ -215,14 +239,14 @@ end
 -- @string path
 -- @treturn bool
 function data.is_mounted(path)
-    return "1" == loader:get(5, "${if_mounted %s}1${endif}", path)
+    return "1" == conky_loader:get(5, "${if_mounted %s}1${endif}", path)
 end
 
 --- Get the drive usage in percent for the given path.
 -- @string path
 -- @treturn number
 function data.drive_percentage(path)
-    return tonumber(loader:get(5, "${fs_used_perc %s}", path))
+    return tonumber(conky_loader:get(5, "${fs_used_perc %s}", path))
 end
 
 --- Get activity of a drive. If unit is specified the value will be converted
@@ -233,7 +257,7 @@ end
 -- @treturn number,string activity, unit
 function data.diskio(device, mode, unit)
     mode = mode and "_" .. mode or ""
-    local result = loader:get("${diskio%s %s}", mode, device)
+    local result = conky_loader:get("${diskio%s %s}", mode, device)
     local value, parsed_unit = result:match("(%d+%p?%d*) ?(%w+)")
     return convert_unit(parsed_unit, unit, tonumber(value)), unit or parsed_unit
 end

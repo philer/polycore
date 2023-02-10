@@ -519,10 +519,13 @@ function StaticText:init(text, args)
     Text.init(self, args or {})
 
     self._lines = {}
-    local _, line_count = text:gsub("[^\n]*", function(line)
+    text = text .. "\n"
+
+    for line in text:gmatch("(.-)\n") do
         table.insert(self._lines, line)
-    end)
-    self.height = line_count * self._line_height
+    end
+
+    self.height = #self._lines * self._line_height
 end
 
 function StaticText:render_background(cr)

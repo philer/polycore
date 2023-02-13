@@ -126,7 +126,7 @@ ${template1 gpu}  ${nvidia gpufreq} MHz#
 ${template8}#
 ${if_match 75 <= ${nvidia temp}}${color b54}${font Ubuntu:pixelsize=10:bold}$endif#
 ${nvidia temp}°C$color
-${voffset 68}
+${voffset 78}
 
 
 ### net ###
@@ -143,10 +143,8 @@ ${template9}${color1}Total$color${template8}${totalup enp0s31f6}
 
 ### drives ###
 ${template5 root /}#
-${template5 home /home}#
 ${template5 blackstor /mnt/blackstor}#
 ${template5 bluestor /mnt/bluestor}#
-${template5 cryptstor /mnt/cryptstor}#
 #
 ${image ~/.config/conky/polycore/9blocks.png -p 60,990 -s 16x16}#
 ]]

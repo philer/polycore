@@ -36,6 +36,15 @@ function polycore.setup()
         self:set_text(table.concat(cpu_temps, " · ") .. " °C")
     end
 
+    -- Write individual CPU core temperatures as text.
+    -- This also relies on lm_sensors.
+    local gpu_power_text = widget.TextLine{align="right", font_size=10.1}
+    gpu_power_text.update = function(self)
+        local fans = data.fan_rpm()
+        local gpu_power_draw = string.format("%.0f", data.gpu_power_draw())
+        self:set_text(table.concat{gpu_power_draw, " W       ", fans[5], " rpm"})
+    end
+
     local widgets = {
         fan_rpm_text,  -- see above
         cpu_temps_text,  -- see above
@@ -46,13 +55,15 @@ function polycore.setup()
         widget.Cpu{cores=6, inner_radius=28, gap=5, outer_radius=57},
         widget.Filler{height=7},
         widget.CpuFrequencies{cores=6, min_freq=0.75, max_freq=4.3},
-        widget.Filler{height=136},
+        widget.Filler{height=129},
 
         -- See also widget.MemoryBar
         widget.MemoryGrid{rows=5},
-        widget.Filler{height=82},
+        widget.Filler{height=78},
 
         -- Requires `nvidia-smi` to be installed. Does not work for AMD GPUs.
+        gpu_power_text,  -- see above
+        widget.Filler{height=2},
         widget.Gpu(),
         widget.Filler{height=1},
         widget.GpuTop{lines=5, color=secondary_text_color},
@@ -67,10 +78,8 @@ function polycore.setup()
         -- Mount paths. Devices that aren't mounted will not be rendered until
         -- they appear. That way external drives can be displayed automatically.
         widget.Drive("/"),
-        widget.Drive("/home"),
         widget.Drive("/mnt/blackstor"),
         widget.Drive("/mnt/bluestor"),
-        widget.Drive("/mnt/cryptstor"),
         widget.Filler(),
     }
     local root = widget.Frame(widget.Group(widgets), {

@@ -18,6 +18,17 @@ local read_cmd = util.memoize(1, function(cmd)
     return result
 end)
 
+local read_number_from_file = util.memoize(1, function(path)
+    local file = io.open(path, "r")
+    if not file then
+        print("\027[31mFailed to open file '" .. path .. "'.\027[0m")
+        return -1
+    end
+    local result = file:read("n")
+    file:close()
+    return result
+end)
+
 local unit_map = {
     B = 1,
     kB = 1000, KB = 1000, MB = 1000 ^ 2, GB = 1000 ^ 3, TB = 1000 ^ 4,
@@ -210,14 +221,14 @@ end
 --- Get current GPU power draw.
 -- Relies on nvidia-smi to be installed.
 -- @treturn number power draw in W
-function gpu_power_draw()
+function data.gpu_power_draw()
     return tonumber(nvidia_loader:get("power.draw"))
 end
 
 --- Get current GPU power draw.
 -- Relies on nvidia-smi to be installed.
 -- @treturn number power draw in W
-function gpu_power_limit()
+function data.gpu_power_limit()
     return tonumber(nvidia_loader:get("power.limit"))
 end
 
@@ -251,13 +262,13 @@ end
 
 --- Get activity of a drive. If unit is specified the value will be converted
 -- to that unit.
--- @string device e.g. /dev/sda1
+-- @string device e.g. sda1
 -- @string[opt] mode "read" or "write"; both if nil
 -- @string[opt] unit like "B", "MiB", "kB", ...; no conversion if nil
 -- @treturn number,string activity, unit
 function data.diskio(device, mode, unit)
     mode = mode and "_" .. mode or ""
-    local result = conky_loader:get("${diskio%s %s}", mode, device)
+    local result = conky_loader:get("${diskio%s /dev/%s}", mode, device)
     local value, parsed_unit = result:match("(%d+%p?%d*) ?(%w+)")
     return convert_unit(parsed_unit, unit, tonumber(value)), unit or parsed_unit
 end
@@ -266,22 +277,41 @@ end
 -- @function data.find_devices
 -- @treturn table mapping of mount points (paths) to value pairs of
 --                (logical) device and physical device
---                e.g. {["/"] = {"/dev/sda1", "/dev/sda"}}
+--                e.g. {["/"] = {"sda1", "sda"}}
 data.find_devices = util.memoize(10, function()
-    local lsblk = read_cmd("lsblk --ascii --noheadings --paths --output NAME,MOUNTPOINT")
-    local lines = lsblk:gmatch("([^/]*)(%S+) +(%S*)%s*")
+    local lsblk = read_cmd("lsblk --noheadings --raw --output NAME,TYPE,MOUNTPOINT")
+    local rows = lsblk:gmatch("(%S+) (%S*) (%S*)")
     local mounts = {}
     local physical_device
-    for depth, device, path in lines do
-        if depth == "" then physical_device = device end
-        if path ~= "" then
-            mounts[path] = {device, physical_device}
+    for device, type, mount in rows do
+        if type == "disk" then physical_device = device end
+        if mount ~= "" then
+            mounts[mount] = {device, physical_device}
         end
     end
     return mounts
 end)
 
+
 --- Get current HDD/SSD temperatures.
+-- Relies on hwmon information in /sys/block. Requires drivetemp kernel module.
+-- @function data.device_temperatures
+-- @treturn table mapping devices to temperature values
+data.device_temperatures = util.memoize(5, function(device)
+    local temp_inputs = read_cmd("ls -1"
+        .. " /sys/block/*/device/hwmon/hwmon*/temp1_input"  -- sata
+        .. " /sys/block/*/device/hwmon*/temp1_input"  -- nvme
+    )
+    local temps = {}
+    for device, hwmon_path in temp_inputs:gmatch("/sys/block/(%w+)/device/(%S+)") do
+        hwmon_path = "/sys/block/" .. device .. "/device/" .. hwmon_path
+        temps[device] = read_number_from_file(hwmon_path) / 1000
+    end
+    return temps
+end)
+
+
+--- DEPRECATED; Get current HDD/SSD temperatures.
 -- Relies on hddtemp to be running daemon mode. The results depend on what
 -- hddtemp reports and may require manual configuration,
 -- e.g. via /etc/default/hddtemp
@@ -289,6 +319,7 @@ end)
 -- and added as an exception in sudoers, hddtemp does not support NVME.
 -- @function data.hddtemp
 -- @treturn table mapping devices to temperature values
+-- @deprecated hddtemp is considered obsolete – use drivetemp
 data.hddtemp = util.memoize(5, function()
     local hddtemp = read_cmd("nc localhost 7634 -d")
     local temperatures = {}

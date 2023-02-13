@@ -25,11 +25,11 @@ local w = {
 
     --- Text color used by widgets if no other is specified.
     -- @tfield {number,number,number,number} default_text_color
-    default_text_color = ({.94, .94, .94, 1}),  -- ~fafafa
+    default_text_color = {.94, .94, .94, 1},  -- ~fafafa
 
     --- Color used to draw some widgets if no other is specified.
     -- @tfield {number,number,number,number} default_graph_color
-    default_graph_color = ({.4, 1, 1, 1}),
+    default_graph_color = {.4, 1, 1, 1},
 }
 
 local temperature_colors = {
@@ -1511,10 +1511,10 @@ function Drive:update()
         local write_magnitude = util.log2(write)
         self._write_led:set_brightness(write_magnitude / 30)
 
-        local temperature = data.hddtemp()[self._physical_device]
+        local temperature = data.device_temperatures()[self._physical_device]
         if temperature then
             self._bar.color = {w.temperature_color(temperature, 35, 65)}
-            self._temperature_text:set_text(temperature .. "°C")
+            self._temperature_text:set_text(math.floor(temperature + 0.5) .. "°C")
         else
             self._bar.color = {0.8, 0.8, 0.8}
             self._temperature_text:set_text("––––")

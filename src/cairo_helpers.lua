@@ -176,8 +176,8 @@ local function text_extents(cr, text)
 end
 
 --- Round coordinates to even pixel values
--- @see https://www.cairographics.org/FAQ/#sharp_lines
--- @see https://scriptinghelpers.org/questions/4850/how-do-i-round-numbers-in-lua-answered
+-- See https://www.cairographics.org/FAQ/#sharp_lines
+-- See https://scriptinghelpers.org/questions/4850/how-do-i-round-numbers-in-lua-answered
 -- @tparam cairo_t cr
 -- @number x horizontal pixel coord value
 -- @number y vertical pixel coord value

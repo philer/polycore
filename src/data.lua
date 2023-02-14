@@ -48,13 +48,13 @@ local function convert_unit(from, to, value)
 end
 
 
--- Gather conky_parse calls and run them in bulk on the next update.
+-- Gather parameters for expensive calls and run them in bulk on the next update.
 local EagerLoader = util.class()
 
 
 --- Create an EagerLoader instance.
 -- Pass a function that takes a list of keys and returns an iterator of values.
--- @tparam function
+-- @tparam function fetch_data
 function EagerLoader:init(fetch_data)
     self.fetch_data = fetch_data
     self._vars = {}  -- maps vars to max age
@@ -317,9 +317,12 @@ end)
 -- e.g. via /etc/default/hddtemp
 -- For experimental NVME support, requires "nvme smart-log" to be available
 -- and added as an exception in sudoers, hddtemp does not support NVME.
+--
+-- Since hddtemp is unmaintained and nvme support has been added to the kernel
+-- this function is deprecated. -> use data.device_temperatures
+--
 -- @function data.hddtemp
 -- @treturn table mapping devices to temperature values
--- @deprecated hddtemp is considered obsolete – use drivetemp
 data.hddtemp = util.memoize(5, function()
     local hddtemp = read_cmd("nc localhost 7634 -d")
     local temperatures = {}

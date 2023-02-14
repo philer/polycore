@@ -58,6 +58,10 @@
 <h2><a href="#Functions">Functions</a></h2>
 <table class="function_list">
 	<tr>
+	<td class="name" nowrap><a href="#EagerLoader:init">EagerLoader:init(fetch_data)</a></td>
+	<td class="summary">Create an EagerLoader instance.</td>
+	</tr>
+	<tr>
 	<td class="name" nowrap><a href="#eager_loader:load">eager_loader:load()</a></td>
 	<td class="summary">Run a bulk conky_parse with collected strings from previous updates.</td>
 	</tr>
@@ -108,6 +112,14 @@
 	<td class="summary">Get current VRAM usage.</td>
 	</tr>
 	<tr>
+	<td class="name" nowrap><a href="#gpu_power_draw">gpu_power_draw()</a></td>
+	<td class="summary">Get current GPU power draw.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#gpu_power_limit">gpu_power_limit()</a></td>
+	<td class="summary">Get current GPU power draw.</td>
+	</tr>
+	<tr>
 	<td class="name" nowrap><a href="#gpu_top">gpu_top()</a></td>
 	<td class="summary">Get list of GPU processes with individual VRAM usage in MiB.</td>
 	</tr>
@@ -128,8 +140,12 @@
 	<td class="summary">Detect mount points and their respective devices plus physical devices.</td>
 	</tr>
 	<tr>
-	<td class="name" nowrap><a href="#hddtemp">hddtemp()</a></td>
+	<td class="name" nowrap><a href="#device_temperatures">device_temperatures()</a></td>
 	<td class="summary">Get current HDD/SSD temperatures.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#hddtemp">hddtemp()</a></td>
+	<td class="summary">DEPRECATED; Get current HDD/SSD temperatures.</td>
 	</tr>
 </table>
 <h2><a href="#Local_Functions">Local Functions</a></h2>
@@ -147,6 +163,28 @@
     <h2 class="section-header "><a name="Functions"></a>Functions</h2>
 
     <dl class="function">
+    <dt>
+    <a name = "EagerLoader:init"></a>
+    <strong>EagerLoader:init(fetch_data)</strong>
+    </dt>
+    <dd>
+    Create an EagerLoader instance.
+ Pass a function that takes a list of keys and returns an iterator of values.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">fetch_data</span>
+            <span class="types"><span class="type">function</span></span>
+
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
     <dt>
     <a name = "eager_loader:load"></a>
     <strong>eager_loader:load()</strong>
@@ -388,7 +426,7 @@ data.eager_loader:get(<span class="string">"${cpu cpu%s}"</span>, <span class="n
     <ol>
 
            <span class="types"><span class="type">number</span></span>
-
+        in MHz
     </ol>
 
 
@@ -431,6 +469,48 @@ data.eager_loader:get(<span class="string">"${cpu cpu%s}"</span>, <span class="n
 
            <span class="types"><span class="type">number,number</span></span>
         used, total in MiB
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "gpu_power_draw"></a>
+    <strong>gpu_power_draw()</strong>
+    </dt>
+    <dd>
+    Get current GPU power draw.
+ Relies on nvidia-smi to be installed.
+
+
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><span class="type">number</span></span>
+        power draw in W
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "gpu_power_limit"></a>
+    <strong>gpu_power_limit()</strong>
+    </dt>
+    <dd>
+    Get current GPU power draw.
+ Relies on nvidia-smi to be installed.
+
+
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><span class="type">number</span></span>
+        power draw in W
     </ol>
 
 
@@ -525,7 +605,7 @@ data.eager_loader:get(<span class="string">"${cpu cpu%s}"</span>, <span class="n
     <ul>
         <li><span class="parameter">device</span>
             <span class="types"><span class="type">string</span></span>
-         e.g. /dev/sda1
+         e.g. sda1
         </li>
         <li><span class="parameter">mode</span>
             <span class="types"><span class="type">string</span></span>
@@ -565,7 +645,28 @@ data.eager_loader:get(<span class="string">"${cpu cpu%s}"</span>, <span class="n
            <span class="types"><span class="type">table</span></span>
          mapping of mount points (paths) to value pairs of
                 (logical) device and physical device
-                e.g. {["/"] = {"/dev/sda1", "/dev/sda"}}
+                e.g. {["/"] = {"sda1", "sda"}}
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "device_temperatures"></a>
+    <strong>device_temperatures()</strong>
+    </dt>
+    <dd>
+    Get current HDD/SSD temperatures.
+ Relies on hwmon information in /sys/block. Requires drivetemp kernel module.
+
+
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><span class="type">table</span></span>
+        mapping devices to temperature values
     </ol>
 
 
@@ -577,12 +678,15 @@ data.eager_loader:get(<span class="string">"${cpu cpu%s}"</span>, <span class="n
     <strong>hddtemp()</strong>
     </dt>
     <dd>
-    Get current HDD/SSD temperatures.
+    DEPRECATED; Get current HDD/SSD temperatures.
  Relies on hddtemp to be running daemon mode. The results depend on what
  hddtemp reports and may require manual configuration,
  e.g. via /etc/default/hddtemp
  For experimental NVME support, requires "nvme smart-log" to be available
  and added as an exception in sudoers, hddtemp does not support NVME.
+<p> Since hddtemp is unmaintained and nvme support has been added to the kernel
+ this function is deprecated. -> use data.device_temperatures
+
 
 
 
@@ -638,7 +742,7 @@ data.eager_loader:get(<span class="string">"${cpu cpu%s}"</span>, <span class="n
 </div> <!-- id="main" -->
 <div id="about">
 <i>generated by <a href="http://github.com/stevedonovan/LDoc">LDoc 1.4.6</a></i>
-<i style="float:right;">Last updated 2019-12-07 16:28:10 </i>
+<i style="float:right;">Last updated 2023-02-14 01:20:16 </i>
 </div> <!-- id="about" -->
 </div> <!-- id="container" -->
 </body>

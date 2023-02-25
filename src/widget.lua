@@ -481,8 +481,8 @@ function Text:init(args)
     self._align = args.align or "left"
     self._font_family = args.font_family or w.default_font_family
     self._font_size = args.font_size or w.default_font_size
-    self._font_slant = args.font_slant or CAIRO_FONT_WEIGHT_NORMAL
-    self._font_weight = args.font_weight or CAIRO_FONT_SLANT_NORMAL
+    self._font_slant = args.font_slant or CAIRO_FONT_SLANT_NORMAL
+    self._font_weight = args.font_weight or CAIRO_FONT_WEIGHT_NORMAL
     self._color = args.color or w.default_text_color
 
     self._write_fn = write_aligned[self._align]

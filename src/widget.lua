@@ -228,7 +228,7 @@ function Group:init(widgets)
         if widget.width then
             if widget.width > width then width = widget.width end
         end
-        if widget.height then
+        if widget.height ~= nil then
             self._min_height = self._min_height + widget.height
         else
             self._fillers = self._fillers + 1

@@ -578,6 +578,7 @@ w.Bar = Bar
 -- @tparam ?{number,...} args.ticks relative offsets (between 0 and 1) of ticks
 -- @tparam ?int args.big_ticks multiple of ticks to be drawn longer
 -- @tparam ?{number,number,number} args.color (default: `default_graph_color`)
+-- @tparam ?boolean args.solid if true, draws a solid box rather than a graded one
 function Bar:init(args)
     self._ticks = args.ticks
     self._big_ticks = args.big_ticks
@@ -642,15 +643,22 @@ function Bar:render(cr)
     cairo_set_line_width(cr, 1)
 
     cairo_rectangle(cr, 0, 0, self._width, self._thickness)
-    ch.alpha_gradient(cr, 0, 0, self._width, 0, r, g, b, {
-        self._fraction - 0.33, 0.33,
-        self._fraction - 0.08, 0.66,
-        self._fraction - 0.01, 0.75,
-        self._fraction, 1,
-        self._fraction + 0.01,  0.2,
-        self._fraction + 0.1,  0.1,
-        1, 0.15,
-    })
+    if self._solid then
+        ch.alpha_gradient(cr, 0, 0, self._width, 0, r, g, b, {
+            self._fraction, 1, 1, 0,
+            self._fraction+0.01, 0, 1, 0
+        })
+    else
+        ch.alpha_gradient(cr, 0, 0, self._width, 0, r, g, b, {
+            self._fraction - 0.33, 0.33,
+            self._fraction - 0.08, 0.66,
+            self._fraction - 0.01, 0.75,
+            self._fraction, 1,
+            self._fraction + 0.01,  0.2,
+            self._fraction + 0.1,  0.1,
+            1, 0.15,
+        })
+    end
     cairo_fill(cr)
 
     -- border

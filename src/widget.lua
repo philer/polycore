@@ -276,7 +276,7 @@ function Columns:init(widgets)
     local height = 0
     local fix_height = false
     for _, widget in ipairs(widgets) do
-        if widget.width then
+        if widget.width ~= nil then
             self._min_width = self._min_width + widget.width
         else
             self._fillers = self._fillers + 1

@@ -35,7 +35,7 @@ function polycore.setup()
         table.insert(widgets, graph)
     end
 
-    local root = widget.Frame(widget.Group(widgets), {padding={5, 10, 10}})
+    local root = widget.Frame(widget.Rows(widgets), {padding={5, 10, 10}})
 
     function root.update()
         local downspeed, _ = data.network_speed("enp0s31f6")

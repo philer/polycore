@@ -31,14 +31,14 @@ function polycore.setup()
         end
     end
 
-    local root = widget.Frame(widget.Group{
+    local root = widget.Frame(widget.Rows{
         widget.Columns{
-            widget.Group{
+            widget.Rows{
                 widget.Cpu{cores=6, outer_radius=52, inner_radius=26, gap=5},
                 widget.Filler{height=20},
                 widget.Cpu{cores=10, outer_radius=52, inner_radius=30, gap=3},
             },
-            widget.Group{
+            widget.Rows{
                 widget.Cpu{cores=8, outer_radius=52, inner_radius=24, gap=7},
                 widget.Filler{height=20},
                 widget.Cpu{cores=12, outer_radius=52, inner_radius=36, gap=5},
@@ -48,12 +48,12 @@ function polycore.setup()
         },
         widget.Filler{},
         widget.Columns{
-            widget.Group{
+            widget.Rows{
                 widget.CpuRound{cores=6, outer_radius=52, inner_radius=26},
                 widget.Filler{height=20},
                 widget.CpuRound{cores=16, outer_radius=52, inner_radius=30},
             },
-            widget.Group{
+            widget.Rows{
                 widget.CpuRound{cores=6, outer_radius=52, inner_radius=24, grid=5},
                 widget.Filler{height=20},
                 widget.CpuRound{cores=32, outer_radius=52, inner_radius=36, grid=4},

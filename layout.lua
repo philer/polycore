@@ -82,7 +82,7 @@ function polycore.setup()
         widget.Drive("/mnt/bluestor"),
         widget.Filler(),
     }
-    local root = widget.Frame(widget.Group(widgets), {
+    local root = widget.Frame(widget.Rows(widgets), {
         padding={108, 9, 10, 10},
         border_color={0.8, 1, 1, 0.05},
         border_width = 1,

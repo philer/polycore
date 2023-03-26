@@ -64,7 +64,7 @@ function polycore.setup()
         border_color={1, 1, 1, .5},
     }))
 
-    local root = widget.Frame(widget.Group(widgets), {margin=10})
+    local root = widget.Frame(widget.Rows(widgets), {margin=10})
     return widget.Renderer{root=root, width=width, height=height}
 end
 

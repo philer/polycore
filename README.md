@@ -41,7 +41,7 @@ and [the one above](https://www.pexels.com/photo/black-and-white-photography-of-
 
 *See [philer.github.io/polycore/modules/widget.html](https://philer.github.io/polycore/modules/widget.html) for a full API reference.*
 
-Widgets are rendered by a `widget.Renderer` instance and can have a cached background. A `widget.Group` or `widget.Columns` instance can serve as root of a complex layout of nested widgets. 
+Widgets are rendered by a `widget.Renderer` instance and can have a cached background. A `widget.Rows` or `widget.Columns` instance can serve as root of a complex layout of nested widgets. 
 It makes sense to combine this with normal conky text rendering - in fact some Widgets (e.g. `widget.Network` and `widget.Drive`) assume this.
 
 A widget can have fixed or flexible height and width. Fixed means that
@@ -52,8 +52,8 @@ will assign an automatic amount of space, split evenly between this and other fl
 The following Widget classes are currently available:
 
 * **`Widget`** the base class - Does nothing by itself.
-* **`Group`** a container for multiple widgets to be rendered in a vertical stack - It is useful to subclass this in order to create compound widgets with a combined `:update()`.
-* **`Columns`** like `Group` but horizontal
+* **`Rows`** a container for multiple widgets to be rendered in a vertical stack - It is useful to subclass this in order to create compound widgets with a combined `:update()`.
+* **`Columns`** like `Rows` but horizontal
 * **`Filler`** Leave some empty space. Can also wrap another widget to restrict its size.
 * **`Frame`** Provides background color, border, padding and margin for other Widgets.
 * **`Bar`** a basic bar similar to the one available in normal conky.
@@ -85,4 +85,4 @@ The Widget API assumes the following functions. Note that only `:layout` is requ
 If your widget's size has changed this function should return `true` to trigger a layout reflow.
 * **`MyWidget:render(cr)`** Allows you to draw dynamic content once per update.
 
-You can also create composite Widgets by subclassing `Group` or `Columns`. See `Drive` as an example.
+You can also create composite Widgets by subclassing `Rows` or `Columns`. See `Drive` as an example.

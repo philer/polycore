@@ -72,7 +72,7 @@ w.Renderer = Renderer
 ---
 -- @tparam table args table of options
 -- @tparam Widget args.root The Widget subclass that should be rendered,
---                          usually a Group
+--                          usually a Rows widget
 -- @int args.width Width of the surface that should be covered
 -- @int args.height Height of the surface that should be covered
 function Renderer:init(args)
@@ -212,14 +212,14 @@ function Widget:layout(width, height) end  -- luacheck: no unused
 
 
 --- Basic collection of widgets.
--- Grouped widgets are drawn in a vertical stack,
--- starting at the top of the drawble surface.
--- @type Group
-local Group = util.class(Widget)
-w.Group = Group
+-- Rows are drawn in a vertical stack starting at the top of the drawble
+-- surface.
+-- @type Rows
+local Rows = util.class(Widget)
+w.Rows = Rows
 
 --- @tparam {Widget,...} widgets
-function Group:init(widgets)
+function Rows:init(widgets)
     self._widgets = widgets
     local width = 0
     self._min_height = 0
@@ -239,7 +239,7 @@ function Group:init(widgets)
     end
 end
 
-function Group:layout(width, height)
+function Rows:layout(width, height)
     self._width = width  -- used to draw debug lines
     local y = 0
     local children = {{self, 0, 0, 0, 0}}  -- include self for subclasses
@@ -319,7 +319,7 @@ end
 
 --- Leave space between widgets.
 -- If either height or width is not specified, the available space
--- inside a Group or Columns will be distributed evenly between Fillers
+-- inside a Rows or Columns widget will be distributed evenly between Fillers
 -- with no fixed height/width.
 -- A Filler may contain one other Widget which will have its dimensions
 -- restricted to those of the Filler.
@@ -1360,7 +1360,7 @@ end
 
 --- Compound widget to display GPU and VRAM usage.
 -- @type Gpu
-local Gpu = util.class(Group)
+local Gpu = util.class(Rows)
 w.Gpu = Gpu
 
 --- no options
@@ -1372,7 +1372,7 @@ function Gpu:init()
     self._membar.update = function()
         self._membar:set_used(data.gpu_memory() / 1024)
     end
-    Group.init(self, {self._usebar, Filler{height=4}, self._membar})
+    Rows.init(self, {self._usebar, Filler{height=4}, self._membar})
 end
 
 function Gpu:update()
@@ -1432,7 +1432,7 @@ end
 --- Graphs for up- and download speed.
 -- This widget assumes that your conky.text adds some text between the graphs.
 -- @type Network
-local Network = util.class(Group)
+local Network = util.class(Rows)
 w.Network = Network
 
 --- @tparam table args table of options
@@ -1444,7 +1444,7 @@ function Network:init(args)
     self.interface = args.interface
     self._downspeed_graph = Graph{height=args.graph_height, max=args.downspeed or 1024}
     self._upspeed_graph = Graph{height=args.graph_height, max=args.upspeed or 1024}
-    Group.init(self, {self._downspeed_graph, Filler{height=31}, self._upspeed_graph})
+    Rows.init(self, {self._downspeed_graph, Filler{height=31}, self._upspeed_graph})
 end
 
 function Network:update()
@@ -1457,7 +1457,7 @@ end
 -- Also writes temperature as text.
 -- This widget is exptected to be combined with some special conky.text.
 -- @type Drive
-local Drive = util.class(Group)
+local Drive = util.class(Rows)
 w.Drive = Drive
 
 --- @string path e.g. "/home"
@@ -1468,10 +1468,10 @@ function Drive:init(path)
     self._write_led = LED{radius=2, color={1, 0.4, 0.4}}
     self._temperature_text = TextLine{align="right"}
     self._bar = Bar{}
-    Group.init(self, {
+    Rows.init(self, {
         Columns{
             Filler{},
-            Filler{width=6, widget=Group{
+            Filler{width=6, widget=Rows{
                 Filler{},
                 self._read_led,
                 Filler{height=1},
@@ -1494,7 +1494,7 @@ function Drive:init(path)
 end
 
 function Drive:layout(...)
-    return self._is_mounted and Group.layout(self, ...) or {{self, 0, 0, 0, 0}}
+    return self._is_mounted and Rows.layout(self, ...) or {{self, 0, 0, 0, 0}}
 end
 
 function Drive:update()

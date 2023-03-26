@@ -102,7 +102,7 @@ function test.frame()
 end
 
 function test.group()
-    local root = widget.Group{
+    local root = widget.Rows{
         widget.Frame(widget.Filler{}, frame_opts),
         widget.Frame(widget.Filler{width=20}, frame_opts),
         widget.Frame(widget.Filler{height=20}, frame_opts),
@@ -133,7 +133,7 @@ laborum.]]
     local footer = widget.TextLine{align="center"}
     footer:set_text("Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor in")
 
-    local root = widget.Frame(widget.Group{
+    local root = widget.Frame(widget.Rows{
         widget.StaticText"Simple Text!",
         widget.StaticText("This text should be centered.", {align="center"}),
         widget.StaticText("Aligned to the right?", {align="right"}),
@@ -176,9 +176,9 @@ laborum.]]
 end
 
 function test.complex_layout()
-    local Frame, Filler, Group, Columns = widget.Frame, widget.Filler,
-                                          widget.Group, widget.Columns
-    local root = Frame(Group{
+    local Frame, Filler, Rows, Columns = widget.Frame, widget.Filler,
+                                          widget.Rows, widget.Columns
+    local root = Frame(Rows{
         -- dynamicly sized widgets and fillers
         dummy{width=10},
         Filler(),
@@ -208,7 +208,7 @@ function test.complex_layout()
         Filler{height=10},
 
         -- nested layout
-        Frame(Group{
+        Frame(Rows{
             Columns{dummy{height=16, margin=2}},
             Columns{dummy{height=16, margin=2},
                     dummy{height=16, margin=2}},

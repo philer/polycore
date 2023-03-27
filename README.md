@@ -52,7 +52,7 @@ will assign an automatic amount of space, split evenly between this and other fl
 The following Widget classes are currently available:
 
 * **`Widget`** the base class - Does nothing by itself.
-* **`Rows`** a container for multiple widgets to be rendered in a vertical stack - It is useful to subclass this in order to create compound widgets with a combined `:update()`.
+* **`Rows`** a container for multiple widgets to be rendered in a vertical stack - It can also be useful to subclass this in order to create composite widgets with a combined `:update()` (see the implementation of `Drive` as an example).
 * **`Columns`** like `Rows` but horizontal
 * **`Filler`** Leave some empty space. Can also wrap another widget to restrict its size.
 * **`Frame`** Provides background color, border, padding and margin for other Widgets.
@@ -69,7 +69,7 @@ The following Widget classes are currently available:
 * **`Gpu`** Bars for GPU and VRAM usage - requires `nvidia-smi`
 * **`GpuTop`** Show processes currently using the CPU.
 * **`Network`** Graphs for up- and download speed - with space for conky.text in between.
-* **`Drive`** Bar plus temperature indicator for a hard drive - requires hddtemp to be running and sudo access to nvme-cli for experimental NVME SSD support.
+* **`Drive`** Bar plus temperature indicator for a HDD or SSD.
 
 ## Creating Widgets
 

@@ -473,8 +473,8 @@ local write_aligned = {left = ch.write_left,
 -- @tparam ?string args.align "left" (default), "center" or "right"
 -- @tparam[opt=w.default_font_family] ?string args.font_family
 -- @tparam[opt=w.default_font_size] ?number args.font_size
--- @tparam[opt=CAIRO_FONT_WEIGHT_NORMAL] ?cairo_font_slant_t args.font_slant
--- @tparam[opt=CAIRO_FONT_SLANT_NORMAL] ?cairo_font_weight_t args.font_weight
+-- @tparam[opt=CAIRO_FONT_SLANT_NORMAL] ?cairo_font_slant_t args.font_slant
+-- @tparam[opt=CAIRO_FONT_WEIGHT_NORMAL] ?cairo_font_weight_t args.font_weight
 -- @tparam ?{number,number,number,number} args.color (default: `default_text_color`)
 function Text:init(args)
     assert(getmetatable(self) ~= Text, "Cannot instanciate class Text directly.")

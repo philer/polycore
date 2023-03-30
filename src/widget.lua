@@ -88,10 +88,9 @@ end
 -- Call this once to create the initial layout.
 -- Will be called again automatically each time the layout changes.
 function Renderer:layout()
-    local widgets = self._root:layout(self._width, self._height)
-    if not widgets then
-        widgets = {{self._root, 0, 0, self._width, self._height}}
-    end
+    local widgets = self._root:layout(self._width, self._height) or {}
+    table.insert(widgets, 1, {self._root, 0, 0, self._width, self._height})
+
     local background_widgets = {}
     self._update_widgets = {}
     self._render_widgets = {}
@@ -242,18 +241,15 @@ end
 function Rows:layout(width, height)
     self._width = width  -- used to draw debug lines
     local y = 0
-    local children = {{self, 0, 0, 0, 0}}  -- include self for subclasses
+    local children = {}
     local filler_height = (height - self._min_height) / self._fillers
     for _, widget in ipairs(self._widgets) do
         local widget_height = widget.height or filler_height
-        local sub_children = widget:layout(width, widget_height)
-        if sub_children then
-            for _, child in ipairs(sub_children) do
-                child[3] = child[3] + y
-                table.insert(children, child)
-            end
-        else
-            table.insert(children, {widget, 0, y, width, widget_height})
+        table.insert(children, {widget, 0, y, width, widget_height})
+        local sub_children = widget:layout(width, widget_height) or {}
+        for _, child in ipairs(sub_children) do
+            child[3] = child[3] + y
+            table.insert(children, child)
         end
         y = y + widget_height
     end
@@ -298,18 +294,15 @@ end
 function Columns:layout(width, height)
     self._height = height  -- used to draw debug lines
     local x = 0
-    local children = {{self, 0, 0, 0, 0}}  -- include self for subclasses
+    local children = {}
     local filler_width = (width - self._min_width) / self._fillers
     for _, widget in ipairs(self._widgets) do
         local widget_width = widget.width or filler_width
-        local sub_children = widget:layout(widget_width, height)
-        if sub_children then
-            for _, child in ipairs(sub_children) do
-                child[2] = child[2] + x
-                table.insert(children, child)
-            end
-        else
-            table.insert(children, {widget, x, 0, widget_width, height})
+        table.insert(children, {widget, x, 0, widget_width, height})
+        local sub_children = widget:layout(widget_width, height) or {}
+        for _, child in ipairs(sub_children) do
+            child[2] = child[2] + x
+            table.insert(children, child)
         end
         x = x + widget_width
     end
@@ -341,11 +334,9 @@ end
 
 function Filler:layout(width, height)
     if self._widget then
-        local children = self._widget:layout(width, height)
-        if children then
-            return children
-        end
-        return {{self._widget, 0, 0, width, height}}
+        local children = self._widget:layout(width, height) or {}
+        table.insert(children, 1, {self._widget, 0, 0, width, height})
+        return children
     end
 end
 
@@ -420,18 +411,13 @@ function Frame:layout(width, height)
     self._height = height - self._margin.top - self._margin.bottom
     local inner_width = width - self._x_left - self._x_right
     local inner_height = height - self._y_top - self._y_bottom
-    local children = self._widget:layout(inner_width, inner_height)
-    if children then
-        for _, child in ipairs(children) do
-            child[2] = child[2] + self._x_left
-            child[3] = child[3] + self._y_top
-        end
-        table.insert(children, 1, {self, 0, 0, width, height})
-        return children
-    else
-        return {{self, 0, 0, width, height},
-                {self._widget, self._x_left, self._y_top, inner_width, inner_height}}
+    local children = self._widget:layout(inner_width, inner_height) or {}
+    for _, child in ipairs(children) do
+        child[2] = child[2] + self._x_left
+        child[3] = child[3] + self._y_top
     end
+    table.insert(children, 1, {self._widget, self._x_left, self._y_top, inner_width, inner_height})
+    return children
 end
 
 function Frame:render_background(cr)
@@ -1485,16 +1471,12 @@ function Drive:init(path)
     })
 
     self._real_height = self.height
-    self._is_mounted = data.is_mounted(self._path)
-    if self._is_mounted then
-        self._device, self._physical_device = unpack(data.find_devices()[path])
-    else
-        self.height = 0
-    end
+    self.height = 0
+    self._is_mounted = false
 end
 
 function Drive:layout(...)
-    return self._is_mounted and Rows.layout(self, ...) or {{self, 0, 0, 0, 0}}
+    return self._is_mounted and Rows.layout(self, ...) or {}
 end
 
 function Drive:update()

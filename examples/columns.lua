@@ -58,8 +58,8 @@ conkyrc.config = {
     own_window_argb_visual = true,
     own_window_argb_value = 180,
     default_color = 'fafafa',
-    color0 = '488',    -- titles
-    color1 = 'b9b9b7', -- secondary text color
+    color0 = '448888',  -- titles
+    color1 = 'b9b9b7',  -- secondary text color
 
 
     -- drives: name dir --
@@ -79,10 +79,10 @@ $endif]],
 conkyrc.text = [[
 ${voffset 10}#
 ${alignc 312}${font TeXGyreChorus:pixelsize=20:bold}#
-${color fff}P${color dff}o${color bee}l${color 9ee}y#
-${color 7ee}c${color 5ee}o${color 4ee}r${color 3ee}e#
+${color ffffff}P${color ddffff}o${color bbeeee}l${color 99eeee}y#
+${color 77eeee}c${color 55eeee}o${color 44eeee}r${color 33eeee}e#
 $color$font
-#${alignc 320}${font Courier new:pixelsize=20}${color cff}Polycore${color}$font
+#${alignc 320}${font Courier new:pixelsize=20}${color ccffff}Polycore${color}$font
 ${font Ubuntu:pixelsize=11:bold}${color0}#
 ${voffset -14}${alignc  247}[ mem ]
 ${voffset -14}${alignc  160}[ cpu ]

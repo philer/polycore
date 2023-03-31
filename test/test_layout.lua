@@ -13,7 +13,7 @@ conkyrc.config = {
     lua_load = script_dir .. "test_layout.lua",
     lua_draw_hook_post = "conky_update",
     total_run_times = 1,
-    out_to_console = false,
+    out_to_console = true,  -- https://github.com/brndnmtthws/conky/issues/1479
     out_to_x = false,
 }
 

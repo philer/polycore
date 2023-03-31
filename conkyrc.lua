@@ -51,8 +51,9 @@ conkyrc.config = {
     own_window_argb_visual = true,
     own_window_argb_value = 180,
     default_color = 'fafafa',
-    color0 = '377',    -- titles
-    color1 = 'b9b9b7', -- secondary text color
+    color0 = '337777',  -- titles
+    color1 = 'b9b9b7',  -- secondary text color
+    color2 = 'bb5544',  -- high temperature warning color
 
     -----------------
     --- templates ---
@@ -76,7 +77,7 @@ ${if_mounted \2}
 ${template9}${offset 1}${font Ubuntu:pixelsize=11:bold}${color0}· \1 ·
 ${voffset 8}#
 ${template9}${color1}${font Ubuntu:pixelsize=10}${fs_used \2}  /  ${fs_size \2}#
-${if_match ${fs_used_perc \2}>=85}${color b54}$else$color$endif#
+${if_match ${fs_used_perc \2}>=85}${color2}$else$color$endif#
 ${template8}${fs_used_perc \2}%$font$color
 $endif]],
 
@@ -92,7 +93,7 @@ $endif]],
 
 conkyrc.text = [[
 ${voffset 30}#
-${font TeXGyreChorus:pixelsize=20:bold}${alignc}Linux ${color 4dd}Mint$color$font
+${font TeXGyreChorus:pixelsize=20:bold}${alignc}Linux ${color 44dddd}Mint$color$font
 
 $color1#
 ${alignc}${time %d.%m.%Y}
@@ -124,7 +125,7 @@ ${template3 3}
 ### GPU ###
 ${template1 gpu}  ${nvidia gpufreq} MHz#
 ${template8}#
-${if_match 75 <= ${nvidia temp}}${color b54}${font Ubuntu:pixelsize=10:bold}$endif#
+${if_match 75 <= ${nvidia temp}}${color2}${font Ubuntu:pixelsize=10:bold}$endif#
 ${nvidia temp}°C$color
 ${voffset 78}
 

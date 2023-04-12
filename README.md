@@ -17,8 +17,6 @@
 * basic understanding of conky and Lua
 * *optional:* `lm_sensors` to display CPU core temperature and fan rpm
 * *optional:* `nvidia-smi` to display NVIDIA video card stats
-* *optional:* `hddtemp` to display hard drive temperature
-* *optional:* `nvme-cli` to display NVMe drive temperature (experimental)
 
 ## Getting started
 

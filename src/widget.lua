@@ -622,21 +622,26 @@ function Bar:set_fill(fraction)
     self._fraction = fraction
 end
 
+function Bar:gradient_values(fraction)
+    return {
+        fraction - 0.33, 0.33,
+        fraction - 0.08, 0.66,
+        fraction - 0.01, 0.75,
+        fraction, 1,
+        fraction + 0.01,  0.2,
+        fraction + 0.1,  0.1,
+        1, 0.15,
+    }
+end
+
 function Bar:render(cr)
     local r, g, b = unpack(self.color)
     cairo_set_antialias(cr, CAIRO_ANTIALIAS_NONE)
     cairo_set_line_width(cr, 1)
 
     cairo_rectangle(cr, 0, 0, self._width, self._thickness)
-    ch.alpha_gradient(cr, 0, 0, self._width, 0, r, g, b, {
-        self._fraction - 0.33, 0.33,
-        self._fraction - 0.08, 0.66,
-        self._fraction - 0.01, 0.75,
-        self._fraction, 1,
-        self._fraction + 0.01,  0.2,
-        self._fraction + 0.1,  0.1,
-        1, 0.15,
-    })
+    ch.alpha_gradient(cr, 0, 0, self._width, 0, r, g, b,
+        self:gradient_values(self._fraction))
     cairo_fill(cr)
 
     -- border

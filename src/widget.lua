@@ -94,14 +94,17 @@ function Renderer:layout()
     local background_widgets = {}
     self._update_widgets = {}
     self._render_widgets = {}
-    for widget, x, y in util.imap(unpack, widgets) do
-        local matrix = cairo_matrix_t:create()
-        cairo_matrix_init_translate(matrix, floor(x), floor(y))
+    for widget, x, y, _width, _height in util.imap(unpack, widgets) do
         if widget.render_background then
-            table.insert(background_widgets, {widget, matrix})
+            local wsr = cairo_surface_create_for_rectangle(self._background_surface,
+                            floor(x),floor(y),floor(_width),floor(_height))
+            table.insert(background_widgets, {widget, wsr})
         end
         if widget.render then
-            table.insert(self._render_widgets, {widget, matrix})
+            local wsr = cairo_surface_create_for_rectangle(self._background_surface,
+                            floor(x),floor(y),floor(_width),floor(_height))
+            local wcr = cairo_create(wsr)
+            table.insert(self._render_widgets, {widget, wsr})
         end
         if widget.update then
             table.insert(self._update_widgets, widget)
@@ -116,12 +119,13 @@ function Renderer:layout()
     cairo_paint(cr)
     cairo_restore(cr)
 
-    cairo_save(cr)
-    for widget, matrix in util.imap(unpack, background_widgets) do
-        cairo_set_matrix(cr, matrix)
-        widget:render_background(cr)
+    for widget, wsr in util.imap(unpack, background_widgets) do
+        local wcr = cairo_create(wsr)
+        cairo_save(wcr)
+        widget:render_background(wcr)
+        cairo_restore(wcr)
+        cairo_destroy(wcr)
     end
-    cairo_restore(cr)
 
     if DEBUG then
         local version_info = table.concat{"conky ", conky_version,
@@ -164,9 +168,21 @@ end
 --- Render to the given context
 -- @tparam cairo_t cr
 function Renderer:render(cr)
-    for widget, matrix in util.imap(unpack, self._render_widgets) do
-        cairo_set_matrix(cr, matrix)
-        widget:render(cr)
+    for widget, wsr in util.imap(unpack, self._render_widgets) do
+        local wcr = cairo_create(wsr)
+        cairo_save(wcr)
+        cairo_set_source_rgba (wcr, 0, 0, 0, 0);
+        cairo_set_operator (wcr, CAIRO_OPERATOR_SOURCE);
+        cairo_paint(wcr)
+        -- Unfortunately the background gets cleared and needs to be
+        -- redrawn otherwise the widget draws the new content over the old
+        if widget.render_background then
+            cairo_save(wcr)
+            widget:render_background(wcr)
+            cairo_restore(wcr)
+        end
+        widget:render(wcr)
+        cairo_destroy(wcr)
     end
 end
 

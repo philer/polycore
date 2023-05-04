@@ -61,6 +61,35 @@ function Text:layout(width)
     end
 end
 
+--- Draw text substuting in Conky variables.
+-- Text line will be updated on each cycle as per Conky's text
+-- Section, some variables such as formatting and positioning
+-- may not be honored.
+-- @type ConkyText
+local ConkyText = util.class(Text)
+w.ConkyText = ConkyText
+
+--- @string text Text to be displayed, can include conky variables.
+--- @tparam table args table of options, see `Text:init`
+function ConkyText:init(text, args)
+    Text.init(self, args)
+
+    self._lines = {}
+    local _, line_count = text:gsub("[^\n]*", function(line)
+        table.insert(self._lines, line)
+    end)
+    self.height = line_count * self._line_height
+end
+
+function ConkyText:render(cr)
+    ch.set_font(cr, self._font_family, self._font_size, self._font_slant,
+                    self._font_weight)
+    cairo_set_source_rgba(cr, unpack(self._color))
+    for i, line in ipairs(self._lines) do
+        local y = self._baseline_offset + (i - 1) * self._line_height
+        self._write_fn(cr, self._x, y, conky_parse(line))
+    end
+end
 
 --- Draw some unchangeable text.
 -- Use this widget for text that will never be updated.Text

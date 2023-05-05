@@ -91,7 +91,7 @@ function Renderer:layout()
     local widgets = self._root:layout(self._width, self._height) or {}
     table.insert(widgets, 1, {self._root, 0, 0, self._width, self._height})
 
-    local background_widgets = {}
+    self._background_widgets = {}
     self._update_widgets = {}
     self._render_widgets = {}
     for widget, x, y, _width, _height in util.imap(unpack, widgets) do
@@ -119,7 +119,7 @@ function Renderer:layout()
     cairo_paint(cr)
     cairo_restore(cr)
 
-    for widget, wsr in util.imap(unpack, background_widgets) do
+    for widget, wsr in util.imap(unpack, self._background_widgets) do
         local wcr = cairo_create(wsr)
         cairo_save(wcr)
         widget:render_background(wcr)
@@ -163,6 +163,19 @@ end
 function Renderer:paint_background(cr)
     cairo_set_source_surface(cr, self._background_surface, 0, 0)
     cairo_paint(cr)
+    for widget, wsr in util.imap(unpack, self._background_widgets) do
+        local wcr = cairo_create(wsr)
+        -- clear surface
+        cairo_save(wcr)
+        cairo_set_source_rgba(wcr, 0, 0, 0, 0)
+        cairo_set_operator(wcr, CAIRO_OPERATOR_SOURCE)
+        cairo_paint(wcr)
+        cairo_restore(wcr)
+        cairo_save(wcr)
+        widget:render_background(wcr)
+        cairo_restore(wcr)
+        cairo_destroy(wcr)
+    end
 end
 
 --- Render to the given context

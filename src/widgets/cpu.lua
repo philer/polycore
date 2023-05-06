@@ -102,7 +102,7 @@ function Cpu:render(cr)
     cairo_fill(cr)
 
     cairo_set_source_rgba(cr, r, g, b, .4)
-    ch.set_font(cr, w.default_font_family, 16, nil, CAIRO_FONT_WEIGHT_BOLD)
+    ch.set_font(cr, current_theme.default_font_family, 16, nil, CAIRO_FONT_WEIGHT_BOLD)
     ch.write_middle(cr, self._mx + 1, self._my, string.format("%.0f°", avg_temperature))
 
     for core = 1, self._cores do
@@ -205,7 +205,7 @@ function CpuRound:render_background(cr)
         cairo_line_to(cr, mx + point.dx * self._outer_radius,
                           my + point.dy * self._outer_radius)
     end
-    local r, g, b = unpack(w.default_graph_color)
+    local r, g, b = unpack(current_theme.default_graph_color)
     cairo_set_source_rgba(cr, r, g, b, 0.2)
     cairo_set_line_width(cr, 1)
     cairo_stroke(cr)
@@ -226,7 +226,7 @@ function CpuRound:render(cr)
 
     -- temperature text
     cairo_set_source_rgba(cr, r, g, b, 0.5)
-    ch.set_font(cr, w.default_font_family, 16, nil, CAIRO_FONT_WEIGHT_BOLD)
+    ch.set_font(cr, current_theme.default_font_family, 16, nil, CAIRO_FONT_WEIGHT_BOLD)
     ch.write_middle(cr, mx + 1, my, string.format("%.0f°", avg_temperature))
 
     -- inner fill
@@ -317,8 +317,8 @@ function CpuFrequencies:layout(width)
 end
 
 function CpuFrequencies:render_background(cr)
-    cairo_set_source_rgba(cr, unpack(w.default_text_color))
-    ch.set_font(cr, w.default_font_family, w.default_font_size)
+    cairo_set_source_rgba(cr, unpack(current_theme.default_text_color))
+    ch.set_font(cr, current_theme.default_font_family, current_theme.default_font_size)
     ch.write_left(cr, self._width + 5, 0.5 * self._height + 3, "GHz")
 
     -- shadow outline
@@ -350,7 +350,7 @@ function CpuFrequencies:render(cr)
         cairo_rel_line_to(cr, 0, tick[3])
     end
     cairo_stroke(cr)
-    ch.set_font(cr, w.default_font_family, w.default_font_size)
+    ch.set_font(cr, current_theme.default_font_family, current_theme.default_font_size)
     for _, label in ipairs(self._tick_labels) do
         ch.write_centered(cr, label[1], label[2], label[3])
     end
@@ -378,6 +378,23 @@ function CpuFrequencies:render(cr)
         cairo_fill_preserve(cr)
     end
     cairo_new_path(cr)
+end
+
+--- Compound widget to display GPU and VRAM usage.
+-- @type CpuTop
+local CpuTop = util.class(core.Rows)
+w.CpuTop = CpuTop
+
+--- no options
+function CpuTop:init()
+    self._usebar = core.Bar{ticks={.25, .5, .75}, unit="%"}
+
+    local _, mem_total = data.gpu_memory()
+    self._membar = mem.MemoryBar{total=mem_total / 1024}
+    self._membar.update = function()
+        self._membar:set_used(data.gpu_memory() / 1024)
+    end
+    core.Rows.init(self, {self._usebar, core.Filler{height=4}, self._membar})
 end
 
 return w

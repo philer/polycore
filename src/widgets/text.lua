@@ -26,19 +26,19 @@ local write_aligned = {left = ch.write_left,
 
 --- @tparam table args table of options
 -- @tparam ?string args.align "left" (default), "center" or "right"
--- @tparam[opt=w.default_font_family] ?string args.font_family
--- @tparam[opt=w.default_font_size] ?number args.font_size
+-- @tparam[opt=current_theme.default_font_family] ?string args.font_family
+-- @tparam[opt=current_theme.default_font_size] ?number args.font_size
 -- @tparam[opt=CAIRO_FONT_SLANT_NORMAL] ?cairo_font_slant_t args.font_slant
 -- @tparam[opt=CAIRO_FONT_WEIGHT_NORMAL] ?cairo_font_weight_t args.font_weight
 -- @tparam ?{number,number,number,number} args.color (default: `default_text_color`)
 function Text:init(args)
     assert(getmetatable(self) ~= Text, "Cannot instanciate class Text directly.")
     self._align = args.align or "left"
-    self._font_family = args.font_family or w.default_font_family
-    self._font_size = args.font_size or w.default_font_size
+    self._font_family = args.font_family or current_theme.default_font_family
+    self._font_size = args.font_size or current_theme.default_font_size
     self._font_slant = args.font_slant or CAIRO_FONT_SLANT_NORMAL
     self._font_weight = args.font_weight or CAIRO_FONT_WEIGHT_NORMAL
-    self._color = args.color or w.default_text_color
+    self._color = args.color or current_theme.default_text_color
 
     self._write_fn = write_aligned[self._align]
 

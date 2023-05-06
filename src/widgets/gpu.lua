@@ -54,9 +54,9 @@ w.GpuTop = GpuTop
 -- @tparam ?{number,number,number} args.color (default: `default_text_color`)
 function GpuTop:init(args)
     self._lines = args.lines or 5
-    self._font_family = args.font_family or w.default_font_family
-    self._font_size = args.font_size or w.default_font_size
-    self._color = args.color or w.default_text_color
+    self._font_family = args.font_family or current_theme.default_font_family
+    self._font_size = args.font_size or current_theme.default_font_size
+    self._color = args.color or current_theme.default_text_color
 
     local extents = ch.font_extents(self._font_family, self._font_size)
     self._line_height = extents.height

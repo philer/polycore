@@ -14,33 +14,12 @@ local unpack = unpack or table.unpack  -- luacheck: read_globals unpack table
 local sin, cos, tan, PI = math.sin, math.cos, math.tan, math.pi
 local floor, ceil, clamp = math.floor, math.ceil, util.clamp
 
-w = {
-    --- Font used by widgets if no other is specified.
-    -- @string default_font_family
-    default_font_family = "Ubuntu",
+-- abort with an error if no theme is set
+if not current_theme then
+    error("No Theme Set, please set the current_theme variable")
+end
 
-    --- Font size used by widgets if no other is specified.
-    -- @int default_font_size
-    default_font_size = 10,
-
-    --- Text color used by widgets if no other is specified.
-    -- @tfield {number,number,number,number} default_text_color
-    default_text_color = {.94, .94, .94, 1},  -- ~fafafa
-
-    --- Color used to draw some widgets if no other is specified.
-    -- @tfield {number,number,number,number} default_graph_color
-    default_graph_color = {.4, 1, 1, 1},
-}
-
-temperature_colors = {
-    w.default_graph_color,
-    {.5,  1, .8},
-    {.7, .9, .6},
-    {1,  .9, .4},
-    {1,  .6, .2},
-    {1,  .2, .2},
-}
-
+w = {}
 --- Generate a temperature based color.
 -- Colors are chosen based on float offset in a pre-defined color gradient.
 -- @number temperature current temperature (or any other type of numeric value)
@@ -48,14 +27,14 @@ temperature_colors = {
 -- @number high threshold for highest temperature / hottest color
 function w.temperature_color(temperature, low, high)
     -- defaults in case temperature is nil
-    local cool = temperature_colors[1]
-    local hot = temperature_colors[1]
+    local cool = current_theme.temperature_colors[1]
+    local hot = current_theme.temperature_colors[1]
     local weight = 0
     if type(temperature) == "number" and temperature > -math.huge and temperature < math.huge then
-        local idx = (temperature - low) / (high - low) * (#temperature_colors - 1) + 1
+        local idx = (temperature - low) / (high - low) * (#current_theme.temperature_colors - 1) + 1
         weight = idx - floor(idx)
-        cool = temperature_colors[clamp(1, #temperature_colors, floor(idx))]
-        hot = temperature_colors[clamp(1, #temperature_colors, ceil(idx))]
+        cool = current_theme.temperature_colors[clamp(1, #current_theme.temperature_colors, floor(idx))]
+        hot = current_theme.temperature_colors[clamp(1, #current_theme.temperature_colors, ceil(idx))]
     end
     return cool[1] + weight * (hot[1] - cool[1]),
            cool[2] + weight * (hot[2] - cool[2]),

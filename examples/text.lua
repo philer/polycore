@@ -4,6 +4,9 @@
 local script_dir = debug.getinfo(1, 'S').source:match("^@(.*/)") or "./"
 package.path = script_dir .. "../?.lua;" .. package.path
 
+-- load polycore theme as default
+current_theme = require('src/themes/polycore')
+
 local core = require('src/widgets/core')
 local text = require('src/widgets/text')
 local polycore = require('src/polycore')

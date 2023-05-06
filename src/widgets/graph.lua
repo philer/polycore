@@ -35,7 +35,7 @@ function Bar:init(args)
     self._unit = args.unit
     self._thickness = (args.thickness or 4)
     self.height = self._thickness + 2
-    self.color = args.color or w.default_graph_color
+    self.color = args.color or current_theme.default_graph_color
 
     if self._ticks then
         self.height = self.height + (self._big_ticks and 3 or 2)
@@ -69,8 +69,8 @@ end
 
 function Bar:render_background(cr)
     if self._unit then
-        cairo_set_source_rgba(cr, unpack(w.default_text_color))
-        ch.set_font(cr, w.default_font_family, w.default_font_size)
+        cairo_set_source_rgba(cr, unpack(current_theme.default_text_color))
+        ch.set_font(cr, current_theme.default_font_family, current_theme.default_font_size)
         ch.write_left(cr, self._width + 5, 6, self._unit)
     end
     -- fake shadow border
@@ -139,7 +139,7 @@ function Graph:init(args)
     self._data = util.CycleQueue(args.data_points or 60)
     self._upside_down = args.upside_down or false
     self._smoothness = args.smoothness or 0.5
-    self.color = args.color or w.default_graph_color
+    self.color = args.color or current_theme.default_graph_color
     self.width = args.width
     self.height = args.height
 end
@@ -276,7 +276,7 @@ function LED:init(args)
     self.width = self._radius * 2
     self.height = self._radius * 2
     self._brightness = args.brightness or 0
-    self._color = args.color or w.default_graph_color
+    self._color = args.color or current_theme.default_graph_color
     if args.background_color then
         self._background_color = args.background_color
     else

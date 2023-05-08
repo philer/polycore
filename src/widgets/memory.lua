@@ -79,7 +79,8 @@ function MemoryGrid:init(args)
     self._point_size = args.point_size or 2
     self._gap = args.gap or 1
     self._shuffle = args.shuffle == nil and true or args.shuffle
-    self._color = args.color or current_theme.default_graph_color
+    local tmp_color = args.color or current_theme.default_graph_color
+    self._color = ch.convert_string_to_rgba(tmp_color)
     if self._rows then
         self.height = self._rows * self._point_size + (self._rows - 1) * self._gap
     end

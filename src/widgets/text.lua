@@ -30,7 +30,7 @@ local write_aligned = {left = ch.write_left,
 -- @tparam[opt=current_theme.default_font_size] ?number args.font_size
 -- @tparam[opt=CAIRO_FONT_SLANT_NORMAL] ?cairo_font_slant_t args.font_slant
 -- @tparam[opt=CAIRO_FONT_WEIGHT_NORMAL] ?cairo_font_weight_t args.font_weight
--- @tparam ?{number,number,number,number} args.color (default: `default_text_color`)
+-- @tparam ?string args.color a string containing a hex color code (default: `default_text_color`)
 function Text:init(args)
     assert(getmetatable(self) ~= Text, "Cannot instanciate class Text directly.")
     self._align = args.align or "left"
@@ -38,7 +38,8 @@ function Text:init(args)
     self._font_size = args.font_size or current_theme.default_font_size
     self._font_slant = args.font_slant or CAIRO_FONT_SLANT_NORMAL
     self._font_weight = args.font_weight or CAIRO_FONT_WEIGHT_NORMAL
-    self._color = args.color or current_theme.default_text_color
+    local tmp_color = args.color or current_theme.default_text_color
+    self._color = ch.convert_string_to_rgba(tmp_color)
 
     self._write_fn = write_aligned[self._align]
 

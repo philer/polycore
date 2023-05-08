@@ -51,12 +51,13 @@ w.GpuTop = GpuTop
 -- @tparam[opt=5] ?int args.lines how many processes to display
 -- @tparam ?string args.font_family
 -- @tparam ?number args.font_size
--- @tparam ?{number,number,number} args.color (default: `default_text_color`)
+-- @tparam ?string args.color a string containing a hex color code (default: `default_text_color`)
 function GpuTop:init(args)
     self._lines = args.lines or 5
     self._font_family = args.font_family or current_theme.default_font_family
     self._font_size = args.font_size or current_theme.default_font_size
-    self._color = args.color or current_theme.default_text_color
+    local tmp_color = args.color or current_theme.default_text_color
+    self._color = ch.convert_string_to_rgba(tmp_color)
 
     local extents = ch.font_extents(self._font_family, self._font_size)
     self._line_height = extents.height

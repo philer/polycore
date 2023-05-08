@@ -27,14 +27,21 @@ w = {}
 -- @number high threshold for highest temperature / hottest color
 function w.temperature_color(temperature, low, high)
     -- defaults in case temperature is nil
-    local cool = current_theme.temperature_colors[1]
-    local hot = current_theme.temperature_colors[1]
+    local cool = ch.convert_string_to_rgba(current_theme.temperature_colors[1])
+    local hot = ch.convert_string_to_rgba(current_theme.temperature_colors[1])
     local weight = 0
+
+    rgb_colors = {}
+
+    for i,v in ipairs(current_theme.temperature_colors) do
+        rgb_colors[i] = ch.convert_string_to_rgba(v)
+    end
+
     if type(temperature) == "number" and temperature > -math.huge and temperature < math.huge then
-        local idx = (temperature - low) / (high - low) * (#current_theme.temperature_colors - 1) + 1
+        local idx = (temperature - low) / (high - low) * (#rgb_colors - 1) + 1
         weight = idx - floor(idx)
-        cool = current_theme.temperature_colors[clamp(1, #current_theme.temperature_colors, floor(idx))]
-        hot = current_theme.temperature_colors[clamp(1, #current_theme.temperature_colors, ceil(idx))]
+        cool = rgb_colors[clamp(1, #rgb_colors, floor(idx))]
+        hot = rgb_colors[clamp(1, #rgb_colors, ceil(idx))]
     end
     return cool[1] + weight * (hot[1] - cool[1]),
            cool[2] + weight * (hot[2] - cool[2]),

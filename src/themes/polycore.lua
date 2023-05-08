@@ -5,7 +5,7 @@
 pcall(function() require('cairo') end)
 
 -- Specified here so it can be used in multiple places
-default_graph_color = {.4, 1, 1, 1}
+local default_graph_color = "66ffff"
 
 theme = {
     --- Font used by widgets if no other is specified.
@@ -17,20 +17,25 @@ theme = {
     default_font_size = 10,
 
     --- Text color used by widgets if no other is specified.
-    -- @tfield {number,number,number,number} default_text_color
-    default_text_color = {.94, .94, .94, 1},  -- ~fafafa
+    -- @string default_text_color a color hex string
+    default_text_color = "fafafa",  -- ~fafafa
+
+    --- A secondary color text color you can use in your themes
+    -- currently it is not used by any of the widgets.
+    -- @string secondary_text_color a color hex string
+    secondary_text_color = "b9b9b7",  -- ~b9b9b7
 
     --- Color used to draw some widgets if no other is specified.
-    -- @tfield {number,number,number,number} default_graph_color
+    -- @string default_graph_color a color hex string
     default_graph_color = default_graph_color,
 
     temperature_colors = {
         default_graph_color,
-        {.5,  1, .8},
-        {.7, .9, .6},
-        {1,  .9, .4},
-        {1,  .6, .2},
-        {1,  .2, .2},
+        "7fffcc",
+        "b2e599",
+        "ffe566",
+        "ff9933",
+        "ff3333",
     }
 }
 

@@ -29,8 +29,8 @@ w.Drive = Drive
 function Drive:init(path)
     self._path = path
 
-    self._read_led = graph.LED{radius=2, color={0.4, 1, 0.4}}
-    self._write_led = graph.LED{radius=2, color={1, 0.4, 0.4}}
+    self._read_led = graph.LED{radius=2, color="66ff66"}
+    self._write_led = graph.LED{radius=2, color="ff6666"}
     self._temperature_text = text.TextLine{align="right"}
     self._bar = core.Bar{}
     core.Rows.init(self, {

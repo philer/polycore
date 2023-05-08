@@ -34,13 +34,10 @@ DEBUG = false
 --- Called once on startup to initialize widgets.
 -- @treturn core.Renderer
 function polycore.setup()
-
-    local secondary_text_color = {.72, .72, .71, 1}  -- ~b9b9b7
-
     -- Write fan speeds. This requires lm_sensors to be installed.
     -- Run `sensonrs` to see if any fans are reported. If not, remove
     -- this section and the corresponding line below.
-    local fan_rpm_text = TextLine{align="center", color=secondary_text_color}
+    local fan_rpm_text = TextLine{align="center", color=current_theme.secondary_text_color}
     fan_rpm_text.update = function(self)
         local fans = data.fan_rpm()
         self:set_text(table.concat{fans[1], " rpm   ·   ", fans[2], " rpm"})
@@ -48,7 +45,7 @@ function polycore.setup()
 
     -- Write individual CPU core temperatures as text.
     -- This also relies on lm_sensors.
-    local cpu_temps_text = TextLine{align="center", color=secondary_text_color}
+    local cpu_temps_text = TextLine{align="center", color=current_theme.secondary_text_color}
     cpu_temps_text.update = function(self)
         local cpu_temps = data.cpu_temperatures()
         self:set_text(table.concat(cpu_temps, " · ") .. " °C")
@@ -84,7 +81,7 @@ function polycore.setup()
         Filler{height=2},
         Gpu(),
         Filler{height=1},
-        GpuTop{lines=5, color=secondary_text_color},
+        GpuTop{lines=5, color=current_theme.secondary_text_color},
         Filler{height=66},
 
         -- Adjust the interface name for your system. Run `ifconfig` to find

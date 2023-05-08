@@ -273,7 +273,7 @@ function ch.convert_string_to_rgba(str)
         error("Invalid Color "+str)
     end
 
-    return r,g,b,a
+    return {r,g,b,a}
 end
 
 return ch

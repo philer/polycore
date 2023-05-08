@@ -151,6 +151,7 @@ function CpuRound:init(args)
     self._inner_radius = args.inner_radius
     self._outer_radius = args.outer_radius
     self._grid = args.grid
+    self._graph_color = ch.convert_string_to_rgba(current_theme.default_graph_color)
 
     if self._outer_radius then
         self.height = 2 * self._outer_radius
@@ -205,7 +206,7 @@ function CpuRound:render_background(cr)
         cairo_line_to(cr, mx + point.dx * self._outer_radius,
                           my + point.dy * self._outer_radius)
     end
-    local r, g, b = unpack(current_theme.default_graph_color)
+    local r, g, b = unpack(_graph_color)
     cairo_set_source_rgba(cr, r, g, b, 0.2)
     cairo_set_line_width(cr, 1)
     cairo_stroke(cr)
@@ -290,6 +291,7 @@ function CpuFrequencies:init(args)
     self.max_freq = args.max_freq
     self._height = args.height or 16
     self.height = self._height + 13
+    self._text_color = ch.convert_string_to_rgba(current_theme.default_text_color)
 end
 
 function CpuFrequencies:layout(width)
@@ -317,7 +319,7 @@ function CpuFrequencies:layout(width)
 end
 
 function CpuFrequencies:render_background(cr)
-    cairo_set_source_rgba(cr, unpack(current_theme.default_text_color))
+    cairo_set_source_rgba(cr, unpack(self._text_color))
     ch.set_font(cr, current_theme.default_font_family, current_theme.default_font_size)
     ch.write_left(cr, self._width + 5, 0.5 * self._height + 3, "GHz")
 

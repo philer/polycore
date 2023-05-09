@@ -1,4 +1,4 @@
---- A collection of Widget classes
+--- The default polycore theme
 -- @module polycore_theme
 -- @alias pt
 

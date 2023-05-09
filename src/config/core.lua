@@ -25,7 +25,6 @@ config = {
     cpu_avg_samples = 2,
     net_avg_samples = 1,
 
-    use_xft = true,  -- Use Xft (anti-aliased font and stuff)
     override_utf8_locale = true,
     xftalpha = 0,  -- Alpha of Xft font. Must be a value at or between 1 and 0.
 }

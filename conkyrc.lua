@@ -19,6 +19,7 @@ conkyrc.config = {
     font = 'Ubuntu:pixelsize=10',
     draw_shades = true,
     default_shade_color = 'black',
+    use_xft = true,  -- Use Xft (anti-aliased font and stuff)
 
     -- colors --
     own_window_colour = '131313',

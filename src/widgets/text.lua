@@ -65,13 +65,13 @@ end
 -- Text line will be updated on each cycle as per Conky's text
 -- Section, some variables such as formatting and positioning
 -- may not be honored.
--- @type ConkyText
-local ConkyText = util.class(Text)
-w.ConkyText = ConkyText
+-- @type ConkyParse
+local ConkyParse = util.class(Text)
+w.ConkyParse = ConkyParse
 
 --- @string text Text to be displayed, can include conky variables.
 --- @tparam table args table of options, see `Text:init`
-function ConkyText:init(text, args)
+function ConkyParse:init(text, args)
     Text.init(self, args)
 
     self._lines = {}
@@ -81,7 +81,7 @@ function ConkyText:init(text, args)
     self.height = line_count * self._line_height
 end
 
-function ConkyText:render(cr)
+function ConkyParse:render(cr)
     ch.set_font(cr, self._font_family, self._font_size, self._font_slant,
                     self._font_weight)
     cairo_set_source_rgba(cr, unpack(self._color))

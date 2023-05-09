@@ -7,7 +7,7 @@ package.path = script_dir .. "../?.lua;" .. package.path
 local data = require('src/data')
 local polycore = require('src/polycore')
 local core  = require('src/widgets/core')
-local graph = require('src/widgets/graph')
+local ind = require('src/widgets/indicator')
 local text  = require('src/widgets/text')
 
 
@@ -23,7 +23,7 @@ function polycore.setup()
     local graphs = {}
     local widgets = {}
     for _, smoothness in ipairs(GRAPH_SMOOTHINGS) do
-        local graph = graph.Graph{
+        local graph = ind.Graph{
             smoothness=smoothness,
             data_points=90,
             max=5 * 1024,

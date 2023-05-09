@@ -1,6 +1,6 @@
 --- A collection of Basic Graph and indicator Widget classes
--- @module widget_graph
--- @alias wg
+-- @module widget_indicator
+-- @alias wi
 
 pcall(function() require('cairo') end)
 

@@ -8,7 +8,7 @@ local data = require('src/data')
 local util = require('src/util')
 local ch = require('src/cairo_helpers')
 local core = require('src/widgets/core')
-local graph = require('src/widgets/graph')
+local ind = require('src/widgets/indicator')
 local Widget = core.Widget
 
 -- lua 5.1 to 5.3 compatibility
@@ -20,7 +20,7 @@ local floor, ceil, clamp = math.floor, math.ceil, util.clamp
 
 --- Specialized unit-based Bar.
 -- @type MemoryBar
-local MemoryBar = util.class(graph.Bar)
+local MemoryBar = util.class(ind.Bar)
 w.MemoryBar = MemoryBar
 
 --- @tparam table args table of options
@@ -39,7 +39,7 @@ function MemoryBar:init(args)
         ticks = util.range(1 / self._total, max_tick / self._total, 1 / self._total)
         big_ticks = max_tick > 8 and 4 or nil
     end
-    graph.Bar.init(self, {ticks=ticks,
+    ind.Bar.init(self, {ticks=ticks,
                     big_ticks=big_ticks,
                     unit=args.unit or "GiB",
                     thickness=args.thickness,

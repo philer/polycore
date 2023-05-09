@@ -8,7 +8,7 @@ local data = require('src/data')
 local util = require('src/util')
 local ch = require('src/cairo_helpers')
 local core = require('src/widgets/core')
-local graph = require('src/widgets/graph')
+local ind = require('src/widgets/indicator')
 local Widget = core.Widget
 
 -- lua 5.1 to 5.3 compatibility
@@ -30,8 +30,8 @@ w.Network = Network
 -- @number[opt=1024] args.upspeed passed as args.max to upload speed graph
 function Network:init(args)
     self.interface = args.interface
-    self._downspeed_graph = graph.Graph{height=args.graph_height, max=args.downspeed or 1024}
-    self._upspeed_graph = graph.Graph{height=args.graph_height, max=args.upspeed or 1024}
+    self._downspeed_graph = ind.Graph{height=args.graph_height, max=args.downspeed or 1024}
+    self._upspeed_graph = ind.Graph{height=args.graph_height, max=args.upspeed or 1024}
     core.Rows.init(self, {self._downspeed_graph, core.Filler{height=31}, self._upspeed_graph})
 end
 

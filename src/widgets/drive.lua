@@ -8,7 +8,7 @@ local data = require('src/data')
 local util = require('src/util')
 local ch = require('src/cairo_helpers')
 local core = require('src/widgets/core')
-local graph = require('src/widgets/graph')
+local ind = require('src/widgets/indicator')
 local text = require('src/widgets/text')
 local Widget = core.Widget
 
@@ -29,8 +29,8 @@ w.Drive = Drive
 function Drive:init(path)
     self._path = path
 
-    self._read_led = graph.LED{radius=2, color={0.4, 1, 0.4}}
-    self._write_led = graph.LED{radius=2, color={1, 0.4, 0.4}}
+    self._read_led = ind.LED{radius=2, color={0.4, 1, 0.4}}
+    self._write_led = ind.LED{radius=2, color={1, 0.4, 0.4}}
     self._temperature_text = text.TextLine{align="right"}
     self._bar = core.Bar{}
     core.Rows.init(self, {

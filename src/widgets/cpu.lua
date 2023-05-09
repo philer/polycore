@@ -206,7 +206,7 @@ function CpuRound:render_background(cr)
         cairo_line_to(cr, mx + point.dx * self._outer_radius,
                           my + point.dy * self._outer_radius)
     end
-    local r, g, b = unpack(_graph_color)
+    local r, g, b = unpack(self._graph_color)
     cairo_set_source_rgba(cr, r, g, b, 0.2)
     cairo_set_line_width(cr, 1)
     cairo_stroke(cr)

@@ -6,6 +6,7 @@ package.path = script_dir .. "../?.lua;" .. package.path
 
 local data = require('src/data')
 local polycore = require('src/polycore')
+local util = require('src/util')
 local core  = require('src/widgets/core')
 local ind = require('src/widgets/indicator')
 local text  = require('src/widgets/text')
@@ -52,20 +53,8 @@ end
 
 
 local conkyrc = conky or {}
-conkyrc.config = {
+script_config = {
     lua_load = script_dir .. "graphs.lua",
-    lua_startup_hook = "conky_setup",
-    lua_draw_hook_post = "conky_update",
-
-    update_interval = 1,
-
-    -- awesome wm --
-    own_window = true,
-    own_window_class = 'conky',
-    own_window_type = 'override',
-    own_window_hints = 'undecorated,sticky,skip_taskbar,skip_pager',
-
-    double_buffer = true,
 
     alignment = 'middle_middle',
     gap_x = 0,
@@ -74,19 +63,24 @@ conkyrc.config = {
     maximum_width = width,
     minimum_height = height,
 
-    draw_shades = false,
-    draw_outline = false,
-    draw_borders = false,
-    border_width = 0,
-    border_inner_margin = 0,
-    border_outer_margin = 0,
-
-    net_avg_samples = 1,
-
     -- colors --
     own_window_colour = '131313',
     own_window_argb_visual = true,
     own_window_argb_value = 230,
     default_color = 'fafafa',
 }
+
+core_config = require('src/config/core')
+
+if os.getenv("DESKTOP") == "Enlightenment" then
+    wm_config = require('src/config/enlightenment')
+else
+    wm_config = require('src/config/awesome')
+end
+
+tmp_config = util.merge_table(core_config, wm_config)
+config = util.merge_table(tmp_config, script_config)
+
+conkyrc.config = config
+
 conkyrc.text = ""

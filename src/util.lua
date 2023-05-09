@@ -288,4 +288,15 @@ function util.shuffle(array)
     end
 end
 
+--- Merge two tables
+-- values in the second will overwrite values in the first, ideal for
+-- merging config files
+-- @tab source table to merge into
+-- @tab merge second table to merge into the first overwriting values there
+-- @treturn merged table
+function util.merge_table(source, merge) 
+    for k,v in pairs(merge) do source[k] = v end 
+    return source
+end
+
 return util

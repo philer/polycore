@@ -238,7 +238,8 @@ end
 function data.gpu_top()
     local output = read_cmd("nvidia-smi -q -d PIDS")
     local processes = {}
-    for name, mem in output:gmatch("Name%s+: %S*/(%S+)[^\n]*\n%s+Used GPU Memory%s+: (%d+)") do
+    for name, mem in output:gmatch("Name%s+: ([^\n]*)\n%s+Used GPU Memory%s+: (%d+)") do
+        name = name:match(".*[/\\](.+)") or name
         processes[#processes + 1] = {name, tonumber(mem)}
     end
     table.sort(processes, function(proc1, proc2) return proc1[2] > proc2[2] end)
@@ -301,6 +302,7 @@ data.device_temperatures = util.memoize(5, function(device)
     local temp_inputs = read_cmd("ls -1"
         .. " /sys/block/*/device/hwmon/hwmon*/temp1_input"  -- sata
         .. " /sys/block/*/device/hwmon*/temp1_input"  -- nvme
+        .. " 2> /dev/null"
     )
     local temps = {}
     for device, hwmon_path in temp_inputs:gmatch("/sys/block/(%w+)/device/(%S+)") do

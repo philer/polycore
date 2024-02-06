@@ -6,20 +6,8 @@ local script_dir = debug.getinfo(1, 'S').source:match("^@(.*/)") or "./"
 
 conkyrc.config = {
     lua_load = script_dir .. "layout.lua",
-    lua_startup_hook = "conky_setup",
-    lua_draw_hook_pre = "conky_paint_background",
-    lua_draw_hook_post = "conky_update",
 
-    update_interval = 1,
-
-    -- awesome wm --
-    own_window = true,
-    own_window_class = 'conky',
-    own_window_type = 'override',
-    own_window_hints = 'undecorated,sticky,skip_taskbar,skip_pager',
-
-    double_buffer = true,
-
+    -- positioning --
     alignment = 'top_left',
     gap_x = 0,
     gap_y = 28,
@@ -27,24 +15,11 @@ conkyrc.config = {
     maximum_width = 140,
     minimum_height = 1080 - 28,
 
-    draw_shades = false,
-    draw_outline = false,
-    draw_borders = false,
-    border_width = 0,
-    border_inner_margin = 0,
-    border_outer_margin = 0,
-
-    top_cpu_separate = true,
-    top_name_width = 10,
-    no_buffers = true,  -- include buffers in easyfree memory?
-    cpu_avg_samples = 2,
-    net_avg_samples = 1,
-
     -- font --
-    use_xft = true,  -- Use Xft (anti-aliased font and stuff)
     font = 'Ubuntu:pixelsize=10',
-    override_utf8_locale = true,
-    xftalpha = 0,  -- Alpha of Xft font. Must be a value at or between 1 and 0.
+    draw_shades = true,
+    default_shade_color = 'black',
+    use_xft = true,  -- Use Xft (anti-aliased font and stuff)
 
     -- colors --
     own_window_colour = '131313',
@@ -87,6 +62,18 @@ $endif]],
     template9 = '${goto 10}',
 }
 
+core_config = require('src/config/core')
+
+if os.getenv("DESKTOP") == "Enlightenment" then
+    wm_config = require('src/config/enlightenment')
+else
+    wm_config = require('src/config/awesome')
+end
+
+tmp_config = util.merge_table(core_config, wm_config)
+config = util.merge_table(tmp_config, script_config)
+
+conkyrc.config = config
 -----------------
 ----- START -----
 -----------------

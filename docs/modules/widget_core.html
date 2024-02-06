@@ -1,0 +1,718 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+<head>
+    <title>Reference</title>
+    <link rel="stylesheet" href="../ldoc.css" type="text/css" />
+</head>
+<body>
+
+<div id="container">
+
+<div id="product">
+	<div id="product_logo"></div>
+	<div id="product_name"><big><b></b></big></div>
+	<div id="product_description"></div>
+</div> <!-- id="product" -->
+
+
+<div id="main">
+
+
+<!-- Menu -->
+
+<div id="navigation">
+<br/>
+<h1>polycore</h1>
+
+<ul>
+  <li><a href="../index.html">Index</a></li>
+</ul>
+
+<h2>Contents</h2>
+<ul>
+<li><a href="#Functions">Functions</a></li>
+<li><a href="#Tables">Tables</a></li>
+<li><a href="#Fields">Fields</a></li>
+<li><a href="#Class_Renderer">Class Renderer </a></li>
+<li><a href="#Class_Widget">Class Widget </a></li>
+<li><a href="#Class_Rows">Class Rows </a></li>
+<li><a href="#Class_Columns">Class Columns </a></li>
+<li><a href="#Class_Filler">Class Filler </a></li>
+<li><a href="#Class_Frame">Class Frame </a></li>
+</ul>
+
+
+<h2>Modules</h2>
+<ul class="nowrap">
+  <li><a href="../modules/cairo_helpers.html">cairo_helpers</a></li>
+  <li><a href="../modules/data.html">data</a></li>
+  <li><a href="../modules/polycore.html">polycore</a></li>
+  <li><a href="../modules/util.html">util</a></li>
+  <li><strong>widget_core</strong></li>
+  <li><a href="../modules/widget_cpu.html">widget_cpu</a></li>
+  <li><a href="../modules/widget_drive.html">widget_drive</a></li>
+  <li><a href="../modules/widget_gpu.html">widget_gpu</a></li>
+  <li><a href="../modules/widget_indicator.html">widget_indicator</a></li>
+  <li><a href="../modules/widget_memory.html">widget_memory</a></li>
+  <li><a href="../modules/widget_network.html">widget_network</a></li>
+  <li><a href="../modules/widget_text.html">widget_text</a></li>
+</ul>
+
+</div>
+
+<div id="content">
+
+<h1>Module <code>widget_core</code></h1>
+<p>A collection of Widget classes</p>
+<p></p>
+
+
+<h2><a href="#Functions">Functions</a></h2>
+<table class="function_list">
+	<tr>
+	<td class="name" nowrap><a href="#w.temperature_color">w.temperature_color(temperature, low, high)</a></td>
+	<td class="summary">Generate a temperature based color.</td>
+	</tr>
+</table>
+<h2><a href="#Tables">Tables</a></h2>
+<table class="function_list">
+	<tr>
+	<td class="name" nowrap><a href="#default_text_color">default_text_color</a></td>
+	<td class="summary">Text color used by widgets if no other is specified.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#default_graph_color">default_graph_color</a></td>
+	<td class="summary">Color used to draw some widgets if no other is specified.</td>
+	</tr>
+</table>
+<h2><a href="#Fields">Fields</a></h2>
+<table class="function_list">
+	<tr>
+	<td class="name" nowrap><a href="#default_font_family">default_font_family</a></td>
+	<td class="summary">Font used by widgets if no other is specified.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#default_font_size">default_font_size</a></td>
+	<td class="summary">Font size used by widgets if no other is specified.</td>
+	</tr>
+</table>
+<h2><a href="#Class_Renderer">Class Renderer </a></h2>
+<table class="function_list">
+	<tr>
+	<td class="name" nowrap><a href="#Renderer:init">Renderer:init(args)</a></td>
+	<td class="summary"></td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#Renderer:layout">Renderer:layout()</a></td>
+	<td class="summary">Layout all Widgets and cache their backgrounds.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#Renderer:update">Renderer:update(update_count)</a></td>
+	<td class="summary">Update all Widgets</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#Renderer:render">Renderer:render(cr)</a></td>
+	<td class="summary">Render to the given context</td>
+	</tr>
+</table>
+<h2><a href="#Class_Widget">Class Widget </a></h2>
+<table class="function_list">
+	<tr>
+	<td class="name" nowrap><a href="#Widget.width">Widget.width</a></td>
+	<td class="summary">Set a width if the Widget should have a fixed width.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#Widget.height">Widget.height</a></td>
+	<td class="summary">Set a height if the Widget should have a fixed height.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#Widget:layout">Widget:layout(width, height)</a></td>
+	<td class="summary">Called at least once to inform the widget of the width and height
+ it may occupy.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#Widget:render_background">Widget:render_background(cr)</a></td>
+	<td class="summary">Called at least once to allow the widget to draw static content.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#Widget:update">Widget:update(update_count)</a></td>
+	<td class="summary">Called before each call to <a href="../modules/widget_core.html#Widget:render">Widget:render</a>.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#Widget:render">Widget:render(cr)</a></td>
+	<td class="summary">Called once per update to do draw dynamic content.</td>
+	</tr>
+</table>
+<h2><a href="#Class_Rows">Class Rows </a></h2>
+<table class="function_list">
+	<tr>
+	<td class="name" nowrap><a href="#Rows:init">Rows:init(widgets)</a></td>
+	<td class="summary"></td>
+	</tr>
+</table>
+<h2><a href="#Class_Columns">Class Columns </a></h2>
+<table class="function_list">
+	<tr>
+	<td class="name" nowrap><a href="#Columns:init">Columns:init(widgets)</a></td>
+	<td class="summary"></td>
+	</tr>
+</table>
+<h2><a href="#Class_Filler">Class Filler </a></h2>
+<table class="function_list">
+	<tr>
+	<td class="name" nowrap><a href="#Filler:init">Filler:init(args)</a></td>
+	<td class="summary"></td>
+	</tr>
+</table>
+<h2><a href="#Class_Frame">Class Frame </a></h2>
+<table class="function_list">
+	<tr>
+	<td class="name" nowrap><a href="#Frame:init">Frame:init(widget, args)</a></td>
+	<td class="summary"></td>
+	</tr>
+</table>
+
+<br/>
+<br/>
+
+
+    <h2 class="section-header "><a name="Functions"></a>Functions</h2>
+
+    <dl class="function">
+    <dt>
+    <a name = "w.temperature_color"></a>
+    <strong>w.temperature_color(temperature, low, high)</strong>
+    </dt>
+    <dd>
+    Generate a temperature based color.
+ Colors are chosen based on float offset in a pre-defined color gradient.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">temperature</span>
+            <span class="types"><span class="type">number</span></span>
+         current temperature (or any other type of numeric value)
+        </li>
+        <li><span class="parameter">low</span>
+            <span class="types"><span class="type">number</span></span>
+         threshold for lowest temperature / coolest color
+        </li>
+        <li><span class="parameter">high</span>
+            <span class="types"><span class="type">number</span></span>
+         threshold for highest temperature / hottest color
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
+</dl>
+    <h2 class="section-header "><a name="Tables"></a>Tables</h2>
+
+    <dl class="function">
+    <dt>
+    <a name = "default_text_color"></a>
+    <strong>default_text_color</strong>
+    </dt>
+    <dd>
+    Text color used by widgets if no other is specified.
+
+
+    <h3>Fields:</h3>
+    <ul>
+        <li><span class="parameter">default_text_color</span>
+            <span class="types"><span class="type">{number,number,number,number}</span></span>
+
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "default_graph_color"></a>
+    <strong>default_graph_color</strong>
+    </dt>
+    <dd>
+    Color used to draw some widgets if no other is specified.
+
+
+    <h3>Fields:</h3>
+    <ul>
+        <li><span class="parameter">default_graph_color</span>
+            <span class="types"><span class="type">{number,number,number,number}</span></span>
+
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
+</dl>
+    <h2 class="section-header "><a name="Fields"></a>Fields</h2>
+
+    <dl class="function">
+    <dt>
+    <a name = "default_font_family"></a>
+    <strong>default_font_family</strong>
+    </dt>
+    <dd>
+    Font used by widgets if no other is specified.
+
+
+    <ul>
+        <li><span class="parameter">default_font_family</span>
+            <span class="types"><span class="type">string</span></span>
+
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "default_font_size"></a>
+    <strong>default_font_size</strong>
+    </dt>
+    <dd>
+    Font size used by widgets if no other is specified.
+
+
+    <ul>
+        <li><span class="parameter">default_font_size</span>
+            <span class="types"><span class="type">int</span></span>
+
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
+</dl>
+    <h2 class="section-header has-description"><a name="Class_Renderer"></a>Class Renderer </h2>
+
+          <div class="section-description">
+          Root widget wrapper
+ Takes care of managing layout reflows and background caching.
+          </div>
+    <dl class="function">
+    <dt>
+    <a name = "Renderer:init"></a>
+    <strong>Renderer:init(args)</strong>
+    </dt>
+    <dd>
+
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">args</span> table of options
+        <ul>
+        <li><span class="parameter">root</span>
+            <span class="types"><a class="type" href="../modules/widget_core.html#Widget">Widget</a></span>
+         The Widget subclass that should be rendered,
+                          usually a Rows widget
+        </li>
+        <li><span class="parameter">width</span>
+            <span class="types"><span class="type">int</span></span>
+         Width of the surface that should be covered
+        </li>
+        <li><span class="parameter">height</span>
+            <span class="types"><span class="type">int</span></span>
+         Height of the surface that should be covered
+        </li>
+        </li></ul>
+    </ul>
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "Renderer:layout"></a>
+    <strong>Renderer:layout()</strong>
+    </dt>
+    <dd>
+    Layout all Widgets and cache their backgrounds.
+ Call this once to create the initial layout.
+ Will be called again automatically each time the layout changes.
+
+
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "Renderer:update"></a>
+    <strong>Renderer:update(update_count)</strong>
+    </dt>
+    <dd>
+    Update all Widgets
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">update_count</span>
+            <span class="types"><span class="type">int</span></span>
+         Conky's $updates
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "Renderer:render"></a>
+    <strong>Renderer:render(cr)</strong>
+    </dt>
+    <dd>
+    Render to the given context
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">cr</span>
+            <span class="types"><span class="type">cairo_t</span></span>
+
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
+</dl>
+    <h2 class="section-header has-description"><a name="Class_Widget"></a>Class Widget </h2>
+
+          <div class="section-description">
+          Base Widget class.
+          </div>
+    <dl class="function">
+    <dt>
+    <a name = "Widget.width"></a>
+    <strong>Widget.width</strong>
+    </dt>
+    <dd>
+    Set a width if the Widget should have a fixed width.
+ Omit (=nil) if width should be adjusted dynamically.
+
+
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "Widget.height"></a>
+    <strong>Widget.height</strong>
+    </dt>
+    <dd>
+    Set a height if the Widget should have a fixed height.
+ Omit (=nil) if height should be adjusted dynamically.
+
+
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "Widget:layout"></a>
+    <strong>Widget:layout(width, height)</strong>
+    </dt>
+    <dd>
+    Called at least once to inform the widget of the width and height
+ it may occupy.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">width</span>
+            <span class="types"><span class="type">int</span></span>
+
+        </li>
+        <li><span class="parameter">height</span>
+            <span class="types"><span class="type">int</span></span>
+
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "Widget:render_background"></a>
+    <strong>Widget:render_background(cr)</strong>
+    </dt>
+    <dd>
+    Called at least once to allow the widget to draw static content.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">cr</span>
+            <span class="types"><span class="type">cairo_t</span></span>
+         Cairo context for background rendering
+                    (to be cached by the <a href="../modules/widget_core.html#Renderer">Renderer</a>)
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "Widget:update"></a>
+    <strong>Widget:update(update_count)</strong>
+    </dt>
+    <dd>
+    Called before each call to <a href="../modules/widget_core.html#Widget:render">Widget:render</a>.
+ If this function returns a true-ish value, a reflow will be triggered.
+ Since this involves calls to all widgets' :layout functions,
+ reflows should be used sparingly.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">update_count</span>
+            <span class="types"><span class="type">int</span></span>
+         Conky's $updates
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types">optional <span class="type">bool</span></span>
+         true(-ish) if a layout reflow should be triggered, causing
+                all <a href="../modules/widget_core.html#Widget:layout">Widget:layout</a> and <a href="../modules/widget_core.html#Widget:render_background">Widget:render_background</a> methods
+                to be called again
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "Widget:render"></a>
+    <strong>Widget:render(cr)</strong>
+    </dt>
+    <dd>
+    Called once per update to do draw dynamic content.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">cr</span>
+            <span class="types"><span class="type">cairo_t</span></span>
+
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
+</dl>
+    <h2 class="section-header has-description"><a name="Class_Rows"></a>Class Rows </h2>
+
+          <div class="section-description">
+          Basic collection of widgets.
+ Rows are drawn in a vertical stack starting at the top of the drawble
+ surface.
+          </div>
+    <dl class="function">
+    <dt>
+    <a name = "Rows:init"></a>
+    <strong>Rows:init(widgets)</strong>
+    </dt>
+    <dd>
+
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">widgets</span>
+            <span class="types"><a class="type" href="../modules/widget_core.html#Widget">{Widget,...}</a></span>
+
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
+</dl>
+    <h2 class="section-header has-description"><a name="Class_Columns"></a>Class Columns </h2>
+
+          <div class="section-description">
+          Display Widgets side by side
+          </div>
+    <dl class="function">
+    <dt>
+    <a name = "Columns:init"></a>
+    <strong>Columns:init(widgets)</strong>
+    </dt>
+    <dd>
+
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">widgets</span>
+            <span class="types"><a class="type" href="../modules/widget_core.html#Widget">{Widget,...}</a></span>
+
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
+</dl>
+    <h2 class="section-header has-description"><a name="Class_Filler"></a>Class Filler </h2>
+
+          <div class="section-description">
+          Leave space between widgets.
+ If either height or width is not specified, the available space
+ inside a Rows or Columns widget will be distributed evenly between Fillers
+ with no fixed height/width.
+ A Filler may contain one other Widget which will have its dimensions
+ restricted to those of the Filler.
+          </div>
+    <dl class="function">
+    <dt>
+    <a name = "Filler:init"></a>
+    <strong>Filler:init(args)</strong>
+    </dt>
+    <dd>
+
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">args</span> table of options
+        <ul>
+        <li><span class="parameter">width</span>
+            <span class="types">optional <span class="type">int</span></span>
+
+        </li>
+        <li><span class="parameter">height</span>
+            <span class="types">optional <span class="type">int</span></span>
+
+        </li>
+        <li><span class="parameter">widget</span>
+            <span class="types">optional <a class="type" href="../modules/widget_core.html#Widget">Widget</a></span>
+
+        </li>
+        </li></ul>
+    </ul>
+
+
+
+
+
+</dd>
+</dl>
+    <h2 class="section-header has-description"><a name="Class_Frame"></a>Class Frame </h2>
+
+          <div class="section-description">
+          Draw a static border and/or background around/behind another widget.
+          </div>
+    <dl class="function">
+    <dt>
+    <a name = "Frame:init"></a>
+    <strong>Frame:init(widget, args)</strong>
+    </dt>
+    <dd>
+
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">widget</span>
+            <span class="types"><a class="type" href="../modules/widget_core.html#Widget">Widget</a></span>
+         Widget to be wrapped
+        </li>
+        <li><span class="parameter">args</span> table of options
+        <ul>
+        <li><span class="parameter">padding</span>
+            <span class="types"><span class="type">number</span> or <span class="type">{number,...}</span></span>
+         Leave some space around the inside
+  of the frame.<br>
+  - number: same padding all around.<br>
+  - table of two numbers: {top & bottom, left & right}<br>
+  - table of three numbers: {top, left & right, bottom}<br>
+  - table of four numbers: {top, right, bottom, left}
+        </li>
+        <li><span class="parameter">margin</span>
+            <span class="types"><span class="type">number</span> or <span class="type">{number,...}</span></span>
+         Like padding but outside the border.
+        </li>
+        <li><span class="parameter">background_color</span>
+            <span class="types">optional <span class="type">{number,number,number,number}</span></span>
+
+        </li>
+        <li><span class="parameter">border_color</span>
+            <span class="types">optional <span class="type">{number,number,number,number}</span></span>
+
+         (<em>default</em> transparent)
+        </li>
+        <li><span class="parameter">border_width</span>
+            <span class="types">optional <span class="type">number</span></span>
+         border line width
+         (<em>default</em> 0)
+        </li>
+        <li><span class="parameter">border_sides</span>
+            <span class="types">optional <span class="type">{string,...}</span></span>
+         any combination of
+                                         "top", "right", "bottom" and/or "left"
+                                         (default: all sides)
+        </li>
+        </li></ul>
+    </ul>
+
+
+
+
+
+</dd>
+</dl>
+
+
+</div> <!-- id="content" -->
+</div> <!-- id="main" -->
+<div id="about">
+<i>generated by <a href="http://github.com/stevedonovan/LDoc">LDoc 1.4.6</a></i>
+<i style="float:right;">Last updated 2023-05-09 11:37:33 </i>
+</div> <!-- id="about" -->
+</div> <!-- id="container" -->
+</body>
+</html>

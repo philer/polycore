@@ -1,0 +1,235 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+<head>
+    <title>Reference</title>
+    <link rel="stylesheet" href="../ldoc.css" type="text/css" />
+</head>
+<body>
+
+<div id="container">
+
+<div id="product">
+	<div id="product_logo"></div>
+	<div id="product_name"><big><b></b></big></div>
+	<div id="product_description"></div>
+</div> <!-- id="product" -->
+
+
+<div id="main">
+
+
+<!-- Menu -->
+
+<div id="navigation">
+<br/>
+<h1>polycore</h1>
+
+<ul>
+  <li><a href="../index.html">Index</a></li>
+</ul>
+
+<h2>Contents</h2>
+<ul>
+<li><a href="#Class_Cpu">Class Cpu </a></li>
+<li><a href="#Class_CpuRound">Class CpuRound </a></li>
+<li><a href="#Class_CpuFrequencies">Class CpuFrequencies </a></li>
+</ul>
+
+
+<h2>Modules</h2>
+<ul class="nowrap">
+  <li><a href="../modules/cairo_helpers.html">cairo_helpers</a></li>
+  <li><a href="../modules/data.html">data</a></li>
+  <li><a href="../modules/polycore.html">polycore</a></li>
+  <li><a href="../modules/util.html">util</a></li>
+  <li><a href="../modules/widget_core.html">widget_core</a></li>
+  <li><strong>widget_cpu</strong></li>
+  <li><a href="../modules/widget_drive.html">widget_drive</a></li>
+  <li><a href="../modules/widget_gpu.html">widget_gpu</a></li>
+  <li><a href="../modules/widget_indicator.html">widget_indicator</a></li>
+  <li><a href="../modules/widget_memory.html">widget_memory</a></li>
+  <li><a href="../modules/widget_network.html">widget_network</a></li>
+  <li><a href="../modules/widget_text.html">widget_text</a></li>
+</ul>
+
+</div>
+
+<div id="content">
+
+<h1>Module <code>widget_cpu</code></h1>
+<p>A collection of CPU Widget classes</p>
+<p></p>
+
+
+<h2><a href="#Class_Cpu">Class Cpu </a></h2>
+<table class="function_list">
+	<tr>
+	<td class="name" nowrap><a href="#Cpu:init">Cpu:init(args)</a></td>
+	<td class="summary"></td>
+	</tr>
+</table>
+<h2><a href="#Class_CpuRound">Class CpuRound </a></h2>
+<table class="function_list">
+	<tr>
+	<td class="name" nowrap><a href="#CpuRound:init">CpuRound:init(args)</a></td>
+	<td class="summary"></td>
+	</tr>
+</table>
+<h2><a href="#Class_CpuFrequencies">Class CpuFrequencies </a></h2>
+<table class="function_list">
+	<tr>
+	<td class="name" nowrap><a href="#CpuFrequencies:init">CpuFrequencies:init(args)</a></td>
+	<td class="summary"></td>
+	</tr>
+</table>
+
+<br/>
+<br/>
+
+
+    <h2 class="section-header has-description"><a name="Class_Cpu"></a>Class Cpu </h2>
+
+          <div class="section-description">
+          Polygon-style CPU usage & temperature indicator.
+ Looks best for CPUs with 4 to 8 cores but also works for higher numbers.
+          </div>
+    <dl class="function">
+    <dt>
+    <a name = "Cpu:init"></a>
+    <strong>Cpu:init(args)</strong>
+    </dt>
+    <dd>
+
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">args</span> table of options
+        <ul>
+        <li><span class="parameter">cores</span>
+            <span class="types"><span class="type">int</span></span>
+         How many cores does your CPU have?
+        </li>
+        <li><span class="parameter">scale</span>
+            <span class="types"><span class="type">int</span></span>
+         radius of central polygon
+        </li>
+        <li><span class="parameter">gap</span>
+            <span class="types"><span class="type">int</span></span>
+         space between central polygon and outer segments
+        </li>
+        <li><span class="parameter">segment_size</span>
+            <span class="types"><span class="type">int</span></span>
+         radial thickness of outer segments
+        </li>
+        </li></ul>
+    </ul>
+
+
+
+
+
+</dd>
+</dl>
+    <h2 class="section-header has-description"><a name="Class_CpuRound"></a>Class CpuRound </h2>
+
+          <div class="section-description">
+          Round CPU usage & temperature indicator.
+ Best suited for CPUs with high core counts.
+          </div>
+    <dl class="function">
+    <dt>
+    <a name = "CpuRound:init"></a>
+    <strong>CpuRound:init(args)</strong>
+    </dt>
+    <dd>
+
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">args</span> table of options
+        <ul>
+        <li><span class="parameter">cores</span>
+            <span class="types"><span class="type">int</span></span>
+         How many cores does your CPU have?
+        </li>
+        <li><span class="parameter">inner_radius</span>
+            <span class="types"><span class="type">int</span></span>
+         Size of inner circle
+        </li>
+        <li><span class="parameter">outer_radius</span>
+            <span class="types"><span class="type">int</span></span>
+         Max radius for core at 100%
+        </li>
+        <li><span class="parameter">grid</span>
+            <span class="types"><span class="type">int</span></span>
+         Number of grid lines to draw in the background.
+         (<em>optional</em>)
+        </li>
+        </li></ul>
+    </ul>
+
+
+
+
+
+</dd>
+</dl>
+    <h2 class="section-header has-description"><a name="Class_CpuFrequencies"></a>Class CpuFrequencies </h2>
+
+          <div class="section-description">
+          Visualize cpu-frequencies in a style reminiscent of stacked progress bars.
+          </div>
+    <dl class="function">
+    <dt>
+    <a name = "CpuFrequencies:init"></a>
+    <strong>CpuFrequencies:init(args)</strong>
+    </dt>
+    <dd>
+
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">args</span> table of options
+        <ul>
+        <li><span class="parameter">cores</span>
+            <span class="types"><span class="type">int</span></span>
+         How many cores does your CPU have?
+        </li>
+        <li><span class="parameter">min_freq</span>
+            <span class="types"><span class="type">number</span></span>
+         What is your CPU's maximum frequency?
+        </li>
+        <li><span class="parameter">min_freq</span>
+            <span class="types"><span class="type">number</span></span>
+         What is your CPU's maximum frequency?
+        </li>
+        <li><span class="parameter">height</span>
+            <span class="types"><span class="type">int</span></span>
+         Maximum pixel height of the drawn shape
+         (<em>default</em> 16)
+        </li>
+        </li></ul>
+    </ul>
+
+
+
+
+
+</dd>
+</dl>
+
+
+</div> <!-- id="content" -->
+</div> <!-- id="main" -->
+<div id="about">
+<i>generated by <a href="http://github.com/stevedonovan/LDoc">LDoc 1.4.6</a></i>
+<i style="float:right;">Last updated 2023-05-09 11:37:33 </i>
+</div> <!-- id="about" -->
+</div> <!-- id="container" -->
+</body>
+</html>

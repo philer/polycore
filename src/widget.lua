@@ -446,6 +446,69 @@ function Frame:render_background(cr)
     end
 end
 
+--- A container that holds a widget, but can have that widget dynamically changed.
+-- @type Container
+local Container = util.class(Widget)
+w.Container = Container
+
+--- @tparam Widget content Initial widget to be wrapped, or nil for no widget
+function Container:init(content)
+    self:set_content(content, true)
+end
+
+--- @tparam Widget content New widget to be wrapped, or nil for no widget
+-- @tparam boolean init Should only be set to true when initialising
+function Container:set_content(content, init)
+    if not (init or self._content ~= content) then
+        return
+    end
+
+    self._content = content
+    self.height = 0
+    self.width = 0
+
+    self._switched = not init
+
+    if content and content.height then
+        self.height = content.height
+    end
+    if content and content.width then
+        self.width = content.width
+    end
+end
+
+function Container:layout(width, height)
+    if self._content and self._content.layout then
+        local children = self._content:layout(width, height)
+        table.insert(children, 1, {self, 0, 0, width, height})
+        return children
+    end
+    return {{self, 0, 0, width, height}}
+end
+
+function Container:render(cr)
+    if self._content and self._content.render then
+        return self._content:render(cr)
+    end
+end
+
+function Container:render_background(cr)
+    if self._content and self._content.render_background then
+        return self._content:render_background(cr)
+    end
+end
+
+function Container:update()
+    local updated = false
+    if self._content and self._content.update then
+        updated = self._content:update()
+    end
+
+    local switched = self._switched
+    self._switched = false
+    return switched or updated
+end
+
 --- Common (abstract) base class for `StaticText` and `TextLine`.
 -- @type Text
 local Text = util.class(Widget)

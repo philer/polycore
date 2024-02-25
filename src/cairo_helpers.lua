@@ -233,4 +233,47 @@ function ch.write_middle(cr, mx, my, text)
     cairo_show_text(cr, text)
 end
 
+
+--- Converts a string color representation to numbers for cairo.
+-- Supports 3 and 6 character hex representations without an alpha value
+-- and 4 and 8 character hex representations with an alpha value.
+-- Strings may start with or without a # character.
+-- Returns r,g,b,a as doubles with values ranging from 0.0-1.0
+-- @string str hex number to convert
+-- @treturn r,g,b,a
+function ch.convert_string_to_rgba(str)
+    r,g,b,a=1.0,1.0,1.0,1.0
+
+    -- If the string starts with a hash has_hash will be 1
+    has_hash = string.find(str, "#")
+    str_to_split = str
+    if has_hash == 1 then
+        str_to_split = string.sub(str_to_split, 2)
+    end
+
+    if string.len(str_to_split) == 3 then
+        r = tonumber(string.sub(str_to_split,1,1),16)/15
+        g = tonumber(string.sub(str_to_split,2,2),16)/15
+        b = tonumber(string.sub(str_to_split,3,3),16)/15
+    elseif string.len(str_to_split) == 4 then
+        r = tonumber(string.sub(str_to_split,1,1),16)/15
+        g = tonumber(string.sub(str_to_split,2,2),16)/15
+        b = tonumber(string.sub(str_to_split,3,3),16)/15
+        a = tonumber(string.sub(str_to_split,3,3),16)/15
+    elseif string.len(str_to_split) == 6 then
+        r = tonumber(string.sub(str_to_split,1,2),16)/255
+        g = tonumber(string.sub(str_to_split,3,4),16)/255
+        b = tonumber(string.sub(str_to_split,5,6),16)/255
+    elseif string.len(str_to_split) == 8 then
+        r = tonumber(string.sub(str_to_split,1,2),16)/255
+        g = tonumber(string.sub(str_to_split,3,4),16)/255
+        b = tonumber(string.sub(str_to_split,5,6),16)/255
+        a = tonumber(string.sub(str_to_split,7,8),16)/255
+    else
+        error("Invalid Color "+str)
+    end
+
+    return {r,g,b,a}
+end
+
 return ch

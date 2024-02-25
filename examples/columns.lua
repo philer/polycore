@@ -4,8 +4,18 @@
 local script_dir = debug.getinfo(1, 'S').source:match("^@(.*/)") or "./"
 package.path = script_dir .. "../?.lua;" .. package.path
 
-local widget = require('src/widget')
+-- load polycore theme as default
+current_theme = require('src/themes/polycore')
+
 local polycore = require('src/polycore')
+local data  = require('src/data')
+local core  = require('src/widgets/core')
+local cpu   = require('src/widgets/cpu')
+local drive = require('src/widgets/drive')
+local gpu   = require('src/widgets/gpu')
+local mem   = require('src/widgets/memory')
+local net   = require('src/widgets/network')
+local text  = require('src/widgets/text')
 
 -- Draw debug information
 DEBUG = false
@@ -15,6 +25,7 @@ local conkyrc = conky or {}
 conkyrc.config = {
     lua_load = script_dir .. "columns.lua",
     lua_startup_hook = "conky_setup",
+    lua_draw_hook_pre = "conky_paint_background",
     lua_draw_hook_post = "conky_update",
 
     update_interval = 1,
@@ -123,45 +134,45 @@ function polycore.setup()
 
     local secondary_text_color = {.72, .72, .71, 1}  -- ~b9b9b7
 
-    local root = widget.Frame(widget.Columns{
-        widget.Rows{
-            widget.Filler{},
-            widget.Cpu{cores=6, inner_radius=28, gap=5, outer_radius=57},
-            widget.Filler{},
+    local root = core.Frame(core.Columns{
+        core.Rows{
+            core.Filler{},
+            cpu.Cpu{cores=6, inner_radius=28, gap=5, outer_radius=57},
+            core.Filler{},
         },
-        widget.Filler{width=10},
-        widget.MemoryGrid{columns=5},
-        widget.Filler{width=20},
-        widget.Rows{
-            widget.CpuFrequencies{cores=6, min_freq=0.75, max_freq=4.3},
-            widget.Filler{},
+        core.Filler{width=10},
+        mem.MemoryGrid{columns=5},
+        core.Filler{width=20},
+        core.Rows{
+            cpu.CpuFrequencies{cores=6, min_freq=0.75, max_freq=4.3},
+            core.Filler{},
         },
-        widget.Filler{width=30},
-        widget.Rows{
-            widget.Filler{height=5},
-            widget.Gpu(),
-            widget.Filler{height=5},
-            widget.GpuTop{lines=5, color=secondary_text_color},
+        core.Filler{width=30},
+        core.Rows{
+            core.Filler{height=5},
+            gpu.Gpu(),
+            core.Filler{height=5},
+            gpu.GpuTop{lines=5, color=secondary_text_color},
         },
-        widget.Filler{width=30},
-        widget.Rows{
-            widget.Filler{height=26},
-            widget.Network{interface="enp0s31f6", downspeed=5 * 1024, upspeed=1024},
+        core.Filler{width=30},
+        core.Rows{
+            core.Filler{height=26},
+            net.Network{interface="enp34s0u1u3u4", downspeed=5 * 1024, upspeed=1024},
         },
-        widget.Filler{width=30},
-        widget.Rows{
-            widget.Drive("/"),
-            widget.Filler{height=-9},
-            widget.Drive("/home"),
-            widget.Filler{height=-9},
-            widget.Drive("/mnt/blackstor"),
+        core.Filler{width=30},
+        core.Rows{
+            drive.Drive("/"),
+            core.Filler{height=-9},
+            drive.Drive("/home"),
+            core.Filler{height=-9},
+	    drive.Drive("/mnt/blackstor")
         },
     }, {
         border_color={0.8, 1, 1, 0.05},
         border_width = 1,
         padding = {40, 20, 20, 10},
     })
-    return widget.Renderer{root=root,
+    return core.Renderer{root=root,
                            width=conkyrc.config.minimum_width,
                            height=conkyrc.config.minimum_height}
 end

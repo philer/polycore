@@ -4,7 +4,8 @@
 local script_dir = debug.getinfo(1, 'S').source:match("^@(.*/)") or "./"
 package.path = script_dir .. "../?.lua;" .. package.path
 
-local widget = require('src/widget')
+local core = require('src/widgets/core')
+local text = require('src/widgets/text')
 
 -- minimal conky.config to run this script again once without opening a window
 local conkyrc = conky or {}
@@ -55,7 +56,7 @@ end
 
 --- Assert that the output of a given renderer matches an existing image.
 -- @string name test name
--- @tparam widget.Renderer renderer
+-- @tparam core.Renderer renderer
 local function check_renderer(name, renderer)
     local out_path = TMP_PREFIX .. name .. ".png"
     local diff_path = TMP_PREFIX .. name .. "_diff.png"
@@ -72,7 +73,7 @@ local frame_opts = {
 
 --- Mock Widget that does nothing but has a background plus border.
 local function dummy(args)
-    return widget.Frame(widget.Filler({width=args.width, height=args.height}), {
+    return core.Frame(core.Filler({width=args.width, height=args.height}), {
         background_color=args.background_color or frame_opts.background_color,
         border_color=args.border_color or frame_opts.border_color,
         border_width=args.border_width or frame_opts.border_width,
@@ -87,41 +88,44 @@ end
 local test = {}
 
 function test.frame()
-    local inner = widget.Frame(widget.Filler{},{
+    local inner = core.Frame(core.Filler{},{
         margin = 2,
         background_color = {1, 0, 0, 0.8},
     })
-    local root = widget.Frame(inner, {
+    local root = core.Frame(inner, {
         margin = {10, 12, 16, 0},
         padding = {0, 8, 12},
         border_width = 12,
         border_color = {1, 1, 1, 1},
         background_color = {0, 0, 0, 1},
     })
-    check_renderer("frame", widget.Renderer{root=root, width=100, height=100})
+    check_renderer("frame", core.Renderer{root=root, width=100, height=100})
 end
 
 function test.group()
-    local root = widget.Rows{
-        widget.Frame(widget.Filler{}, frame_opts),
-        widget.Frame(widget.Filler{width=20}, frame_opts),
-        widget.Frame(widget.Filler{height=20}, frame_opts),
-        widget.Frame(widget.Filler{width=20, height=20}, frame_opts),
+    local root = core.Rows{
+        core.Frame(core.Filler{}, frame_opts),
+        core.Frame(core.Filler{width=20}, frame_opts),
+        core.Frame(core.Filler{height=20}, frame_opts),
+        core.Frame(core.Filler{width=20, height=20}, frame_opts),
     }
-    check_renderer("group", widget.Renderer{root=root, width=40, height=100})
+    check_renderer("group", core.Renderer{root=root, width=40, height=100})
 end
 
 function test.columns()
-    local root = widget.Columns{
-        widget.Frame(widget.Filler{}, frame_opts),
-        widget.Frame(widget.Filler{width=20}, frame_opts),
-        widget.Frame(widget.Filler{height=20}, frame_opts),
-        widget.Frame(widget.Filler{width=20, height=20}, frame_opts),
+    local root = core.Columns{
+        core.Frame(core.Filler{}, frame_opts),
+        core.Frame(core.Filler{width=20}, frame_opts),
+        core.Frame(core.Filler{height=20}, frame_opts),
+        core.Frame(core.Filler{width=20, height=20}, frame_opts),
     }
-    check_renderer("columns", widget.Renderer{root=root, width=100, height=40})
+    check_renderer("columns", core.Renderer{root=root, width=100, height=40})
 end
 
 function test.text()
+    local Frame, Filler, Rows, Columns = core.Frame, core.Filler,
+                                          core.Rows, core.Columns
+    local StaticText = text.StaticText
     local LOREM_IPSUM = [[Lorem ipsum dolor sit amet, consectetur adipiscing elit,
 sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad
 minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea
@@ -130,40 +134,40 @@ esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat
 cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est
 laborum.]]
 
-    local footer = widget.TextLine{align="center"}
+    local footer = text.TextLine{align="center"}
     footer:set_text("Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor in")
 
-    local root = widget.Frame(widget.Rows{
-        widget.StaticText"Simple Text!",
-        widget.StaticText("This text should be centered.", {align="center"}),
-        widget.StaticText("Aligned to the right?", {align="right"}),
+    local root = Frame(Rows{
+        StaticText"Simple Text!",
+        StaticText("This text should be centered.", {align="center"}),
+        StaticText("Aligned to the right?", {align="right"}),
 
-        widget.Filler{height=10},
+        Filler{height=10},
 
         -- paragraph with newlines
-        widget.StaticText(LOREM_IPSUM, {
+        StaticText(LOREM_IPSUM, {
             align="center",
             font_slant=CAIRO_FONT_SLANT_ITALIC,
         }),
 
-        widget.Filler{height=10},
+        Filler{height=10},
 
-        widget.StaticText("Large and Bold and Red", {
+        StaticText("Large and Bold and Red", {
             font_size=20,
             font_weight=CAIRO_FONT_WEIGHT_BOLD,
             color={1, 0, 0, 1},
         }),
 
-        widget.StaticText("Small and Bold and Italic and Green", {
+        StaticText("Small and Bold and Italic and Green", {
             font_size=8,
             font_weight=CAIRO_FONT_WEIGHT_BOLD,
             font_slant=CAIRO_FONT_SLANT_ITALIC,
             color={0, 1, 0, 1},
         }),
 
-        widget.Filler(),
+        Filler(),
 
-        widget.Frame(footer, {
+        Frame(footer, {
             border_sides={"top"},
             border_width=1,
             border_color={1, 1, 1, .5},
@@ -172,7 +176,7 @@ laborum.]]
         padding=2,
         background_color={0, 0, 0, 1},
     })
-    check_renderer("text", widget.Renderer{root=root, width=400, height=200})
+    check_renderer("text", core.Renderer{root=root, width=400, height=200})
 end
 
 function test.complex_layout()

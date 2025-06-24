@@ -3,6 +3,7 @@
 -- @alias ch
 
 pcall(function() require('cairo') end)
+pcall(function() require('cairo_xlib') end)
 
 local util = require('src/util')
 

@@ -4,9 +4,15 @@
 local script_dir = debug.getinfo(1, 'S').source:match("^@(.*/)") or "./"
 package.path = script_dir .. "../?.lua;" .. package.path
 
-local widget = require('src/widget')
+-- load polycore theme as default
+current_theme = require('src/themes/polycore')
+
 local data = require('src/data')
 local polycore = require('src/polycore')
+local core  = require('src/widgets/core')
+local graph = require('src/widgets/graph')
+local text  = require('src/widgets/text')
+
 
 
 local GRAPH_SMOOTHINGS = {0, 0.2, 0.5, 0.7, 1.0}
@@ -20,22 +26,22 @@ function polycore.setup()
     local graphs = {}
     local widgets = {}
     for _, smoothness in ipairs(GRAPH_SMOOTHINGS) do
-        local graph = widget.Graph{
+        local graph = graph.Graph{
             smoothness=smoothness,
             data_points=90,
             max=5 * 1024,
         }
         table.insert(graphs, graph)
 
-        local heading = widget.TextLine{}
+        local heading = text.TextLine{}
         heading:set_text(("Smoothness: %.1f"):format(smoothness))
-        table.insert(widgets, widget.Filler{height=5})
+        table.insert(widgets, core.Filler{height=5})
         table.insert(widgets, heading)
-        table.insert(widgets, widget.Filler{height=4})
+        table.insert(widgets, core.Filler{height=4})
         table.insert(widgets, graph)
     end
 
-    local root = widget.Frame(widget.Rows(widgets), {padding={5, 10, 10}})
+    local root = core.Frame(core.Rows(widgets), {padding={5, 10, 10}})
 
     function root.update()
         local downspeed, _ = data.network_speed("enp0s31f6")
@@ -44,7 +50,7 @@ function polycore.setup()
         end
     end
 
-    return widget.Renderer{root=root, width=width, height=height}
+    return core.Renderer{root=root, width=width, height=height}
 end
 
 

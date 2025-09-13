@@ -1,0 +1,225 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+<head>
+    <title>Reference</title>
+    <link rel="stylesheet" href="../ldoc.css" type="text/css" />
+</head>
+<body>
+
+<div id="container">
+
+<div id="product">
+	<div id="product_logo"></div>
+	<div id="product_name"><big><b></b></big></div>
+	<div id="product_description"></div>
+</div> <!-- id="product" -->
+
+
+<div id="main">
+
+
+<!-- Menu -->
+
+<div id="navigation">
+<br/>
+<h1>polycore</h1>
+
+<ul>
+  <li><a href="../index.html">Index</a></li>
+</ul>
+
+<h2>Contents</h2>
+<ul>
+<li><a href="#Class_MemoryBar">Class MemoryBar </a></li>
+<li><a href="#Class_MemoryGrid">Class MemoryGrid </a></li>
+</ul>
+
+
+<h2>Modules</h2>
+<ul class="nowrap">
+  <li><a href="../modules/cairo_helpers.html">cairo_helpers</a></li>
+  <li><a href="../modules/data.html">data</a></li>
+  <li><a href="../modules/polycore.html">polycore</a></li>
+  <li><a href="../modules/polycore_theme.html">polycore_theme</a></li>
+  <li><a href="../modules/util.html">util</a></li>
+  <li><a href="../modules/widget_core.html">widget_core</a></li>
+  <li><a href="../modules/widget_cpu.html">widget_cpu</a></li>
+  <li><a href="../modules/widget_drive.html">widget_drive</a></li>
+  <li><a href="../modules/widget_gpu.html">widget_gpu</a></li>
+  <li><a href="../modules/widget_graph.html">widget_graph</a></li>
+  <li><strong>widget_memory</strong></li>
+  <li><a href="../modules/widget_network.html">widget_network</a></li>
+  <li><a href="../modules/widget_text.html">widget_text</a></li>
+</ul>
+
+</div>
+
+<div id="content">
+
+<h1>Module <code>widget_memory</code></h1>
+<p>A collection of Widget classes</p>
+<p></p>
+
+
+<h2><a href="#Class_MemoryBar">Class MemoryBar </a></h2>
+<table class="function_list">
+	<tr>
+	<td class="name" nowrap><a href="#MemoryBar:init">MemoryBar:init(args)</a></td>
+	<td class="summary"></td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#MemoryBar:set_used">MemoryBar:set_used(used)</a></td>
+	<td class="summary">Set the amount of used memory as an absolute value.</td>
+	</tr>
+</table>
+<h2><a href="#Class_MemoryGrid">Class MemoryGrid </a></h2>
+<table class="function_list">
+	<tr>
+	<td class="name" nowrap><a href="#MemoryGrid:init">MemoryGrid:init(args)</a></td>
+	<td class="summary"></td>
+	</tr>
+</table>
+
+<br/>
+<br/>
+
+
+    <h2 class="section-header has-description"><a name="Class_MemoryBar"></a>Class MemoryBar </h2>
+
+          <div class="section-description">
+          Specialized unit-based Bar.
+          </div>
+    <dl class="function">
+    <dt>
+    <a name = "MemoryBar:init"></a>
+    <strong>MemoryBar:init(args)</strong>
+    </dt>
+    <dd>
+
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">args</span> table of options
+        <ul>
+        <li><span class="parameter">total</span>
+            <span class="types">optional <span class="type">number</span></span>
+         Total amount of memory to be represented
+                            by this bar. If greater than 8, ticks will be
+                            drawn. If omitted, total RAM will be used,
+                            however no ticks can be drawn.
+        </li>
+        <li><span class="parameter">unit</span>
+            <span class="types"><span class="type">string</span></span>
+         passed to <code>Bar:init</code>
+         (<em>default</em> "GiB")
+        </li>
+        <li><span class="parameter">thickness</span>
+            <span class="types">optional <span class="type">int</span></span>
+         passed to <code>Bar:init</code>
+        </li>
+        <li><span class="parameter">color</span>
+            <span class="types">optional <span class="type">{number,number,number}</span></span>
+         passed to <code>Bar:init</code>
+        </li>
+        </li></ul>
+    </ul>
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "MemoryBar:set_used"></a>
+    <strong>MemoryBar:set_used(used)</strong>
+    </dt>
+    <dd>
+    Set the amount of used memory as an absolute value.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">used</span>
+            <span class="types"><span class="type">number</span></span>
+         should be between 0 and args.total
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
+</dl>
+    <h2 class="section-header has-description"><a name="Class_MemoryGrid"></a>Class MemoryGrid </h2>
+
+          <div class="section-description">
+          Visualize memory usage in a randomized grid.
+ Does not represent actual distribution of used memory.
+ Also shows buffere/cache memory at reduced brightness.
+          </div>
+    <dl class="function">
+    <dt>
+    <a name = "MemoryGrid:init"></a>
+    <strong>MemoryGrid:init(args)</strong>
+    </dt>
+    <dd>
+
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">args</span> table of options
+        <ul>
+        <li><span class="parameter">rows</span>
+            <span class="types">optional <span class="type">int</span></span>
+         Number of rows to draw.
+                        For nil it will be determined based on Widget height.
+        </li>
+        <li><span class="parameter">columns</span>
+            <span class="types">optional <span class="type">int</span></span>
+         Number of columns to draw.
+                           For nil it will be determined based on Widget width.
+        </li>
+        <li><span class="parameter">point_size</span>
+            <span class="types">optional <span class="type">int</span></span>
+         edge length of individual squares
+         (<em>default</em> 2)
+        </li>
+        <li><span class="parameter">gap</span>
+            <span class="types">optional <span class="type">int</span></span>
+         space between squares
+         (<em>default</em> 1)
+        </li>
+        <li><span class="parameter">shuffle</span>
+            <span class="types">optional <span class="type">bool</span></span>
+         randomize?
+         (<em>default</em> true)
+        </li>
+        <li><span class="parameter">color</span>
+            <span class="types">optional <span class="type">{number,number,number}</span></span>
+         (default: <code>default_graph_color</code>)
+        </li>
+        </li></ul>
+    </ul>
+
+
+
+
+
+</dd>
+</dl>
+
+
+</div> <!-- id="content" -->
+</div> <!-- id="main" -->
+<div id="about">
+<i>generated by <a href="http://github.com/stevedonovan/LDoc">LDoc 1.4.6</a></i>
+<i style="float:right;">Last updated 2023-05-06 20:25:17 </i>
+</div> <!-- id="about" -->
+</div> <!-- id="container" -->
+</body>
+</html>

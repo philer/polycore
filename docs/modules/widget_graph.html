@@ -1,0 +1,368 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+<head>
+    <title>Reference</title>
+    <link rel="stylesheet" href="../ldoc.css" type="text/css" />
+</head>
+<body>
+
+<div id="container">
+
+<div id="product">
+	<div id="product_logo"></div>
+	<div id="product_name"><big><b></b></big></div>
+	<div id="product_description"></div>
+</div> <!-- id="product" -->
+
+
+<div id="main">
+
+
+<!-- Menu -->
+
+<div id="navigation">
+<br/>
+<h1>polycore</h1>
+
+<ul>
+  <li><a href="../index.html">Index</a></li>
+</ul>
+
+<h2>Contents</h2>
+<ul>
+<li><a href="#Class_Bar">Class Bar </a></li>
+<li><a href="#Class_Graph">Class Graph </a></li>
+<li><a href="#Class_LED">Class LED </a></li>
+</ul>
+
+
+<h2>Modules</h2>
+<ul class="nowrap">
+  <li><a href="../modules/cairo_helpers.html">cairo_helpers</a></li>
+  <li><a href="../modules/data.html">data</a></li>
+  <li><a href="../modules/polycore.html">polycore</a></li>
+  <li><a href="../modules/polycore_theme.html">polycore_theme</a></li>
+  <li><a href="../modules/util.html">util</a></li>
+  <li><a href="../modules/widget_core.html">widget_core</a></li>
+  <li><a href="../modules/widget_cpu.html">widget_cpu</a></li>
+  <li><a href="../modules/widget_drive.html">widget_drive</a></li>
+  <li><a href="../modules/widget_gpu.html">widget_gpu</a></li>
+  <li><strong>widget_graph</strong></li>
+  <li><a href="../modules/widget_memory.html">widget_memory</a></li>
+  <li><a href="../modules/widget_network.html">widget_network</a></li>
+  <li><a href="../modules/widget_text.html">widget_text</a></li>
+</ul>
+
+</div>
+
+<div id="content">
+
+<h1>Module <code>widget_graph</code></h1>
+<p>A collection of Basic Graph and indicator Widget classes</p>
+<p></p>
+
+
+<h2><a href="#Class_Bar">Class Bar </a></h2>
+<table class="function_list">
+	<tr>
+	<td class="name" nowrap><a href="#Bar:init">Bar:init(args)</a></td>
+	<td class="summary"></td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#Bar:set_fill">Bar:set_fill(fraction)</a></td>
+	<td class="summary">Set the fill-ratio of the bar</td>
+	</tr>
+</table>
+<h2><a href="#Class_Graph">Class Graph </a></h2>
+<table class="function_list">
+	<tr>
+	<td class="name" nowrap><a href="#Graph:init">Graph:init(args)</a></td>
+	<td class="summary"></td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#Graph:add_value">Graph:add_value(value)</a></td>
+	<td class="summary">Append the latest value to be shown - this will displace the oldest value</td>
+	</tr>
+</table>
+<h2><a href="#Class_LED">Class LED </a></h2>
+<table class="function_list">
+	<tr>
+	<td class="name" nowrap><a href="#LED:init">LED:init(args)</a></td>
+	<td class="summary"></td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#LED:set_brightness">LED:set_brightness(brightness)</a></td>
+	<td class="summary"></td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#LED:set_color">LED:set_color(color)</a></td>
+	<td class="summary"></td>
+	</tr>
+</table>
+
+<br/>
+<br/>
+
+
+    <h2 class="section-header has-description"><a name="Class_Bar"></a>Class Bar </h2>
+
+          <div class="section-description">
+          Progress-bar like box, similar to conky's bar.
+ Can have small and big ticks for visual clarity,
+ and a unit (static, up to 3 characters) written behind the end.
+          </div>
+    <dl class="function">
+    <dt>
+    <a name = "Bar:init"></a>
+    <strong>Bar:init(args)</strong>
+    </dt>
+    <dd>
+
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">args</span> table of options
+        <ul>
+        <li><span class="parameter">thickness</span>
+            <span class="types"><span class="type">int</span></span>
+         vertical size of the bar
+         (<em>default</em> 6)
+        </li>
+        <li><span class="parameter">unit</span>
+            <span class="types">optional <span class="type">string</span></span>
+         to be drawn behind the bar - 3 characters will fit
+        </li>
+        <li><span class="parameter">ticks</span>
+            <span class="types">optional <span class="type">{number,...}</span></span>
+         relative offsets (between 0 and 1) of ticks
+        </li>
+        <li><span class="parameter">big_ticks</span>
+            <span class="types">optional <span class="type">int</span></span>
+         multiple of ticks to be drawn longer
+        </li>
+        <li><span class="parameter">color</span>
+            <span class="types">optional <span class="type">string</span></span>
+         a string containing a hex color code (default: <code>default_graph_color</code>)
+        </li>
+        </li></ul>
+    </ul>
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "Bar:set_fill"></a>
+    <strong>Bar:set_fill(fraction)</strong>
+    </dt>
+    <dd>
+    Set the fill-ratio of the bar
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">fraction</span>
+            <span class="types"><span class="type">number</span></span>
+         between 0 and 1
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
+</dl>
+    <h2 class="section-header has-description"><a name="Class_Graph"></a>Class Graph </h2>
+
+          <div class="section-description">
+          Track changing data; similar to conky's graphs.
+          </div>
+    <dl class="function">
+    <dt>
+    <a name = "Graph:init"></a>
+    <strong>Graph:init(args)</strong>
+    </dt>
+    <dd>
+
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">args</span> table of options
+        <ul>
+        <li><span class="parameter">max</span>
+            <span class="types"><span class="type">number</span></span>
+         maximum expected value to be represented;
+                         may be expanded automatically as need arises
+        </li>
+        <li><span class="parameter">data_points</span>
+            <span class="types"><span class="type">int</span></span>
+         how many values to store
+         (<em>default</em> 60)
+        </li>
+        <li><span class="parameter">upside_down</span>
+            <span class="types"><span class="type">bool</span></span>
+         Draw graph from top to bottom?
+         (<em>default</em> false)
+        </li>
+        <li><span class="parameter">smoothness</span>
+            <span class="types"><span class="type">number</span></span>
+         Bézier curves smoothness.
+                                  Set to 0 to draw straight lines instead,
+                                  which may be slightly faster.
+         (<em>default</em> 0.5)
+        </li>
+        <li><span class="parameter">width</span>
+            <span class="types"><span class="type">int</span></span>
+         fix width in pixels
+         (<em>optional</em>)
+        </li>
+        <li><span class="parameter">height</span>
+            <span class="types"><span class="type">int</span></span>
+         fixeheight in pixels
+         (<em>optional</em>)
+        </li>
+        <li><span class="parameter">color</span>
+            <span class="types">optional <span class="type">string</span></span>
+         a string containing a hex color code (default: <code>default_graph_color</code>)
+        </li>
+        </li></ul>
+    </ul>
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "Graph:add_value"></a>
+    <strong>Graph:add_value(value)</strong>
+    </dt>
+    <dd>
+    Append the latest value to be shown - this will displace the oldest value
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">value</span>
+            <span class="types"><span class="type">number</span></span>
+         if value > args.max then the graphs vertical scale will be
+               adjusted, causing it to get squished
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
+</dl>
+    <h2 class="section-header has-description"><a name="Class_LED"></a>Class LED </h2>
+
+          <div class="section-description">
+          Round light indicator for minimalistic feedback.
+          </div>
+    <dl class="function">
+    <dt>
+    <a name = "LED:init"></a>
+    <strong>LED:init(args)</strong>
+    </dt>
+    <dd>
+
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">args</span> table of options
+        <ul>
+        <li><span class="parameter">radius</span>
+            <span class="types"><span class="type">number</span></span>
+         size of the LED
+        </li>
+        <li><span class="parameter">brightness</span>
+            <span class="types"><span class="type">number</span></span>
+         between 0 and 1, how "on" should the LED be?
+                                Can be changed later with <a href="../modules/widget_graph.html#LED:set_brightness">LED:set_brightness</a>
+         (<em>default</em> 0)
+        </li>
+        <li><span class="parameter">color</span>
+            <span class="types">optional <span class="type">string</span></span>
+         color of the LED,
+                                can be changed later with <a href="../modules/widget_graph.html#LED:set_color">LED:set_color</a>.
+                                (default: <code>default_graph_color</code>)
+        </li>
+        <li><span class="parameter">background_color</span>
+            <span class="types">optional <span class="type">string</span></span>
+         mostly visible
+                                when the LED is off. This allows you to choose
+                                a neutral background if you plan on changing
+                                the light color via <a href="../modules/widget_graph.html#LED:set_color">LED:set_color</a>.
+                                (default: darkened <code>args.color</code>)
+        </li>
+        </li></ul>
+    </ul>
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "LED:set_brightness"></a>
+    <strong>LED:set_brightness(brightness)</strong>
+    </dt>
+    <dd>
+
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">brightness</span>
+            <span class="types"><span class="type">number</span></span>
+         between 0 and 1
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "LED:set_color"></a>
+    <strong>LED:set_color(color)</strong>
+    </dt>
+    <dd>
+
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">color</span>
+            <span class="types">optional <span class="type">string</span></span>
+         a string containing a hex color value
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
+</dl>
+
+
+</div> <!-- id="content" -->
+</div> <!-- id="main" -->
+<div id="about">
+<i>generated by <a href="http://github.com/stevedonovan/LDoc">LDoc 1.4.6</a></i>
+<i style="float:right;">Last updated 2023-05-08 12:23:23 </i>
+</div> <!-- id="about" -->
+</div> <!-- id="container" -->
+</body>
+</html>

@@ -4,11 +4,11 @@
 local script_dir = debug.getinfo(1, 'S').source:match("^@(.*/)") or "./"
 package.path = script_dir .. "../?.lua;" .. package.path
 
-local widget = require('src/widget')
 local util = require('src/util')
 local data = require('src/data')
 local polycore = require('src/polycore')
-
+local core  = require('src/widgets/core')
+local cpu   = require('src/widgets/cpu')
 
 local width = 500
 local height = 540
@@ -31,39 +31,39 @@ function polycore.setup()
         end
     end
 
-    local root = widget.Frame(widget.Rows{
-        widget.Columns{
-            widget.Rows{
-                widget.Cpu{cores=6, outer_radius=52, inner_radius=26, gap=5},
-                widget.Filler{height=20},
-                widget.Cpu{cores=10, outer_radius=52, inner_radius=30, gap=3},
+    local root = core.Frame(core.Rows{
+        core.Columns{
+            core.Rows{
+                cpu.Cpu{cores=6, outer_radius=52, inner_radius=26, gap=5},
+                core.Filler{height=20},
+                cpu.Cpu{cores=10, outer_radius=52, inner_radius=30, gap=3},
             },
-            widget.Rows{
-                widget.Cpu{cores=8, outer_radius=52, inner_radius=24, gap=7},
-                widget.Filler{height=20},
-                widget.Cpu{cores=12, outer_radius=52, inner_radius=36, gap=5},
+            core.Rows{
+                cpu.Cpu{cores=8, outer_radius=52, inner_radius=24, gap=7},
+                core.Filler{height=20},
+                cpu.Cpu{cores=12, outer_radius=52, inner_radius=36, gap=5},
             },
-            widget.Filler{width=20},
-            widget.Cpu{cores=6, gap=7, outer_radius=100},
+            core.Filler{width=20},
+            cpu.Cpu{cores=6, gap=7, outer_radius=100},
         },
-        widget.Filler{},
-        widget.Columns{
-            widget.Rows{
-                widget.CpuRound{cores=6, outer_radius=52, inner_radius=26},
-                widget.Filler{height=20},
-                widget.CpuRound{cores=16, outer_radius=52, inner_radius=30},
+        core.Filler{},
+        core.Columns{
+            core.Rows{
+                cpu.CpuRound{cores=6, outer_radius=52, inner_radius=26},
+                core.Filler{height=20},
+                cpu.CpuRound{cores=16, outer_radius=52, inner_radius=30},
             },
-            widget.Rows{
-                widget.CpuRound{cores=6, outer_radius=52, inner_radius=24, grid=5},
-                widget.Filler{height=20},
-                widget.CpuRound{cores=32, outer_radius=52, inner_radius=36, grid=4},
+            core.Rows{
+                cpu.CpuRound{cores=6, outer_radius=52, inner_radius=24, grid=5},
+                core.Filler{height=20},
+                cpu.CpuRound{cores=32, outer_radius=52, inner_radius=36, grid=4},
             },
-            widget.Filler{width=20},
-            widget.CpuRound{cores=64, outer_radius=100, grid=5},
+            core.Filler{width=20},
+            cpu.CpuRound{cores=64, outer_radius=100, grid=5},
         },
 
     }, {padding=20})
-    return widget.Renderer{root=root, width=width, height=height}
+    return core.Renderer{root=root, width=width, height=height}
 end
 
 
